@@ -146,24 +146,6 @@ fun CustomDropDown(
     }
 }
 
-@Composable
-fun CustomHeader(header: String, goBack: () -> Unit, color: Color) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            modifier = Modifier
-                .padding(end = 5.dp)
-                .noRippleClickable(goBack),
-            painter = painterResource(R.drawable.back),
-            contentDescription = "Back",
-            tint = color
-        )
-        Text(
-            text = header,
-            style = MaterialTheme.appTypography.h1
-        )
-    }
-}
-
 data class PaddingSides(
     val start: Dp,
     val top: Dp,
@@ -210,75 +192,6 @@ fun Divider2(padding: Dp = 5.dp) {
             .height(1.dp)
             .background(AppColor.Divider.resolve())
     )
-}
-
-@Composable
-fun CustomSwitch(desc: String, base: Boolean, onClick: (Boolean) -> Unit) {
-    val density = LocalDensity.current
-
-    var checked by remember { mutableStateOf(base) }
-
-    // Animation progress for smooth thumb movement
-    val thumbPosition by animateFloatAsState(
-        targetValue = if (checked) 1f else 0f,
-        label = "Thumb Animation"
-    )
-
-    // Colors
-    val trackColor = if (checked) Color(0xFF00CB7A) else Color(0xFFF03B4A)
-    val thumbColor = Color.White
-
-    val switchWidth = 60.dp
-    val switchHeight = 35.dp
-    val thumbSize = 26.dp
-    val padding = 4.dp
-
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(text = desc)
-        Spacer(Modifier.width(30.dp))
-        Box(
-            modifier = Modifier
-                .size(switchWidth, switchHeight)
-                .noRippleClickable {
-                    onClick(!checked)
-                    checked = !checked
-                },
-            contentAlignment = Alignment.CenterStart
-        ) {
-            Spacer(
-                Modifier
-                    .size(switchWidth * 3 / 4, switchHeight / 3)
-                    .background(trackColor, CircleShape)
-                    .align(Alignment.Center)
-            )
-            Box(
-                modifier = Modifier
-                    .offset { // Move thumb with animation
-                        val maxOffset =
-                            with(density) { (switchWidth - thumbSize - padding * 2).toPx() }
-                        IntOffset((thumbPosition * maxOffset).toInt(), 0)
-                    }
-                    .padding(padding)
-                    .size(thumbSize)
-                    .shadow(
-                        elevation = 3.dp,
-                        shape = CircleShape,
-                        ambientColor = Color.Black,
-                        spotColor = Color.Black,
-                        clip = true
-                    )
-                    .background(thumbColor),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = if (checked) painterResource(R.drawable.check)
-                    else painterResource(R.drawable.close),
-                    contentDescription = null,
-                    tint = trackColor
-                )
-            }
-        }
-    }
 }
 
 @Composable

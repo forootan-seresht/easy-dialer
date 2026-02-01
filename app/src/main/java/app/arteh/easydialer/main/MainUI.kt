@@ -56,14 +56,14 @@ fun MainScreen(
                 .weight(1f)
         ) {
             when (uiState.selectedTab) {
-                0 -> {
+                BottomTab.Contact -> {
                     ContactScreen(contactsVM)
                     contactsVM.load()
                 }
 
-                1 -> DialPadScreen(dialPadVM)
+                BottomTab.Dial -> DialPadScreen(dialPadVM)
 
-                2 -> {
+                BottomTab.CallLog -> {
                     CLogScreen(cLogVM)
                     cLogVM.load()
                 }
@@ -75,34 +75,40 @@ fun MainScreen(
 }
 
 @Composable
-private fun BottomTabs(selectedTab: Int) {
+private fun BottomTabs(selectedTab: BottomTab) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
             modifier = Modifier
                 .height(40.dp)
                 .weight(1f)
-                .noRippleClickable({ mainVM.setPage(0) }),
+                .noRippleClickable({ mainVM.setPage(BottomTab.Contact) }),
             painter = painterResource(R.drawable.contacts),
             contentDescription = "Contact",
-            tint = if (selectedTab == 0) MaterialTheme.colorScheme.primary else AppColor.Gray1.resolve()
+            tint = if (selectedTab == BottomTab.Contact)
+                MaterialTheme.colorScheme.primary
+            else AppColor.Gray1.resolve()
         )
         Icon(
             modifier = Modifier
                 .height(40.dp)
                 .weight(1f)
-                .noRippleClickable({ mainVM.setPage(1) }),
+                .noRippleClickable({ mainVM.setPage(BottomTab.Dial) }),
             painter = painterResource(R.drawable.dial),
             contentDescription = "Dial",
-            tint = if (selectedTab == 1) MaterialTheme.colorScheme.primary else AppColor.Gray1.resolve()
+            tint = if (selectedTab == BottomTab.Dial)
+                MaterialTheme.colorScheme.primary
+            else AppColor.Gray1.resolve()
         )
         Icon(
             modifier = Modifier
                 .height(40.dp)
                 .weight(1f)
-                .noRippleClickable({ mainVM.setPage(2) }),
+                .noRippleClickable({ mainVM.setPage(BottomTab.CallLog) }),
             painter = painterResource(R.drawable.call_log),
             contentDescription = "Call log",
-            tint = if (selectedTab == 2) MaterialTheme.colorScheme.primary else AppColor.Gray1.resolve()
+            tint = if (selectedTab == BottomTab.CallLog)
+                MaterialTheme.colorScheme.primary
+            else AppColor.Gray1.resolve()
         )
     }
 }

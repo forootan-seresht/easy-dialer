@@ -9,7 +9,7 @@ class MainVM() : ViewModel() {
     private var _uiState = MutableStateFlow(UIState())
     val uiState = _uiState.asStateFlow()
 
-    fun setPage(idx: Int) {
+    fun setPage(idx: BottomTab) {
         _uiState.update { it.copy(selectedTab = idx) }
     }
 }

@@ -7,6 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,7 +29,7 @@ import app.arteh.easydialer.ui.theme.appTypography
 fun ContactScreen(contactsVM: ContactsVM) {
     val contacts = contactsVM.items.collectAsStateWithLifecycle().value
 
-    Column {
+    Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         LazyColumn(
             Modifier
                 .fillMaxWidth()
@@ -56,13 +57,13 @@ private fun ItemContact(contact: Contact, reload: () -> Unit) {
             .padding(horizontal = 10.dp, vertical = 5.dp)
             .fillMaxWidth()
             .background(
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surface,
                 RoundedCornerShape(5.dp)
             )
             .padding(10.dp)
             .noRippleClickable({
                 val intent = Intent(context, EditActivity::class.java)
-                intent.putExtra("name", contact.name)
+                intent.putExtra("id", contact.id)
                 editLauncher.launch(intent)
             })
     ) {

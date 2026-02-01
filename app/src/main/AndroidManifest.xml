@@ -22,9 +22,10 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true">
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.Material.NoActionBar">
         <activity
-            android:name=".contacts.edit.EdtActivity"
+            android:name=".contacts.edit.EditActivity"
             android:exported="false" />
         <activity
             android:name=".calling.CallActivity"
