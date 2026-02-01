@@ -6,10 +6,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.json.JSONObject
-import kotlin.collections.iterator
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_prefs")
 
@@ -17,21 +16,25 @@ class PreferencesManager(private val context: Context) {
 
     val SPEED_DIAL_KEY = stringPreferencesKey("speed_dial_map")
 
-    suspend fun saveSpeedDial(slot: Int, entry: SpeedDialEntry) {
+    suspend fun saveSpeedDial(newSlot: Int, oldSlot: Int, entry: SpeedDialEntry) {
         context.dataStore.edit { prefs ->
             val currentJson = prefs[SPEED_DIAL_KEY]
             val map = currentJson?.let { decodeMap(it) } ?: mutableMapOf()
 
-            map[slot] = entry
+            if (oldSlot != -1)
+                map.remove(oldSlot)
+
+            if (newSlot != -1)
+                map[newSlot] = entry
 
             prefs[SPEED_DIAL_KEY] = encodeMap(map)
         }
     }
 
-    suspend fun loadSpeedDIal(): Map<Int, SpeedDialEntry> {
+    fun loadSpeedDIal(): Flow<Map<Int, SpeedDialEntry>> {
         return context.dataStore.data.map { prefs ->
             prefs[SPEED_DIAL_KEY]?.let { decodeMap(it) } ?: emptyMap()
-        }.first()
+        }
     }
 
     fun encodeMap(map: Map<Int, SpeedDialEntry>): String {
@@ -40,7 +43,6 @@ class PreferencesManager(private val context: Context) {
         for ((slot, entry) in map) {
             val obj = JSONObject().apply {
                 put("contactId", entry.contactId)
-                put("phoneDataId", entry.phoneDataId)
                 put("phoneNumber", entry.phoneNumber)
                 put("displayName", entry.displayName)
             }
@@ -61,7 +63,6 @@ class PreferencesManager(private val context: Context) {
 
             val entry = SpeedDialEntry(
                 contactId = obj.getLong("contactId"),
-                phoneDataId = obj.getLong("phoneDataId"),
                 phoneNumber = obj.getString("phoneNumber"),
                 displayName = obj.getString("displayName")
             )

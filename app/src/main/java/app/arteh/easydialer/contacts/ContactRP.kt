@@ -8,13 +8,16 @@ import app.arteh.easydialer.contacts.edit.models.EditableContact
 import app.arteh.easydialer.contacts.show.Contact
 import app.arteh.easydialer.contacts.speed.PreferencesManager
 import app.arteh.easydialer.contacts.speed.SpeedDialEntry
+import kotlinx.coroutines.flow.Flow
 
-class ContactRP {
+class ContactRP(val context: Context) {
     var contactMList = mutableListOf<Contact>()
-    lateinit var speedDialMap: Map<Int, SpeedDialEntry>
+    val prefs = PreferencesManager(context)
+
+    var speedDialMap: Flow<Map<Int, SpeedDialEntry>> = prefs.loadSpeedDIal()
     var lazyKey = 0
 
-    fun loadContacts(context: Context) {
+    fun loadContacts() {
         contactMList = mutableListOf()
 
         val cr = context.contentResolver
@@ -68,7 +71,7 @@ class ContactRP {
         }
     }
 
-    fun findContactByID(context: Context, id: Long): EditableContact {
+    fun findContactByID(id: Long): EditableContact {
         val cr = context.contentResolver
         var contact = EditableContact()
 
@@ -141,14 +144,14 @@ class ContactRP {
         return contact
     }
 
-    suspend fun loadSpeedDialMap(context: Context) {
-        speedDialMap = PreferencesManager(context).loadSpeedDIal()
-    }
-
     fun getContactName(number: String): Pair<String, String> {
         for (contact in contactMList)
             if (contact.phone == number) return (contact.name to contact.phone)
 
         return ("" to "")
+    }
+
+    suspend fun updateSpeedDial(newSlot: Int, oldSlot: Int, speedDialEntry: SpeedDialEntry) {
+        prefs.saveSpeedDial(newSlot, oldSlot, speedDialEntry)
     }
 }

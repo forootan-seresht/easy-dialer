@@ -79,7 +79,7 @@ private fun BottomTabs(selectedTab: BottomTab) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
             modifier = Modifier
-                .height(40.dp)
+                .height(35.dp)
                 .weight(1f)
                 .noRippleClickable({ mainVM.setPage(BottomTab.Contact) }),
             painter = painterResource(R.drawable.contacts),
@@ -90,7 +90,7 @@ private fun BottomTabs(selectedTab: BottomTab) {
         )
         Icon(
             modifier = Modifier
-                .height(40.dp)
+                .height(35.dp)
                 .weight(1f)
                 .noRippleClickable({ mainVM.setPage(BottomTab.Dial) }),
             painter = painterResource(R.drawable.dial),
@@ -101,7 +101,7 @@ private fun BottomTabs(selectedTab: BottomTab) {
         )
         Icon(
             modifier = Modifier
-                .height(40.dp)
+                .height(35.dp)
                 .weight(1f)
                 .noRippleClickable({ mainVM.setPage(BottomTab.CallLog) }),
             painter = painterResource(R.drawable.call_log),

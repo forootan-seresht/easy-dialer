@@ -18,6 +18,7 @@ import app.arteh.easydialer.contacts.ContactRP
 import app.arteh.easydialer.contacts.edit.models.ContactPhone
 import app.arteh.easydialer.contacts.edit.models.EditableContact
 import app.arteh.easydialer.contacts.edit.models.UIState
+import app.arteh.easydialer.contacts.speed.SpeedDialEntry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,7 +29,7 @@ class EditVM(savedStateHandle: SavedStateHandle, application: Application) :
     AndroidViewModel(application) {
 
     val contactID: Long = savedStateHandle.get<Long>("id") ?: error("Contact ID is required")
-    val rp = ContactRP()
+    val rp = ContactRP(application)
 
     private var _uiState = MutableStateFlow(UIState())
     val uiState = _uiState.asStateFlow()
@@ -36,10 +37,26 @@ class EditVM(savedStateHandle: SavedStateHandle, application: Application) :
     private val _contact = MutableStateFlow(EditableContact())
     val contact = _contact.asStateFlow()
 
+    var selectedPhoneIDX: Int = 0
+
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            _contact.emit(rp.findContactByID(application, contactID))
-            rp.loadSpeedDialMap(application)
+            _contact.emit(rp.findContactByID(contactID))
+        }
+
+        viewModelScope.launch {
+            rp.speedDialMap
+                .collect { map ->
+
+                    var slot: Int = -1
+                    for (entry in map)
+                        if (entry.value.contactId == contactID) {
+                            slot = entry.key
+                            break
+                        }
+
+                    _uiState.update { it.copy(speedSlot = slot, speedDialMap = map) }
+                }
         }
     }
 
@@ -66,6 +83,12 @@ class EditVM(savedStateHandle: SavedStateHandle, application: Application) :
 
     fun showAddPhone() {
         _uiState.update { it.copy(showAdd = true) }
+    }
+
+    fun showSpeedDial(phoneIDX: Int) {
+        selectedPhoneIDX = phoneIDX
+
+        _uiState.update { it.copy(showSpeedList = true) }
     }
 
     fun addPhoneNumber(number: String) {
@@ -96,7 +119,7 @@ class EditVM(savedStateHandle: SavedStateHandle, application: Application) :
     }
 
     fun dismissPopup() {
-        _uiState.update { it.copy(showDelete = false, showAdd = false) }
+        _uiState.update { it.copy(showDelete = false, showAdd = false, showSpeedList = false) }
     }
 
     fun deleteContact(context: Context) {
@@ -175,7 +198,28 @@ class EditVM(savedStateHandle: SavedStateHandle, application: Application) :
     }
 
     fun updateSpeedSlot(slot: Int) {
+        viewModelScope.launch {
+            val contactPhone = contact.value.phones[selectedPhoneIDX]
 
+            var oldSlot = -1
+
+            for (entry in uiState.value.speedDialMap) {
+                if (entry.value.contactId == contactID) {
+                    oldSlot = entry.key
+                    break
+                }
+            }
+
+            val entry = SpeedDialEntry(
+                contactID,
+                contactPhone.number,
+                contact.value.fullName
+            )
+
+            rp.updateSpeedDial(slot, oldSlot, entry)
+        }
+
+        dismissPopup()
     }
 
     class Factory(

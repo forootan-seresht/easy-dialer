@@ -138,7 +138,13 @@ fun EditScreen(editVM: EditVM, padding: PaddingSides) {
         Text("Phone Numbers", fontWeight = FontWeight.Bold)
 
         editableContact.phones.forEachIndexed { index, phone ->
-            ItemPhoneNumber(index, phone, editVM::updatePhone, editVM::removePhone)
+            ItemPhoneNumber(
+                index,
+                phone,
+                editVM::updatePhone,
+                editVM::removePhone,
+                editVM::showSpeedDial
+            )
         }
 
         Button(
@@ -175,7 +181,12 @@ fun EditScreen(editVM: EditVM, padding: PaddingSides) {
     if (uiState.showAdd)
         DigAddNumber(editVM::dismissPopup, editVM::addPhoneNumber)
     if (uiState.showSpeedList)
-        DigSpeedDial(editVM.rp.speedDialMap, editVM::dismissPopup, editVM::updateSpeedSlot)
+        DigSpeedDial(
+            uiState.speedSlot,
+            uiState.speedDialMap,
+            editVM::dismissPopup,
+            editVM::updateSpeedSlot
+        )
 }
 
 @Composable
@@ -218,7 +229,8 @@ private fun ItemPhoneNumber(
     index: Int,
     phone: ContactPhone,
     updateNumber: (Int, String) -> Unit,
-    removeNumber: (Int) -> Unit
+    removeNumber: (Int) -> Unit,
+    showSpeedDial: (Int) -> Unit
 ) {
     if (!phone.isDeleted)
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -233,7 +245,16 @@ private fun ItemPhoneNumber(
             IconButton(onClick = { removeNumber(index) }) {
                 Icon(
                     painter = painterResource(R.drawable.delete),
-                    contentDescription = "Remove phone"
+                    contentDescription = "Remove phone",
+                    tint = AppColor.GradRed.resolve()
+                )
+            }
+
+            IconButton(onClick = { showSpeedDial(index) }) {
+                Icon(
+                    painter = painterResource(R.drawable.speed),
+                    contentDescription = "Speed Dial",
+                    tint = AppColor.GradPurple.resolve()
                 )
             }
         }
@@ -285,6 +306,7 @@ fun ContactPhoto(photoUri: Uri?, onPickImage: (Uri?) -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DigSpeedDial(
+    selectedSlot: Int,
     speedMap: Map<Int, SpeedDialEntry>,
     dismissPopup: () -> Unit,
     updateSlot: (Int) -> Unit,
@@ -295,6 +317,23 @@ fun DigSpeedDial(
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ) {
         Column(Modifier.padding(15.dp)) {
+            Row(
+                modifier = Modifier
+                    .padding(5.dp)
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
+                    .noRippleClickable { updateSlot(-1) },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (selectedSlot == -1)
+                    Icon(
+                        painterResource(R.drawable.check),
+                        contentDescription = "Selected",
+                        tint = AppColor.GradGreen.resolve()
+                    )
+                Text(modifier = Modifier.padding(horizontal = 10.dp), text = "None")
+            }
+
             for (i in 0 until 10)
                 Row(
                     modifier = Modifier
@@ -304,7 +343,13 @@ fun DigSpeedDial(
                         .noRippleClickable { updateSlot(i) },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = i.toString())
+                    if (selectedSlot == i)
+                        Icon(
+                            painterResource(R.drawable.check),
+                            contentDescription = "Selected",
+                            tint = AppColor.GradGreen.resolve()
+                        )
+                    Text(modifier = Modifier.padding(horizontal = 15.dp), text = i.toString())
                     Column {
                         if (speedMap[i] != null) {
                             Text(

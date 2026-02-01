@@ -41,10 +41,8 @@ class ContactsVM(application: Application, val contactRP: ContactRP) :
     }
 
     fun loadContacts() {
-        val context = getApplication() as Context
-
         viewModelScope.launch(Dispatchers.IO) {
-            contactRP.loadContacts(context)
+            contactRP.loadContacts()
             _items.emit(contactRP.contactMList)
         }
     }
