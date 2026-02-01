@@ -14,6 +14,29 @@ import kotlinx.coroutines.launch
 
 class CLogVM(application: Application, val contactRP: ContactRP) : AndroidViewModel(application) {
 
+    val rp = ClogRP(application)
+
+    private val _logsFlow = MutableStateFlow<List<Clog>>(emptyList())
+    val logsFlow = _logsFlow.asStateFlow()
+
+    var loaded = false
+
+    fun load() {
+        if (!loaded) {
+            loaded = true
+
+            rp.getSimCards()
+            loadCallLog("")
+        }
+    }
+
+    fun loadCallLog(phone: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val list = rp.loadCallLog(phone, contactRP)
+            _logsFlow.emit(list)
+        }
+    }
+
     class Factory(
         val application: Application,
         val contactRP: ContactRP,
@@ -24,29 +47,6 @@ class CLogVM(application: Application, val contactRP: ContactRP) : AndroidViewMo
                 return CLogVM(application, contactRP) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
-        }
-    }
-
-    val rp = ClogRP()
-
-    private val _items = MutableStateFlow<List<Clog>>(emptyList())
-    val items = _items.asStateFlow()
-
-    var loaded = false
-
-    fun load() {
-        if (!loaded) {
-            loaded = true
-
-            rp.getSimCards(getApplication())
-            loadCallLog("")
-        }
-    }
-
-    fun loadCallLog(phone: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val list = rp.loadCallLog(phone, contactRP, getApplication())
-            _items.emit(list)
         }
     }
 }

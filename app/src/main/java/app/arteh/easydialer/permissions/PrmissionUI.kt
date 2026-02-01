@@ -1,15 +1,10 @@
 package app.arteh.easydialer.permissions
 
 import android.app.Activity
-import android.app.role.RoleManager
-import android.content.Context
-import android.os.Build
-import android.telecom.TelecomManager
 import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -111,7 +106,6 @@ fun PermissionScreen(permissionVM: PermissionVM = viewModel(), modifier: Modifie
             if (row.isVisible.value)
                 PermissionRow(row)
         }
-//        DefaultHandler()
         Spacer(modifier = Modifier.weight(1f))
 
         Box {
@@ -148,79 +142,6 @@ fun PermissionScreen(permissionVM: PermissionVM = viewModel(), modifier: Modifie
                     ),
             )
         }
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.Q)
-@Composable
-private fun DefaultHandler() {
-    val context = LocalContext.current
-    val activity = context as? Activity
-
-    val roleManager =
-        activity!!.getSystemService(RoleManager::class.java)
-
-    if (roleManager.isRoleHeld(RoleManager.ROLE_DIALER)) {
-        val telecomManager =
-            context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
-
-        if (context.packageName == telecomManager.defaultDialerPackage)
-            return
-    }
-
-    Column(
-        Modifier
-            .padding(top = 10.dp)
-            .fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp, horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-            Text(
-                modifier = Modifier
-                    .padding(horizontal = 10.dp)
-                    .weight(1f),
-                text = "Default Dialer",
-                style = MaterialTheme.appTypography.h3
-            )
-
-            Box(
-                modifier = Modifier
-                    .shadow(
-                        elevation = 5.dp,
-                        shape = MaterialTheme.shapes.extraSmall,
-                        ambientColor = Color.Black,
-                        spotColor = Color.Black
-                    )
-                    .background(colorResource(R.color.colorPrimary))
-                    .clickable {
-                        if (roleManager.isRoleAvailable(RoleManager.ROLE_DIALER)) {
-                            val intent =
-                                roleManager.createRequestRoleIntent(RoleManager.ROLE_DIALER)
-                            activity.startActivity(intent)
-                        }
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    modifier = Modifier
-                        .size(dimensionResource(R.dimen.permission_lock))
-                        .padding(10.dp),
-                    painter = painterResource(R.drawable.unlock2),
-                    contentDescription = "Arrow",
-                )
-            }
-        }
-
-        Text(
-            modifier = Modifier.padding(horizontal = 15.dp),
-            text = "Set this app as default dialer",
-            style = MaterialTheme.appTypography.desc
-        )
     }
 }
 

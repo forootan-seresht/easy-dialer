@@ -51,6 +51,16 @@ class PermissionVM() : ViewModel() {
             R.string.read_contact_permission_desc,
             Manifest.permission.READ_CONTACTS,
         ),
+        PermissionRow(
+            R.string.read_log_permission,
+            R.string.read_log_permission_desc,
+            Manifest.permission.READ_CALL_LOG,
+        ),
+        PermissionRow(
+            R.string.write_log_permission,
+            R.string.write_log_permission_desc,
+            Manifest.permission.WRITE_CALL_LOG,
+        ),
     )
 
     fun checkStatus(context: Context): Boolean {
@@ -97,16 +107,21 @@ class PermissionVM() : ViewModel() {
             flag = false
         }
 
-//        val roleManager = context.getSystemService(Context.ROLE_SERVICE) as RoleManager
-//        if (roleManager.isRoleHeld(RoleManager.ROLE_DIALER))
-//            flag = false
-//        else {
-//            val telecomManager =
-//                context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
-//
-//            if (context.packageName != telecomManager.defaultDialerPackage)
-//                flag = false
-//        }
+        //for Read call log
+        if (PermissionChecker.ReadCallLogPermission(context))
+            permissions[5].isVisible.value = false
+        else {
+            permissions[5].isVisible.value = true
+            flag = false
+        }
+
+        //for Write call log
+        if (PermissionChecker.WriteCallLogPermission(context))
+            permissions[6].isVisible.value = false
+        else {
+            permissions[6].isVisible.value = true
+            flag = false
+        }
 
         if (flag) next = true
 

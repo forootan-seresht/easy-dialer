@@ -2,7 +2,6 @@ package app.arteh.easydialer.clog
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
 import android.provider.CallLog
@@ -15,19 +14,22 @@ import app.arteh.easydialer.clog.models.SimCard
 import app.arteh.easydialer.contacts.ContactRP
 import org.json.JSONException
 import org.json.JSONObject
+import java.text.SimpleDateFormat
+import java.util.Date
 import kotlin.math.min
 
-class ClogRP {
+class ClogRP(val context: Context) {
+
     lateinit var sim1: SimCard
     lateinit var sim2: SimCard
 
     var lazyKey = 0
 
-    fun getSimCards(application: Application) {
-        val localSubscriptionManager = SubscriptionManager.from(application)
-        val tm = application.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
+    fun getSimCards() {
+        val localSubscriptionManager = SubscriptionManager.from(context)
+        val tm = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
         if (ActivityCompat.checkSelfPermission(
-                application,
+                context,
                 Manifest.permission.READ_PHONE_STATE
             ) == PackageManager.PERMISSION_GRANTED
         )
@@ -81,51 +83,67 @@ class ClogRP {
     }
 
     @SuppressLint("Range")
-    fun loadCallLog(phone: String, contactRP: ContactRP, application: Application): List<Clog> {
+    fun loadCallLog(phone: String, contactRP: ContactRP): List<Clog> {
         val logMList = mutableListOf<Clog>()
 
         try {
             val projection = arrayOf(
                 CallLog.Calls.NUMBER,
+                CallLog.Calls.CACHED_NORMALIZED_NUMBER,
                 CallLog.Calls.TYPE,
                 CallLog.Calls.DATE,
                 CallLog.Calls.PHONE_ACCOUNT_ID,
+                CallLog.Calls.CACHED_NAME
             )
 
+            val sort = CallLog.Calls.DATE + " Desc"
             val allCalls = "content://call_log/calls".toUri()
 
             val cursor = if (phone.isEmpty())
-                application.contentResolver.query(allCalls, projection, null, null, null)
+                context.contentResolver.query(allCalls, projection, null, null, sort)
             else
-                application.contentResolver.query(
+                context.contentResolver.query(
                     allCalls, projection,
-                    CallLog.Calls.NUMBER + " like ?", arrayOf("%$phone%"), null
+                    CallLog.Calls.NUMBER + " like ?", arrayOf("%$phone%"), sort
                 )
 
             if (cursor != null) {
-                cursor.moveToLast()
-
                 val min = min(cursor.count, 100)
 
                 for (i in 0..<min) {
+                    cursor.moveToPosition(i)
+
+                    val cachedNumber =
+                        cursor.getString(cursor.getColumnIndex(CallLog.Calls.CACHED_NORMALIZED_NUMBER))
                     val number = cursor.getString(cursor.getColumnIndex(CallLog.Calls.NUMBER))
-                    val pair: Pair<String, String> = contactRP.getContactName(number)
+
+                    val contact = contactRP.getContactName(cachedNumber)
                     val simdID =
                         getSimSlot(cursor.getString(cursor.getColumnIndex(CallLog.Calls.PHONE_ACCOUNT_ID)))
                     val date = cursor.getLong(cursor.getColumnIndex(CallLog.Calls.DATE))
                     val status = cursor.getInt(cursor.getColumnIndex(CallLog.Calls.TYPE))
 
-                    logMList.add(Clog(pair.first, number, status, date, simdID, lazyKey++))
+                    logMList.add(Clog(contact, number, status, getDate(date), simdID, lazyKey++))
                 }
 
                 cursor.close()
             }
-
 
         } catch (e: Exception) {
             e.printStackTrace()
         }
 
         return logMList.toList()
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    fun getDate(millis: Long): String {
+        val date = Date()
+        date.time = millis
+
+        val fDate = SimpleDateFormat("yyyy MMM d").format(date)
+        val time = fDate.split(" ")
+
+        return time[1] + " " + time[2]
     }
 }

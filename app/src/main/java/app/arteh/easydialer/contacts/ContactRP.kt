@@ -17,6 +17,10 @@ class ContactRP(val context: Context) {
     var speedDialMap: Flow<Map<Int, SpeedDialEntry>> = prefs.loadSpeedDIal()
     var lazyKey = 0
 
+    init {
+        loadContacts()
+    }
+
     fun loadContacts() {
         contactMList = mutableListOf()
 
@@ -144,11 +148,11 @@ class ContactRP(val context: Context) {
         return contact
     }
 
-    fun getContactName(number: String): Pair<String, String> {
+    fun getContactName(normalizedNumber: String): Contact? {
         for (contact in contactMList)
-            if (contact.phone == number) return (contact.name to contact.phone)
+            if (contact.phone.endsWith(normalizedNumber)) return contact
 
-        return ("" to "")
+        return null
     }
 
     suspend fun updateSpeedDial(newSlot: Int, oldSlot: Int, speedDialEntry: SpeedDialEntry) {

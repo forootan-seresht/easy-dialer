@@ -17,7 +17,7 @@ object PermissionChecker {
         else true
     }
 
-    fun ReadCallGPermission(context: Context): Boolean {
+    fun ReadCallLogPermission(context: Context): Boolean {
         return context.checkSelfPermission(Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED
     }
 
@@ -29,7 +29,7 @@ object PermissionChecker {
         return context.checkSelfPermission(Manifest.permission.PROCESS_OUTGOING_CALLS) == PackageManager.PERMISSION_GRANTED
     }
 
-    fun WriteCallGPermission(context: Context): Boolean {
+    fun WriteCallLogPermission(context: Context): Boolean {
         return context.checkSelfPermission(Manifest.permission.WRITE_CALL_LOG) == PackageManager.PERMISSION_GRANTED
     }
 
