@@ -10,7 +10,7 @@ import app.arteh.easydialer.contacts.speed.PreferencesManager
 import app.arteh.easydialer.contacts.speed.SpeedDialEntry
 import kotlinx.coroutines.flow.Flow
 
-class ContactRP(val context: Context) {
+class ContactRP(private val context: Context) {
     var contactMList = mutableListOf<Contact>()
     val prefs = PreferencesManager(context)
 
@@ -29,11 +29,12 @@ class ContactRP(val context: Context) {
         val columns: Array<String> = arrayOf(
             ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
             ContactsContract.Contacts.DISPLAY_NAME,
-            ContactsContract.CommonDataKinds.Phone.NUMBER,
-            ContactsContract.CommonDataKinds.Phone.CONTACT_LAST_UPDATED_TIMESTAMP,
-            ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI,
 
-            ContactsContract.RawContacts.ACCOUNT_NAME
+            ContactsContract.RawContacts.ACCOUNT_NAME,
+            ContactsContract.CommonDataKinds.Phone.NUMBER,
+
+            ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI,
+            ContactsContract.PhoneLookup.PHOTO_URI,
         )
 
         val cursor = cr.query(
@@ -43,18 +44,30 @@ class ContactRP(val context: Context) {
 
         if (cursor != null)
             try {
+                val IDIndex =
+                    cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)
+                val nameIndex = cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
+                val accountIndex =
+                    cursor.getColumnIndex(ContactsContract.RawContacts.ACCOUNT_NAME)
+                val numberIndex =
+                    cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                val thumbIndex =
+                    cursor.getColumnIndex(ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI)
+                val photoIndex = cursor.getColumnIndex(ContactsContract.PhoneLookup.PHOTO_URI)
+
                 while (cursor.moveToNext()) {
-                    val type = cursor.getString(5)
+
+                    val type = cursor.getString(accountIndex)
                     if (type != null && type.contains("sim", true))
                         continue
 
-                    val id = cursor.getLong(0)
-                    val name = cursor.getString(1)
-                    val number = cursor.getString(2).replace(" ", "")
-                    val date = cursor.getLong(3)
-                    val photoURI = cursor.getString(4)?.toUri()
+                    val id = cursor.getLong(IDIndex)
+                    val name = cursor.getString(nameIndex)
+                    val number = cursor.getString(numberIndex).replace(" ", "")
+                    val thumbURI = cursor.getString(thumbIndex)?.toUri()
+                    val photoURI = cursor.getString(photoIndex)?.toUri()
 
-                    val contact = Contact(id, name, number, date, photoURI, lazyKey++)
+                    val contact = Contact(id, name, number, thumbURI, photoURI, lazyKey++)
                     contactMList.add(contact)
                 }
             } finally {
@@ -148,7 +161,7 @@ class ContactRP(val context: Context) {
         return contact
     }
 
-    fun getContactName(normalizedNumber: String): Contact? {
+    fun getContactByNumber(normalizedNumber: String): Contact? {
         for (contact in contactMList)
             if (contact.phone.endsWith(normalizedNumber)) return contact
 
