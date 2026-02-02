@@ -48,7 +48,10 @@ class CallVM(application: Application) : AndroidViewModel(application) {
                         }
 
                         Call.STATE_ACTIVE,
-                        Call.STATE_DISCONNECTED -> stopRingtone()
+                        Call.STATE_DISCONNECTED -> {
+                            _uiState.update { it.copy(state = CallState.Rejected) }
+                            stopRingtone()
+                        }
                     }
                 }
             }

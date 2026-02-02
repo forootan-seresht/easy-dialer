@@ -66,6 +66,7 @@ fun CallContent() {
     when (uiState.state) {
         CallState.Incoming -> IncomingCallUI(uiState.phoneNumber, uiState.contact)
         CallState.Calling -> {}
+        CallState.Rejected -> (context as Activity).finish()
     }
 }
 
