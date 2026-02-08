@@ -121,9 +121,11 @@ private fun ItemCallLog(idx: Int, log: Clog) {
                 )
             }
 
-        Column(Modifier
-            .padding(horizontal = 10.dp)
-            .weight(1f)) {
+        Column(
+            Modifier
+                .padding(horizontal = 10.dp)
+                .weight(1f)
+        ) {
             if (log.contact == null)
                 Text(text = log.number, fontWeight = FontWeight.Bold)
             else {
