@@ -123,7 +123,7 @@ private fun ItemContact(contact: Contact, color: Color, char: Char, reload: () -
         if (bitmap != null)
             Image(
                 modifier = Modifier
-                    .size(45.dp)
+                    .size(60.dp)
                     .clip(CircleShape),
                 bitmap = bitmap!!,
                 contentDescription = null
@@ -131,7 +131,7 @@ private fun ItemContact(contact: Contact, color: Color, char: Char, reload: () -
         else
             Box(
                 modifier = Modifier
-                    .size(45.dp)
+                    .size(60.dp)
                     .background(color, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
