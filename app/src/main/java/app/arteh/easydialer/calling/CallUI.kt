@@ -43,7 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.arteh.easydialer.R
 import app.arteh.easydialer.calling.models.CallState
-import app.arteh.easydialer.contacts.show.Contact
+import app.arteh.easydialer.contacts.show.models.Contact
 import app.arteh.easydialer.dial.DialPadGrid
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor

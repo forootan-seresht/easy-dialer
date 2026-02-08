@@ -1,6 +1,6 @@
 package app.arteh.easydialer.clog.models
 
-import app.arteh.easydialer.contacts.show.Contact
+import app.arteh.easydialer.contacts.show.models.Contact
 
 data class Clog(
     val contact: Contact?,

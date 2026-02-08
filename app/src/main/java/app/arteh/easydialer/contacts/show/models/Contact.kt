@@ -1,4 +1,4 @@
-package app.arteh.easydialer.contacts.show
+package app.arteh.easydialer.contacts.show.models
 
 import android.net.Uri
 

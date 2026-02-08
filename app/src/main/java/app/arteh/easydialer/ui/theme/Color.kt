@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 enum class AppColor(val light: Color, val dark: Color) {
-    BackTrans(Color(0xFFF6F8FF), Color(0xFF424349)),
+    BackTrans(Color(0xFFF6F8FF), Color(0xFF161618)),
     Gray1(Color(0xFFA2A2A2), Color(0xFFABABAB)),
     Divider(Color(0xFFE8E8E8), Color(0xFF474747)),
     Icons(Color(0xFF868686), Color(0xFFABABAB)),
