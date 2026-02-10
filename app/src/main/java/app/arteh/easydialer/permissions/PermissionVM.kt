@@ -3,8 +3,12 @@ package app.arteh.easydialer.permissions
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -68,7 +72,7 @@ class PermissionVM() : ViewModel() {
         var flag = true
 
         //for notif
-        if (PermissionChecker.NotificationPermission(context))
+        if (notificationPermission(context))
             permissions[0].isVisible.value = false
         else {
             permissions[0].isVisible.value = true
@@ -76,7 +80,7 @@ class PermissionVM() : ViewModel() {
         }
 
         //for READ_PHONE_STATE
-        if (PermissionChecker.ReadPhoneSPermission(context))
+        if (readPhoneSPermission(context))
             permissions[1].isVisible.value = false
         else {
             permissions[1].isVisible.value = true
@@ -84,7 +88,7 @@ class PermissionVM() : ViewModel() {
         }
 
         //for PROCESS_OUTGOING_CALLS
-        if (PermissionChecker.MakeCallPermission(context))
+        if (makeCallPermission(context))
             permissions[2].isVisible.value = false
         else {
             permissions[2].isVisible.value = true
@@ -92,7 +96,7 @@ class PermissionVM() : ViewModel() {
         }
 
         //for WRITE_CONTACTS
-        if (PermissionChecker.WriteContactPermission(context))
+        if (writeContactPermission(context))
             permissions[3].isVisible.value = false
         else {
             permissions[3].isVisible.value = true
@@ -100,7 +104,7 @@ class PermissionVM() : ViewModel() {
         }
 
         //for Read_CONTACTS
-        if (PermissionChecker.ReadContactPermission(context))
+        if (readContactPermission(context))
             permissions[4].isVisible.value = false
         else {
             permissions[4].isVisible.value = true
@@ -108,7 +112,7 @@ class PermissionVM() : ViewModel() {
         }
 
         //for Read call log
-        if (PermissionChecker.ReadCallLogPermission(context))
+        if (readCallLogPermission(context))
             permissions[5].isVisible.value = false
         else {
             permissions[5].isVisible.value = true
@@ -116,7 +120,7 @@ class PermissionVM() : ViewModel() {
         }
 
         //for Write call log
-        if (PermissionChecker.WriteCallLogPermission(context))
+        if (writeCallLogPermission(context))
             permissions[6].isVisible.value = false
         else {
             permissions[6].isVisible.value = true
@@ -135,5 +139,52 @@ class PermissionVM() : ViewModel() {
 
             (context as Activity).finish()
         }
+    }
+
+    fun notificationPermission(context: Context): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        }
+        else true
+    }
+
+    fun createNotificationChannel(context: Context) {
+        if (notificationPermission(context)) {
+            val notificationManager: NotificationManager =
+                context.getSystemService(NotificationManager::class.java)
+            if (notificationManager.getNotificationChannel("CHANNEL_ID") != null) return
+
+            val name: CharSequence = context.getString(R.string.channel_name)
+            val description = context.getString(R.string.channel_description)
+            val importance: Int = NotificationManager.IMPORTANCE_DEFAULT
+
+            val channel: NotificationChannel = NotificationChannel("10", name, importance)
+            channel.description = description
+            notificationManager.createNotificationChannel(channel)
+        }
+    }
+
+    fun readCallLogPermission(context: Context): Boolean {
+        return context.checkSelfPermission(Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED
+    }
+
+    fun readPhoneSPermission(context: Context): Boolean {
+        return context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED
+    }
+
+    fun makeCallPermission(context: Context): Boolean {
+        return context.checkSelfPermission(Manifest.permission.PROCESS_OUTGOING_CALLS) == PackageManager.PERMISSION_GRANTED
+    }
+
+    fun writeCallLogPermission(context: Context): Boolean {
+        return context.checkSelfPermission(Manifest.permission.WRITE_CALL_LOG) == PackageManager.PERMISSION_GRANTED
+    }
+
+    fun writeContactPermission(context: Context): Boolean {
+        return context.checkSelfPermission(Manifest.permission.WRITE_CONTACTS) == PackageManager.PERMISSION_GRANTED
+    }
+
+    fun readContactPermission(context: Context): Boolean {
+        return context.checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED
     }
 }
