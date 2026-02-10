@@ -6,9 +6,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import app.arteh.easydialer.contacts.ContactRP
+import app.arteh.easydialer.contacts.show.models.Contact
+import app.arteh.easydialer.contacts.show.models.UIState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ContactsVM(application: Application, val contactRP: ContactRP) :
@@ -16,6 +19,9 @@ class ContactsVM(application: Application, val contactRP: ContactRP) :
 
     private val _items = MutableStateFlow<Map<ContactHeader, List<Contact>>>(emptyMap())
     val items = _items.asStateFlow()
+
+    private val _uiState = MutableStateFlow(UIState())
+    val uiState = _uiState.asStateFlow()
 
     var loaded = false
 
@@ -31,6 +37,10 @@ class ContactsVM(application: Application, val contactRP: ContactRP) :
             val map = contactRP.loadContacts()
             _items.emit(map)
         }
+    }
+
+    fun updateSearchText(text: String) {
+        _uiState.update { it.copy(searchText = text) }
     }
 
     class Factory(

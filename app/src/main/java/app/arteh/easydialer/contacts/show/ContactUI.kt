@@ -18,8 +18,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -33,37 +36,103 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.arteh.easydialer.R
 import app.arteh.easydialer.contacts.edit.EditActivity
+import app.arteh.easydialer.contacts.show.models.Contact
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
 import app.arteh.easydialer.ui.theme.appTypography
 
 @Composable
 fun ContactScreen(contactsVM: ContactsVM) {
-    val contacts = contactsVM.items.collectAsStateWithLifecycle().value
-
     Column(
         Modifier
             .fillMaxSize()
             .background(AppColor.BackTrans.resolve())
     ) {
-        LazyColumn(
-            Modifier
+        SearchBar(contactsVM)
+        ContactList(
+            contactsVM, Modifier
                 .fillMaxWidth()
                 .weight(1f)
-        ) {
-            contacts.forEach { (header, data) ->
-                stickyHeader {
-                    itemHeader(header.char)
-                }
+        )
+    }
+}
 
-                items(data, key = { it.key }) {
-                    ItemContact(it, header.color, header.char, contactsVM::loadContacts)
-                }
+@Composable
+private fun SearchBar(contactsVM: ContactsVM) {
+    val uiState = contactsVM.uiState.collectAsStateWithLifecycle().value
+
+    Row(
+        modifier = Modifier
+            .padding(vertical = 5.dp, horizontal = 10.dp)
+            .fillMaxWidth()
+            .background(AppColor.LayerBack.resolve(), CircleShape)
+            .padding(horizontal = 5.dp)
+            .noRippleClickable({}),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (uiState.searchText.isEmpty())
+            Icon(
+                modifier = Modifier
+                    .size(35.dp)
+                    .padding(5.dp),
+                painter = painterResource(R.drawable.search),
+                contentDescription = null,
+                tint = AppColor.Icons.resolve()
+            )
+        else
+            Icon(
+                modifier = Modifier
+                    .size(35.dp)
+                    .padding(5.dp)
+                    .noRippleClickable { contactsVM.updateSearchText("") },
+                painter = painterResource(R.drawable.close),
+                contentDescription = null,
+                tint = AppColor.Icons.resolve()
+            )
+        TextField(
+            modifier = Modifier.weight(1f),
+            value = uiState.searchText,
+            onValueChange = { contactsVM.updateSearchText(it) },
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+            ),
+            placeholder = {
+                Text(text = "Search Contacts")
+            })
+        Icon(
+            modifier = Modifier
+                .size(35.dp)
+                .padding(5.dp)
+                .noRippleClickable({}),
+            painter = painterResource(R.drawable.add_contact),
+            contentDescription = "Add Contact",
+            tint = AppColor.Icons.resolve()
+        )
+    }
+}
+
+@Composable
+private fun ContactList(contactsVM: ContactsVM, modifier: Modifier) {
+    val contacts = contactsVM.items.collectAsStateWithLifecycle().value
+
+    LazyColumn(modifier) {
+        contacts.forEach { (header, data) ->
+            stickyHeader {
+                itemHeader(header.char)
+            }
+
+            items(data, key = { it.key }) {
+                ItemContact(it, header.color, header.char, contactsVM::loadContacts)
             }
         }
     }
@@ -110,7 +179,7 @@ private fun ItemContact(contact: Contact, color: Color, char: Char, reload: () -
             .fillMaxWidth()
             .background(
                 color = MaterialTheme.colorScheme.surface,
-                RoundedCornerShape(5.dp)
+                RoundedCornerShape(10.dp)
             )
             .padding(10.dp)
             .noRippleClickable({
