@@ -4,6 +4,7 @@ import android.app.Application
 import android.app.role.RoleManager
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import app.arteh.easydialer.XiaomiUtilities
 import app.arteh.easydialer.clog.CLogVM
 import app.arteh.easydialer.contacts.ContactRP
 import app.arteh.easydialer.contacts.show.ContactsVM
@@ -23,6 +25,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (!isMiuiCanDisplayOverlay())
+            openMiuiDisplayOverlayPermission()
 
         checkRole()
         val appContext = this.applicationContext as Application
@@ -79,4 +84,26 @@ class MainActivity : ComponentActivity() {
             startActivityForResult(intent, 1)
         }
     }
+
+    fun isMiuiCanDisplayOverlay(): Boolean {
+        val utility = XiaomiUtilities()
+        if (utility.isMIUI())
+            return utility.isCustomPermissionGranted(this, utility.OP_BACKGROUND_START_ACTIVITY)
+        return true
+    }
+
+    fun openMiuiDisplayOverlayPermission() {
+        val utility = XiaomiUtilities()
+        try {
+            utility.getPermissionManagerIntent(this)
+
+        } catch (e: Exception) {
+            Log.d(
+                "LOG_TAG",
+                "Cannot open Miui Display Pop-up window while running in background $e"
+            )
+        }
+    }
+
+
 }
