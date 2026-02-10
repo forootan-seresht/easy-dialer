@@ -23,10 +23,12 @@ class SplashActivity : ComponentActivity() {
         ) {
             val intent = Intent(this, PermissionActivity::class.java)
             startActivity(intent)
+            finish()
         }
         else {
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
+            finish()
         }
     }
 }

@@ -1,6 +1,8 @@
 package app.arteh.easydialer.calling.service
 
 import android.content.Intent
+import android.os.Handler
+import android.os.Looper
 import android.telecom.Call
 import android.telecom.InCallService
 import app.arteh.easydialer.calling.CallActivity
@@ -38,8 +40,10 @@ class MyInCallService : InCallService() {
 
         // Launch call UI
         val intent = Intent(this, CallActivity::class.java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        startActivity(intent)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK  or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        Handler(Looper.getMainLooper()).post {
+            startActivity(intent)
+        }
     }
 
     override fun onCallRemoved(call: Call) {

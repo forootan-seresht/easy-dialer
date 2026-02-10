@@ -30,9 +30,11 @@
         <activity
             android:name=".calling.CallActivity"
             android:exported="true"
-            android:showWhenLocked="true"
             android:taskAffinity=""
-            android:turnScreenOn="true">
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.PROCESS_OUTGOING_CALL" />
                 <action android:name="android.intent.action.CALL" />
