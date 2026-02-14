@@ -1,18 +1,18 @@
 [versions]
-agp = "9.0.0"
+agp = "9.0.1"
 accompanistPermissions = "0.37.3"
 constraintlayoutCompose = "1.1.1"
 coreSplashscreen = "1.2.0"
 datastorePreferences = "1.2.0"
 imagecropview = "3.1.1"
-kotlin = "2.3.0"
+kotlin = "2.3.10"
 coreKtx = "1.17.0"
 lifecycleRuntimeKtx = "2.10.0"
-activityCompose = "1.12.0"
-composeBom = "2025.11.01"
-runtime = "1.10.0"
+activityCompose = "1.12.4"
+composeBom = "2026.02.00"
+runtime = "1.10.3"
 appcompat = "1.7.1"
-navigationComposeAndroid = "2.9.6"
+navigationAndroid = "2.9.7"
 
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
@@ -36,7 +36,7 @@ androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-man
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 imagecropview = { module = "io.github.rroohit:ImageCropView", version.ref = "imagecropview" }
-androidx-navigation-compose-android = { group = "androidx.navigation", name = "navigation-compose-android", version.ref = "navigationComposeAndroid" }
+androidx-navigation-compose-android = { group = "androidx.navigation", name = "navigation-compose-android", version.ref = "navigationAndroid" }
 androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 
