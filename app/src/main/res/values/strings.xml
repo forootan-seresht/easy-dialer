@@ -20,4 +20,8 @@
     <string name="write_contact_permission_desc" translatable="false">To add contacts</string>
     <string name="read_contact_permission" translatable="false">Grant Read Contact Permission</string>
     <string name="read_contact_permission_desc" translatable="false">To read contacts</string>
+    <string name="def_dialer_permission" translatable="false">Set as default dialer</string>
+    <string name="def_dialer_permission_desc" translatable="false">To set this app as default dialer</string>
+    <string name="miui_overlay_permission" translatable="false">Show on lockScreen</string>
+    <string name="miui_overlay_permission_desc" translatable="false">To Show on lockScreen in miui launcher</string>
 </resources>
