@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -36,7 +35,6 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Lifecycle
@@ -44,12 +42,12 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.arteh.easydialer.R
+import app.arteh.easydialer.ui.PaddingSides
 import app.arteh.easydialer.ui.noRippleClickable
-import app.arteh.easydialer.ui.theme.EasyDialer
 import app.arteh.easydialer.ui.theme.appTypography
 
 @Composable
-fun PermissionScreen(permissionVM: PermissionVM = viewModel(), modifier: Modifier) {
+fun PermissionScreen(permissionVM: PermissionVM = viewModel(), padding: PaddingSides) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -65,7 +63,14 @@ fun PermissionScreen(permissionVM: PermissionVM = viewModel(), modifier: Modifie
     }
 
     Column(
-        modifier = modifier,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(
+                start = padding.start,
+                top = padding.top,
+                end = padding.end,
+                bottom = padding.bottom
+            ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
@@ -104,7 +109,16 @@ fun PermissionScreen(permissionVM: PermissionVM = viewModel(), modifier: Modifie
 
         permissionVM.permissions.forEachIndexed { idx, row ->
             if (row.isVisible.value)
-                PermissionRow(row)
+                when (row.type) {
+                    PermissionType.General -> GeneralPermissionItem(row)
+                    PermissionType.MiuiOverlay -> PermissionItem(
+                        row,
+                        { permissionVM.openMiuiDisplayOverlayPermission(context) })
+
+                    PermissionType.DefDialer -> PermissionItem(
+                        row,
+                        { permissionVM.requestDefaultDialer(context) })
+                }
         }
         Spacer(modifier = Modifier.weight(1f))
 
@@ -146,7 +160,7 @@ fun PermissionScreen(permissionVM: PermissionVM = viewModel(), modifier: Modifie
 }
 
 @Composable
-private fun PermissionRow(row: PermissionVM.PermissionRow) {
+private fun GeneralPermissionItem(row: PermissionRow) {
     val context = LocalContext.current
     val activity = context as Activity
 
@@ -173,71 +187,49 @@ private fun PermissionRow(row: PermissionVM.PermissionRow) {
             }
         }
 
-    Column(
-        Modifier
-            .padding(top = 10.dp)
-            .fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp, horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-            Text(
-                modifier = Modifier
-                    .padding(horizontal = 10.dp)
-                    .weight(1f),
-                text = stringResource(row.title),
-                style = MaterialTheme.appTypography.h3
-            )
-
-            Box(
-                modifier = Modifier
-                    .shadow(
-                        elevation = 5.dp,
-                        shape = MaterialTheme.shapes.extraSmall,
-                        ambientColor = Color.Black,
-                        spotColor = Color.Black
-                    )
-                    .background(colorResource(R.color.colorPrimary))
-                    .clickable { permissionLauncher.launch(row.permission) },
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    modifier = Modifier
-                        .size(dimensionResource(R.dimen.permission_lock))
-                        .padding(10.dp),
-                    painter = painterResource(R.drawable.unlock2),
-                    contentDescription = "Arrow",
-                )
-            }
-        }
-
-        Text(
-            modifier = Modifier.padding(horizontal = 15.dp),
-            text = stringResource(row.body),
-            style = MaterialTheme.appTypography.desc
-        )
-    }
+    PermissionItem(row) { permissionLauncher.launch(row.permission) }
 }
 
-@Preview(
-    showBackground = true,
-    name = "Light Preview"
-)
 @Composable
-private fun prev() {
-    EasyDialer(darkTheme = false) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
+private fun PermissionItem(
+    row: PermissionRow,
+    action: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp, horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(
+                text = stringResource(row.title),
+                style = MaterialTheme.appTypography.h4
+            )
+
+            Text(
+                text = stringResource(row.body),
+                style = MaterialTheme.appTypography.desc
+            )
+        }
+        Box(
+            modifier = Modifier
+                .shadow(
+                    elevation = 5.dp,
+                    shape = MaterialTheme.shapes.extraSmall,
+                    ambientColor = Color.Black,
+                    spotColor = Color.Black
+                )
+                .background(colorResource(R.color.colorPrimary))
+                .clickable(onClick = action),
+            contentAlignment = Alignment.Center
         ) {
-            PermissionScreen(
+            Image(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(vertical = 16.dp)
+                    .size(dimensionResource(R.dimen.permission_lock))
+                    .padding(10.dp),
+                painter = painterResource(R.drawable.unlock2),
+                contentDescription = "Arrow",
             )
         }
     }

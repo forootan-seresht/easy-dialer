@@ -3,128 +3,94 @@ package app.arteh.easydialer.permissions
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.NotificationChannel
-import android.app.NotificationManager
+import android.app.role.RoleManager
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.compose.runtime.MutableState
+import android.telecom.TelecomManager
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import app.arteh.easydialer.R
+import app.arteh.easydialer.XiaomiUtilities
 import app.arteh.easydialer.main.MainActivity
 
-class PermissionVM() : ViewModel() {
+class PermissionVM : ViewModel() {
 
     var next by mutableStateOf(false)
-
-    data class PermissionRow(
-        val title: Int,
-        val body: Int,
-        val permission: String,
-        var isVisible: MutableState<Boolean> = mutableStateOf(false)
-    )
+    val permissionChecker = PermissionChecker()
 
     @SuppressLint("InlinedApi")
-    val permissions = listOf<PermissionRow>(
+    val permissions = listOf(
         PermissionRow(
             R.string.notif_permission,
             R.string.notif_permission_desc,
             Manifest.permission.POST_NOTIFICATIONS,
+            checkerFunction = permissionChecker::NotificationPermission
         ),
         PermissionRow(
             R.string.read_state_permission,
             R.string.read_state_permission,
             Manifest.permission.READ_PHONE_STATE,
+            checkerFunction = permissionChecker::ReadPhoneSPermission
         ),
         PermissionRow(
             R.string.make_call_permission,
             R.string.make_call_permission_desc,
             Manifest.permission.PROCESS_OUTGOING_CALLS,
+            checkerFunction = permissionChecker::MakeCallPermission
         ),
         PermissionRow(
             R.string.write_contact_permission,
             R.string.write_contact_permission_desc,
             Manifest.permission.WRITE_CONTACTS,
+            checkerFunction = permissionChecker::WriteContactPermission
         ),
         PermissionRow(
             R.string.read_contact_permission,
             R.string.read_contact_permission_desc,
             Manifest.permission.READ_CONTACTS,
+            checkerFunction = permissionChecker::ReadContactPermission
         ),
         PermissionRow(
             R.string.read_log_permission,
             R.string.read_log_permission_desc,
             Manifest.permission.READ_CALL_LOG,
+            checkerFunction = permissionChecker::ReadCallLogPermission
         ),
         PermissionRow(
             R.string.write_log_permission,
             R.string.write_log_permission_desc,
             Manifest.permission.WRITE_CALL_LOG,
+            checkerFunction = permissionChecker::WriteCallLogPermission
+        ),
+        PermissionRow(
+            R.string.def_dialer_permission,
+            R.string.def_dialer_permission_desc,
+            "",
+            PermissionType.DefDialer,
+            checkerFunction = permissionChecker::isDefaultDialer
+        ),
+        PermissionRow(
+            R.string.miui_overlay_permission,
+            R.string.miui_overlay_permission_desc,
+            "",
+            PermissionType.MiuiOverlay,
+            checkerFunction = permissionChecker::isMiuiCanDisplayOverlay
         ),
     )
 
     fun checkStatus(context: Context): Boolean {
-
         var flag = true
 
-        //for notif
-        if (notificationPermission(context))
-            permissions[0].isVisible.value = false
-        else {
-            permissions[0].isVisible.value = true
-            flag = false
-        }
-
-        //for READ_PHONE_STATE
-        if (readPhoneSPermission(context))
-            permissions[1].isVisible.value = false
-        else {
-            permissions[1].isVisible.value = true
-            flag = false
-        }
-
-        //for PROCESS_OUTGOING_CALLS
-        if (makeCallPermission(context))
-            permissions[2].isVisible.value = false
-        else {
-            permissions[2].isVisible.value = true
-            flag = false
-        }
-
-        //for WRITE_CONTACTS
-        if (writeContactPermission(context))
-            permissions[3].isVisible.value = false
-        else {
-            permissions[3].isVisible.value = true
-            flag = false
-        }
-
-        //for Read_CONTACTS
-        if (readContactPermission(context))
-            permissions[4].isVisible.value = false
-        else {
-            permissions[4].isVisible.value = true
-            flag = false
-        }
-
-        //for Read call log
-        if (readCallLogPermission(context))
-            permissions[5].isVisible.value = false
-        else {
-            permissions[5].isVisible.value = true
-            flag = false
-        }
-
-        //for Write call log
-        if (writeCallLogPermission(context))
-            permissions[6].isVisible.value = false
-        else {
-            permissions[6].isVisible.value = true
-            flag = false
+        permissions.forEachIndexed { index, row ->
+            if (row.checkerFunction(context))
+                permissions[index].isVisible.value = false
+            else {
+                permissions[index].isVisible.value = true
+                flag = false
+            }
         }
 
         if (flag) next = true
@@ -141,50 +107,35 @@ class PermissionVM() : ViewModel() {
         }
     }
 
-    fun notificationPermission(context: Context): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
-        }
-        else true
-    }
-
-    fun createNotificationChannel(context: Context) {
-        if (notificationPermission(context)) {
-            val notificationManager: NotificationManager =
-                context.getSystemService(NotificationManager::class.java)
-            if (notificationManager.getNotificationChannel("CHANNEL_ID") != null) return
-
-            val name: CharSequence = context.getString(R.string.channel_name)
-            val description = context.getString(R.string.channel_description)
-            val importance: Int = NotificationManager.IMPORTANCE_DEFAULT
-
-            val channel: NotificationChannel = NotificationChannel("10", name, importance)
-            channel.description = description
-            notificationManager.createNotificationChannel(channel)
+    fun openMiuiDisplayOverlayPermission(context: Context) {
+        try {
+            XiaomiUtilities().getPermissionManagerIntent(context)
+        } catch (e: Exception) {
+            Log.d(
+                "LOG_TAG",
+                "Cannot open Miui Display Pop-up window while running in background $e"
+            )
         }
     }
 
-    fun readCallLogPermission(context: Context): Boolean {
-        return context.checkSelfPermission(Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED
+    fun requestDefaultDialer(context: Context) {
+        val roleManager = context.getSystemService(RoleManager::class.java)
+
+        if (roleManager.isRoleAvailable(RoleManager.ROLE_DIALER)) {
+            val intent = roleManager.createRequestRoleIntent(RoleManager.ROLE_DIALER)
+            context.startActivity(intent)
+        }
     }
 
-    fun readPhoneSPermission(context: Context): Boolean {
-        return context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED
-    }
-
-    fun makeCallPermission(context: Context): Boolean {
-        return context.checkSelfPermission(Manifest.permission.PROCESS_OUTGOING_CALLS) == PackageManager.PERMISSION_GRANTED
-    }
-
-    fun writeCallLogPermission(context: Context): Boolean {
-        return context.checkSelfPermission(Manifest.permission.WRITE_CALL_LOG) == PackageManager.PERMISSION_GRANTED
-    }
-
-    fun writeContactPermission(context: Context): Boolean {
-        return context.checkSelfPermission(Manifest.permission.WRITE_CONTACTS) == PackageManager.PERMISSION_GRANTED
-    }
-
-    fun readContactPermission(context: Context): Boolean {
-        return context.checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED
+    private fun requestDefaultHandler(context: Context) {
+        val intent = Intent(TelecomManager.ACTION_CHANGE_DEFAULT_DIALER)
+        intent.putExtra(
+            TelecomManager.EXTRA_CHANGE_DEFAULT_DIALER_PACKAGE_NAME,
+            context.packageName
+        )
+        if (intent.resolveActivity(context.packageManager) != null)
+            context.startActivity(intent)
+        else
+            throw RuntimeException("Default phone functionality not found")
     }
 }

@@ -4,22 +4,31 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import app.arteh.easydialer.main.MainActivity
 import app.arteh.easydialer.permissions.PermissionActivity
 import app.arteh.easydialer.permissions.PermissionChecker
 
 class SplashActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        val splashScreen = installSplashScreen()
+        splashScreen.setKeepOnScreenCondition { true }
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        val permissionChecker = PermissionChecker()
+
         if (
-            !PermissionChecker.MakeCallPermission(this) ||
-            !PermissionChecker.ReadPhoneSPermission(this) ||
-            !PermissionChecker.ReadCallLogPermission(this) ||
-            !PermissionChecker.WriteCallLogPermission(this) ||
-            !PermissionChecker.WriteContactPermission(this) ||
-            !PermissionChecker.ReadContactPermission(this)
+            !permissionChecker.MakeCallPermission(this) ||
+            !permissionChecker.ReadPhoneSPermission(this) ||
+            !permissionChecker.ReadCallLogPermission(this) ||
+            !permissionChecker.WriteCallLogPermission(this) ||
+            !permissionChecker.WriteContactPermission(this) ||
+            !permissionChecker.ReadContactPermission(this) ||
+            !permissionChecker.isDefaultDialer(this) ||
+            !permissionChecker.isMiuiCanDisplayOverlay(this)
         ) {
             val intent = Intent(this, PermissionActivity::class.java)
             startActivity(intent)
