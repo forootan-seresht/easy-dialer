@@ -13,7 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import app.arteh.easydialer.R
-import app.arteh.easydialer.XiaomiUtilities
+import app.arteh.easydialer.utility.XiaomiUtilities
 import app.arteh.easydialer.main.MainActivity
 
 class PermissionVM : ViewModel() {
@@ -123,7 +123,7 @@ class PermissionVM : ViewModel() {
 
         if (roleManager.isRoleAvailable(RoleManager.ROLE_DIALER)) {
             val intent = roleManager.createRequestRoleIntent(RoleManager.ROLE_DIALER)
-            context.startActivity(intent)
+            (context as Activity).startActivityForResult(intent, 1)
         }
     }
 

@@ -7,7 +7,7 @@ import android.content.Context.TELECOM_SERVICE
 import android.content.pm.PackageManager
 import android.os.Build
 import android.telecom.TelecomManager
-import app.arteh.easydialer.XiaomiUtilities
+import app.arteh.easydialer.utility.XiaomiUtilities
 
 class PermissionChecker {
     fun NotificationPermission(context: Context): Boolean {
