@@ -1,4 +1,4 @@
-package app.arteh.easydialer
+package app.arteh.easydialer.utility
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -10,6 +10,7 @@ import app.arteh.easydialer.contacts.speed.SpeedDialEntry
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.json.JSONObject
+import kotlin.collections.iterator
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_prefs")
 

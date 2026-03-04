@@ -1,4 +1,4 @@
-package app.arteh.easydialer
+package app.arteh.easydialer.utility
 
 import androidx.compose.ui.graphics.Color
 

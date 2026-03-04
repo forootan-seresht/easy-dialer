@@ -1,4 +1,4 @@
-package app.arteh.easydialer
+package app.arteh.easydialer.utility
 
 import android.annotation.SuppressLint
 import android.app.AppOpsManager
