@@ -34,7 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import app.arteh.easydialer.Holder
+import app.arteh.easydialer.utility.Holder
 import app.arteh.easydialer.R
 import app.arteh.easydialer.clog.models.Clog
 import app.arteh.easydialer.ui.theme.AppColor
