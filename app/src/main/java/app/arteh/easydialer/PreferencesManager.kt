@@ -1,4 +1,4 @@
-package app.arteh.easydialer.contacts.speed
+package app.arteh.easydialer
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import app.arteh.easydialer.contacts.speed.SpeedDialEntry
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.json.JSONObject

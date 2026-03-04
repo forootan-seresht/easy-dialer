@@ -8,7 +8,7 @@ import app.arteh.easydialer.contacts.edit.models.ContactPhone
 import app.arteh.easydialer.contacts.edit.models.EditableContact
 import app.arteh.easydialer.contacts.show.models.Contact
 import app.arteh.easydialer.contacts.show.ContactHeader
-import app.arteh.easydialer.contacts.speed.PreferencesManager
+import app.arteh.easydialer.PreferencesManager
 import app.arteh.easydialer.contacts.speed.SpeedDialEntry
 import kotlinx.coroutines.flow.Flow
 

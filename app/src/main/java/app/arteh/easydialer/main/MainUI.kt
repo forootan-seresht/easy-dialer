@@ -17,7 +17,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.arteh.easydialer.R
 import app.arteh.easydialer.clog.CLogScreen
-import app.arteh.easydialer.clog.CLogVM
+import app.arteh.easydialer.clog.CallLogVM
 import app.arteh.easydialer.contacts.show.ContactScreen
 import app.arteh.easydialer.contacts.show.ContactsVM
 import app.arteh.easydialer.dial.DialPadScreen
@@ -33,7 +33,7 @@ private lateinit var mainVM: MainVM
 fun MainScreen(
     vm: MainVM = viewModel(),
     contactsVM: ContactsVM,
-    cLogVM: CLogVM,
+    callLogVM: CallLogVM,
     dialPadVM: DialPadVM,
     padding: PaddingSides
 ) {
@@ -64,8 +64,8 @@ fun MainScreen(
                 BottomTab.Dial -> DialPadScreen(dialPadVM)
 
                 BottomTab.CallLog -> {
-                    CLogScreen(cLogVM)
-                    cLogVM.load()
+                    CLogScreen(callLogVM)
+                    callLogVM.load()
                 }
             }
         }

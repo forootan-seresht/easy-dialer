@@ -41,9 +41,9 @@ import app.arteh.easydialer.ui.theme.AppColor
 import app.arteh.easydialer.ui.theme.appTypography
 
 @Composable
-fun CLogScreen(cLogVM: CLogVM) {
+fun CLogScreen(callLogVM: CallLogVM) {
 
-    val callLogs = cLogVM.logsFlow.collectAsStateWithLifecycle().value
+    val callLogs = callLogVM.logsFlow.collectAsStateWithLifecycle().value
 
     Column() {
         LazyColumn() {

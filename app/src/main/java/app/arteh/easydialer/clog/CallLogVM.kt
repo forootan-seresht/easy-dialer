@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class CLogVM(application: Application, val contactRP: ContactRP) : AndroidViewModel(application) {
+class CallLogVM(application: Application, val contactRP: ContactRP) : AndroidViewModel(application) {
 
     val rp = ClogRP(application)
 
@@ -43,8 +43,8 @@ class CLogVM(application: Application, val contactRP: ContactRP) : AndroidViewMo
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(CLogVM::class.java)) {
-                return CLogVM(application, contactRP) as T
+            if (modelClass.isAssignableFrom(CallLogVM::class.java)) {
+                return CallLogVM(application, contactRP) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }
