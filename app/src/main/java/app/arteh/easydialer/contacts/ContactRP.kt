@@ -3,29 +3,42 @@ package app.arteh.easydialer.contacts
 import android.content.Context
 import android.provider.ContactsContract
 import androidx.core.net.toUri
-import app.arteh.easydialer.utility.Holder
 import app.arteh.easydialer.contacts.edit.models.ContactPhone
 import app.arteh.easydialer.contacts.edit.models.EditableContact
-import app.arteh.easydialer.contacts.show.models.Contact
 import app.arteh.easydialer.contacts.show.ContactHeader
-import app.arteh.easydialer.utility.PreferencesManager
+import app.arteh.easydialer.contacts.show.models.Contact
 import app.arteh.easydialer.contacts.speed.SpeedDialEntry
+import app.arteh.easydialer.utility.Holder
+import app.arteh.easydialer.utility.PreferencesManager
 import kotlinx.coroutines.flow.Flow
 
 class ContactRP(private val context: Context) {
 
-    var contactMList = mutableListOf<Contact>()
+    var contactList = listOf<Contact>()
     val prefs = PreferencesManager(context)
 
     var speedDialMap: Flow<Map<Int, SpeedDialEntry>> = prefs.loadSpeedDIal()
     var lazyKey = 0
 
     init {
-        loadContacts()
+        contactList = queryContacts("")
     }
 
-    fun loadContacts(): Map<ContactHeader, List<Contact>> {
-        contactMList = mutableListOf()
+    fun loadContacts(name: String): Map<ContactHeader, List<Contact>> {
+        val contactMList = queryContacts(name)
+
+        return contactMList.sortedBy { it.name }.groupBy { contact ->
+            val firstChar = contact.name.firstOrNull()?.uppercaseChar() ?: '#'
+
+            // Logic to pick a color based on the character
+            val headerColor = Holder.colors[firstChar.toInt() % 7]
+
+            ContactHeader(char = firstChar, color = headerColor)
+        }
+    }
+
+    fun queryContacts(name: String): List<Contact> {
+        val contactMList = mutableListOf<Contact>()
 
         val cr = context.contentResolver
 
@@ -41,41 +54,41 @@ class ContactRP(private val context: Context) {
         )
 
         val cursor = cr.query(
-            ContactsContract.CommonDataKinds.Phone.CONTENT_URI, columns, null, null,
+            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+            columns,
+            ContactsContract.Contacts.DISPLAY_NAME + " Like '%$name%'",
+            null,
             ContactsContract.CommonDataKinds.Phone.CONTACT_ID
         )
 
-        if (cursor != null)
-            try {
-                val IDIndex =
-                    cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)
-                val nameIndex = cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
-                val accountIndex =
-                    cursor.getColumnIndex(ContactsContract.RawContacts.ACCOUNT_NAME)
-                val numberIndex =
-                    cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
-                val thumbIndex =
-                    cursor.getColumnIndex(ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI)
-                val photoIndex = cursor.getColumnIndex(ContactsContract.PhoneLookup.PHOTO_URI)
+        cursor?.use { cursor ->
+            val IDIndex =
+                cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)
+            val nameIndex = cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
+            val accountIndex =
+                cursor.getColumnIndex(ContactsContract.RawContacts.ACCOUNT_NAME)
+            val numberIndex =
+                cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+            val thumbIndex =
+                cursor.getColumnIndex(ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI)
+            val photoIndex = cursor.getColumnIndex(ContactsContract.PhoneLookup.PHOTO_URI)
 
-                while (cursor.moveToNext()) {
+            while (cursor.moveToNext()) {
 
-                    val type = cursor.getString(accountIndex)
-                    if (type != null && type.contains("sim", true))
-                        continue
+                val type = cursor.getString(accountIndex)
+                if (type != null && type.contains("sim", true))
+                    continue
 
-                    val id = cursor.getLong(IDIndex)
-                    val name = cursor.getString(nameIndex)
-                    val number = cursor.getString(numberIndex).replace(" ", "")
-                    val thumbURI = cursor.getString(thumbIndex)?.toUri()
-                    val photoURI = cursor.getString(photoIndex)?.toUri()
+                val id = cursor.getLong(IDIndex)
+                val name = cursor.getString(nameIndex)
+                val number = cursor.getString(numberIndex).replace(" ", "")
+                val thumbURI = cursor.getString(thumbIndex)?.toUri()
+                val photoURI = cursor.getString(photoIndex)?.toUri()
 
-                    val contact = Contact(id, name, number, thumbURI, photoURI, lazyKey++)
-                    contactMList.add(contact)
-                }
-            } finally {
-                cursor.close()
+                val contact = Contact(id, name, number, thumbURI, photoURI, lazyKey++)
+                contactMList.add(contact)
             }
+        }
 
         //find and delete repeated phone
         var count = contactMList.size
@@ -90,14 +103,7 @@ class ContactRP(private val context: Context) {
             j++
         }
 
-        return contactMList.sortedBy { it.name }.groupBy { contact ->
-            val firstChar = contact.name.firstOrNull()?.uppercaseChar() ?: '#'
-
-            // Logic to pick a color based on the character
-            val headerColor = Holder.colors[firstChar.toInt() % 7]
-
-            ContactHeader(char = firstChar, color = headerColor)
-        }
+        return contactMList
     }
 
     fun findContactByID(id: Long): EditableContact {
@@ -174,7 +180,7 @@ class ContactRP(private val context: Context) {
     }
 
     fun getContactByNumber(normalizedNumber: String): Contact? {
-        for (contact in contactMList)
+        for (contact in contactList)
             if (contact.phone.endsWith(normalizedNumber)) return contact
 
         return null
