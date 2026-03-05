@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import app.arteh.easydialer.ui.EdgePadding
 import app.arteh.easydialer.ui.theme.EasyDialer
 
-class EditActivity : ComponentActivity() {
+class EditContactActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
