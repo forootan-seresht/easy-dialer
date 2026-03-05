@@ -11,14 +11,14 @@ import androidx.core.app.ActivityCompat
 import androidx.core.net.toUri
 import app.arteh.easydialer.clog.models.Clog
 import app.arteh.easydialer.clog.models.SimCard
-import app.arteh.easydialer.contacts.ContactRP
+import app.arteh.easydialer.utility.Holder
 import org.json.JSONException
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Date
 import kotlin.math.min
 
-class ClogRP(val context: Context) {
+class CallLogRP(val context: Context) {
 
     lateinit var sim1: SimCard
     lateinit var sim2: SimCard
@@ -83,7 +83,7 @@ class ClogRP(val context: Context) {
     }
 
     @SuppressLint("Range")
-    fun loadCallLog(phone: String, contactRP: ContactRP): List<Clog> {
+    fun loadCallLog(phone: String): List<Clog> {
         val logMList = mutableListOf<Clog>()
 
         try {
@@ -117,7 +117,7 @@ class ClogRP(val context: Context) {
                         cursor.getString(cursor.getColumnIndex(CallLog.Calls.CACHED_NORMALIZED_NUMBER))
                     val number = cursor.getString(cursor.getColumnIndex(CallLog.Calls.NUMBER))
 
-                    val contact = contactRP.getContactByNumber(cachedNumber)
+                    val contact = Holder.contactRP.getContactByNumber(cachedNumber)
                     val simdID =
                         getSimSlot(cursor.getString(cursor.getColumnIndex(CallLog.Calls.PHONE_ACCOUNT_ID)))
                     val date = cursor.getLong(cursor.getColumnIndex(CallLog.Calls.DATE))
