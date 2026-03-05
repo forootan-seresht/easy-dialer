@@ -25,16 +25,21 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.NoActionBar">
         <activity
+            android:name=".contacts.show.ContactActivity"
+            android:exported="false"
+            android:label="@string/title_activity_contact"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+        <activity
             android:name=".contacts.edit.EditContactActivity"
             android:exported="false" />
         <activity
             android:name=".calling.CallActivity"
-            android:exported="true"
-            android:taskAffinity=""
-            android:showWhenLocked="true"
-            android:turnScreenOn="true"
             android:excludeFromRecents="true"
-            android:launchMode="singleTask">
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:showWhenLocked="true"
+            android:taskAffinity=""
+            android:turnScreenOn="true">
             <intent-filter>
                 <action android:name="android.intent.action.PROCESS_OUTGOING_CALL" />
                 <action android:name="android.intent.action.CALL" />
