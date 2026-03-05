@@ -12,20 +12,20 @@ import app.arteh.easydialer.utility.Holder
 import app.arteh.easydialer.utility.PreferencesManager
 import kotlinx.coroutines.flow.Flow
 
-class ContactRP(private val context: Context) {
-
+class ContactRP {
+    private lateinit var prefs: PreferencesManager
     var contactList = listOf<Contact>()
-    val prefs = PreferencesManager(context)
 
     var speedDialMap: Flow<Map<Int, SpeedDialEntry>> = prefs.loadSpeedDIal()
     var lazyKey = 0
 
-    init {
-        contactList = queryContacts("")
+    fun initialize(context: Context){
+        prefs = PreferencesManager(context)
+        contactList = queryContacts("", context)
     }
 
-    fun loadContacts(name: String): Map<ContactHeader, List<Contact>> {
-        val contactMList = queryContacts(name)
+    fun loadContacts(name: String, context: Context): Map<ContactHeader, List<Contact>> {
+        val contactMList = queryContacts(name, context)
 
         return contactMList.sortedBy { it.name }.groupBy { contact ->
             val firstChar = contact.name.firstOrNull()?.uppercaseChar() ?: '#'
@@ -37,7 +37,7 @@ class ContactRP(private val context: Context) {
         }
     }
 
-    fun queryContacts(name: String): List<Contact> {
+    fun queryContacts(name: String, context: Context): List<Contact> {
         val contactMList = mutableListOf<Contact>()
 
         val cr = context.contentResolver
@@ -106,7 +106,7 @@ class ContactRP(private val context: Context) {
         return contactMList
     }
 
-    fun findContactByID(id: Long): EditableContact {
+    fun findContactByID(id: Long, context: Context): EditableContact {
         val cr = context.contentResolver
         var contact = EditableContact()
 

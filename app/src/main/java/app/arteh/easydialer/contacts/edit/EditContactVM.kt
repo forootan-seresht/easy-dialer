@@ -9,27 +9,21 @@ import android.net.Uri
 import android.provider.ContactsContract
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.CreationExtras
-import app.arteh.easydialer.contacts.ContactRP
 import app.arteh.easydialer.contacts.edit.models.ContactPhone
 import app.arteh.easydialer.contacts.edit.models.EditContactAction
 import app.arteh.easydialer.contacts.edit.models.EditableContact
 import app.arteh.easydialer.contacts.edit.models.UIState
 import app.arteh.easydialer.contacts.speed.SpeedDialEntry
+import app.arteh.easydialer.utility.Holder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class EditContactVM(savedStateHandle: SavedStateHandle, application: Application) :
+class EditContactVM(application: Application, savedStateHandle: SavedStateHandle) :
     AndroidViewModel(application) {
-
-    val rp = ContactRP(application)
 
     private var _uiState = MutableStateFlow(UIState())
     val uiState = _uiState.asStateFlow()
@@ -41,22 +35,20 @@ class EditContactVM(savedStateHandle: SavedStateHandle, application: Application
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            _contact.emit(rp.findContactByID(contactID))
+            _contact.emit(Holder.contactRP.findContactByID(contactID, application))
         }
 
         viewModelScope.launch {
-            rp.speedDialMap
-                .collect { map ->
+            Holder.contactRP.speedDialMap.collect { map ->
+                var slot: Int = -1
+                for (entry in map)
+                    if (entry.value.contactId == contactID) {
+                        slot = entry.key
+                        break
+                    }
 
-                    var slot: Int = -1
-                    for (entry in map)
-                        if (entry.value.contactId == contactID) {
-                            slot = entry.key
-                            break
-                        }
-
-                    _uiState.update { it.copy(speedSlot = slot, speedDialMap = map) }
-                }
+                _uiState.update { it.copy(speedSlot = slot, speedDialMap = map) }
+            }
         }
     }
 
@@ -233,23 +225,11 @@ class EditContactVM(savedStateHandle: SavedStateHandle, application: Application
                 contact.value.fullName
             )
 
-            rp.updateSpeedDial(slot, oldSlot, entry)
+            Holder.contactRP.updateSpeedDial(slot, oldSlot, entry)
         }
 
         dismissPopup()
     }
 
     val contactID: Long = savedStateHandle.get<Long>("id") ?: error("Contact ID is required")
-
-    class Factory(
-        val application: Application,
-    ) : ViewModelProvider.Factory {
-
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
-            val savedStateHandle = extras.createSavedStateHandle()
-
-            return EditContactVM(savedStateHandle, application) as T
-        }
-    }
 }

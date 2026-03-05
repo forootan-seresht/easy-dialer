@@ -12,6 +12,7 @@ import app.arteh.easydialer.calling.models.CallState
 import app.arteh.easydialer.calling.models.UIState
 import app.arteh.easydialer.calling.service.MyInCallService
 import app.arteh.easydialer.contacts.ContactRP
+import app.arteh.easydialer.utility.Holder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -25,11 +26,12 @@ class CallVM(application: Application) : AndroidViewModel(application) {
     private var ringtone: Ringtone? = null
     private lateinit var call: Call
 
-    val rp = ContactRP(application)
-
     var isFirstTime = true
 
     init {
+        if (Holder.contactRP.contactList.isEmpty())
+            Holder.contactRP.initialize(application)
+
         viewModelScope.launch {
             MyInCallService.callState.collect { info ->
                 if (info != null) {
@@ -63,7 +65,7 @@ class CallVM(application: Application) : AndroidViewModel(application) {
     }
 
     fun getContact(normalizedNumber: String) {
-        val contact = rp.getContactByNumber(normalizedNumber)
+        val contact = Holder.contactRP.getContactByNumber(normalizedNumber)
         _uiState.update { it.copy(contact = contact) }
     }
 

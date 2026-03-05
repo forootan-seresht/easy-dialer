@@ -12,14 +12,14 @@ import app.arteh.easydialer.contacts.edit.EditContactActivity
 import app.arteh.easydialer.contacts.list.models.Contact
 import app.arteh.easydialer.contacts.list.models.ContactHeader
 import app.arteh.easydialer.contacts.list.models.UIState
+import app.arteh.easydialer.utility.Holder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class ContactsVM(application: Application, val contactRP: ContactRP) :
-    AndroidViewModel(application) {
+class ContactsVM(application: Application) : AndroidViewModel(application) {
 
     private val _items = MutableStateFlow<Map<ContactHeader, List<Contact>>>(emptyMap())
     val items = _items.asStateFlow()
@@ -40,7 +40,7 @@ class ContactsVM(application: Application, val contactRP: ContactRP) :
 
     private fun searchContact(name: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            val map = contactRP.loadContacts(name)
+            val map = Holder.contactRP.loadContacts(name, getApplication())
             _items.emit(map)
         }
     }
@@ -58,18 +58,5 @@ class ContactsVM(application: Application, val contactRP: ContactRP) :
         }
 
         context.startActivity(intent)
-    }
-
-    class Factory(
-        val application: Application,
-        val contactRP: ContactRP,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(ContactsVM::class.java)) {
-                return ContactsVM(application, contactRP) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
-        }
     }
 }

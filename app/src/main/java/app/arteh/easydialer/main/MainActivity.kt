@@ -20,18 +20,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val appContext = this.applicationContext as Application
-        val contactRP = ContactRP(appContext)
-
-        val contactsVM: ContactsVM by viewModels {
-            ContactsVM.Factory(appContext, contactRP)
-        }
-        val callLogVM: CallLogVM by viewModels {
-            CallLogVM.Factory(appContext, contactRP)
-        }
-        val dialPadVM: DialPadVM by viewModels {
-            DialPadVM.Factory(appContext, contactRP)
-        }
+        val contactsVM: ContactsVM by viewModels ()
+        val callLogVM: CallLogVM by viewModels ()
+        val dialPadVM: DialPadVM by viewModels ()
 
         enableEdgeToEdge()
 

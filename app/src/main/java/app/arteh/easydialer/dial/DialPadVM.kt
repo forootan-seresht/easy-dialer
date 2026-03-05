@@ -12,13 +12,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import app.arteh.easydialer.contacts.ContactRP
+import app.arteh.easydialer.utility.Holder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
-class DialPadVM(application: Application, val contactRP: ContactRP) :
-    AndroidViewModel(application) {
+class DialPadVM(application: Application) : AndroidViewModel(application) {
 
     private val _number = MutableStateFlow("")
     val number: StateFlow<String> = _number
@@ -49,7 +49,7 @@ class DialPadVM(application: Application, val contactRP: ContactRP) :
         val context = getApplication() as Context
 
         viewModelScope.launch {
-            val map = contactRP.speedDialMap.firstOrNull()
+            val map = Holder.contactRP.speedDialMap.firstOrNull()
             if (map != null) {
                 val phoneNumber = map[digit.toInt()]?.phoneNumber
                 if (phoneNumber != null) {
@@ -62,19 +62,6 @@ class DialPadVM(application: Application, val contactRP: ContactRP) :
                                 "\nPlease select a contact from Contact Screen.", Toast.LENGTH_LONG
                     ).show()
             }
-        }
-    }
-
-    class Factory(
-        val application: Application,
-        val contactRP: ContactRP,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(DialPadVM::class.java)) {
-                return DialPadVM(application, contactRP) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
         }
     }
 }
