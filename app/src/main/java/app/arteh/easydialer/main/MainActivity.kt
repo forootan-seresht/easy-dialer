@@ -14,11 +14,14 @@ import app.arteh.easydialer.contacts.list.ContactsVM
 import app.arteh.easydialer.dial.DialPadVM
 import app.arteh.easydialer.ui.EdgePadding
 import app.arteh.easydialer.ui.theme.EasyDialerTheme
+import app.arteh.easydialer.utility.Holder
 
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        Holder.contactRP.initialize(application)
 
         val contactsVM: ContactsVM by viewModels ()
         val callLogVM: CallLogVM by viewModels ()

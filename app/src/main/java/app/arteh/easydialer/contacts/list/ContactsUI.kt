@@ -1,10 +1,6 @@
 package app.arteh.easydialer.contacts.list
 
-import android.app.Activity
-import android.content.Intent
 import android.provider.MediaStore
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -42,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.arteh.easydialer.R
-import app.arteh.easydialer.contacts.edit.EditContactActivity
 import app.arteh.easydialer.contacts.list.models.Contact
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
@@ -67,7 +62,6 @@ fun ContactScreen(contactsVM: ContactsVM) {
 @Composable
 private fun SearchBar(contactsVM: ContactsVM) {
     val uiState = contactsVM.uiState.collectAsStateWithLifecycle().value
-    val context = LocalContext.current
 
     Row(
         modifier = Modifier
@@ -116,7 +110,7 @@ private fun SearchBar(contactsVM: ContactsVM) {
                 modifier = Modifier
                     .size(35.dp)
                     .padding(5.dp)
-                    .noRippleClickable { contactsVM.goAddContact(context) },
+                    .noRippleClickable(contactsVM::goAddContact),
                 painter = painterResource(R.drawable.add_contact),
                 contentDescription = "Add Contact",
                 tint = AppColor.Icons.resolve()
@@ -135,7 +129,7 @@ private fun ContactList(contactsVM: ContactsVM, modifier: Modifier) {
             }
 
             items(data, key = { it.key }) {
-                ItemContact(it, header.color, header.char, contactsVM::reloadContacts)
+                ItemContact(it, header.color, header.char, { contactsVM.goShowContact(it.id) })
             }
         }
     }
@@ -153,15 +147,9 @@ private fun itemHeader(char: Char) {
 }
 
 @Composable
-private fun ItemContact(contact: Contact, color: Color, char: Char, reload: () -> Unit) {
+private fun ItemContact(contact: Contact, color: Color, char: Char, onShow: () -> Unit) {
     val context = LocalContext.current
     var bitmap by remember(contact) { mutableStateOf<ImageBitmap?>(null) }
-
-    val editLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) reload()
-    }
 
     LaunchedEffect(contact) {
         try {
@@ -185,11 +173,7 @@ private fun ItemContact(contact: Contact, color: Color, char: Char, reload: () -
                 RoundedCornerShape(10.dp)
             )
             .padding(10.dp)
-            .noRippleClickable({
-                val intent = Intent(context, EditContactActivity::class.java)
-                intent.putExtra("id", contact.id)
-                editLauncher.launch(intent)
-            }),
+            .noRippleClickable(onShow),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (bitmap != null)

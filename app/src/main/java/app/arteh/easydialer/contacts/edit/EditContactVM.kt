@@ -1,6 +1,5 @@
 package app.arteh.easydialer.contacts.edit
 
-import android.app.Activity
 import android.app.Application
 import android.content.ContentProviderOperation
 import android.content.ContentUris
@@ -13,8 +12,8 @@ import androidx.lifecycle.viewModelScope
 import app.arteh.easydialer.contacts.edit.models.ContactPhone
 import app.arteh.easydialer.contacts.edit.models.EditContactAction
 import app.arteh.easydialer.contacts.edit.models.EditableContact
+import app.arteh.easydialer.contacts.edit.models.PhoneType
 import app.arteh.easydialer.contacts.edit.models.UIState
-import app.arteh.easydialer.contacts.speed.SpeedDialEntry
 import app.arteh.easydialer.utility.Holder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,24 +30,9 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
     private val _contact = MutableStateFlow(EditableContact())
     val contact = _contact.asStateFlow()
 
-    var selectedPhoneIDX: Int = 0
-
     init {
         viewModelScope.launch(Dispatchers.IO) {
             _contact.emit(Holder.contactRP.findContactByID(contactID, application))
-        }
-
-        viewModelScope.launch {
-            Holder.contactRP.speedDialMap.collect { map ->
-                var slot: Int = -1
-                for (entry in map)
-                    if (entry.value.contactId == contactID) {
-                        slot = entry.key
-                        break
-                    }
-
-                _uiState.update { it.copy(speedSlot = slot, speedDialMap = map) }
-            }
         }
     }
 
@@ -59,7 +43,6 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
             is EditContactAction.UpdateLastName -> updateLastName(action.lastName)
             is EditContactAction.RemovePhone -> removePhone(action.index)
             is EditContactAction.UpdatePhone -> updatePhone(action.index, action.phone)
-            is EditContactAction.ShowSpeedDial -> showSpeedDial(action.index)
             is EditContactAction.UpdateCompany -> updateCompany(action.company)
             is EditContactAction.UpdateJob -> updateJob(action.job)
         }
@@ -94,15 +77,9 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
         _uiState.update { it.copy(showAdd = true) }
     }
 
-    fun showSpeedDial(phoneIDX: Int) {
-        selectedPhoneIDX = phoneIDX
-
-        _uiState.update { it.copy(showSpeedList = true) }
-    }
-
     fun addPhoneNumber(number: String) {
         val phones = _contact.value.phones.toMutableList()
-        phones.add(ContactPhone(0, number, 0))
+        phones.add(ContactPhone(0, number, PhoneType.Other))
         _contact.value = _contact.value.copy(phones = phones)
 
         dismissPopup()
@@ -123,24 +100,7 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
         _contact.value = _contact.value.copy(photoUri = uri)
     }
 
-    fun showDelete() {
-        _uiState.update { it.copy(showDelete = true) }
-    }
-
-    fun dismissPopup() {
-        _uiState.update { it.copy(showDelete = false, showAdd = false, showSpeedList = false) }
-    }
-
-    fun deleteContact(context: Context) {
-        val uri = ContentUris.withAppendedId(
-            ContactsContract.Contacts.CONTENT_URI,
-            contactID
-        )
-
-        context.contentResolver.delete(uri, null, null)
-
-        (context as Activity).finish()
-    }
+    fun dismissPopup() { _uiState.update { it.copy(showAdd = false) } }
 
     fun saveContact(context: Context) {
         val ops = ArrayList<ContentProviderOperation>()
@@ -204,31 +164,6 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
         }
 
         context.contentResolver.applyBatch(ContactsContract.AUTHORITY, ops)
-    }
-
-    fun updateSpeedSlot(slot: Int) {
-        viewModelScope.launch {
-            val contactPhone = contact.value.phones[selectedPhoneIDX]
-
-            var oldSlot = -1
-
-            for (entry in uiState.value.speedDialMap) {
-                if (entry.value.contactId == contactID) {
-                    oldSlot = entry.key
-                    break
-                }
-            }
-
-            val entry = SpeedDialEntry(
-                contactID,
-                contactPhone.number,
-                contact.value.fullName
-            )
-
-            Holder.contactRP.updateSpeedDial(slot, oldSlot, entry)
-        }
-
-        dismissPopup()
     }
 
     val contactID: Long = savedStateHandle.get<Long>("id") ?: error("Contact ID is required")

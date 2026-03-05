@@ -5,8 +5,9 @@ import android.provider.ContactsContract
 import androidx.core.net.toUri
 import app.arteh.easydialer.contacts.edit.models.ContactPhone
 import app.arteh.easydialer.contacts.edit.models.EditableContact
-import app.arteh.easydialer.contacts.list.models.ContactHeader
+import app.arteh.easydialer.contacts.edit.models.PhoneType
 import app.arteh.easydialer.contacts.list.models.Contact
+import app.arteh.easydialer.contacts.list.models.ContactHeader
 import app.arteh.easydialer.contacts.speed.SpeedDialEntry
 import app.arteh.easydialer.utility.Holder
 import app.arteh.easydialer.utility.PreferencesManager
@@ -16,12 +17,13 @@ class ContactRP {
     private lateinit var prefs: PreferencesManager
     var contactList = listOf<Contact>()
 
-    var speedDialMap: Flow<Map<Int, SpeedDialEntry>> = prefs.loadSpeedDIal()
+    lateinit var speedDialMap: Flow<Map<Int, SpeedDialEntry>>
     var lazyKey = 0
 
-    fun initialize(context: Context){
+    fun initialize(context: Context) {
         prefs = PreferencesManager(context)
         contactList = queryContacts("", context)
+        speedDialMap = prefs.loadSpeedDIal()
     }
 
     fun loadContacts(name: String, context: Context): Map<ContactHeader, List<Contact>> {
@@ -116,11 +118,13 @@ class ContactRP {
 
             // Full display name
             ContactsContract.Contacts.DISPLAY_NAME,
-            ContactsContract.Contacts.DISPLAY_NAME,
 
             // Structured name parts
             ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME,
             ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME,
+
+            ContactsContract.CommonDataKinds.Organization.TITLE,
+            ContactsContract.CommonDataKinds.Organization.COMPANY,
 
             // Phone info
             ContactsContract.CommonDataKinds.Phone._ID,
@@ -142,9 +146,14 @@ class ContactRP {
             var flag = false
 
             while (cursor.moveToNext()) {
-                val phoneID = cursor.getLong(5)
-                val number = cursor.getString(6).replace(" ", "")
-                val numberType = cursor.getInt(7)
+                val phoneID = cursor.getLong(7)
+                val number = cursor.getString(8).replace(" ", "")
+                val numberType = when (cursor.getInt(9)) {
+                    ContactsContract.CommonDataKinds.Phone.TYPE_HOME -> PhoneType.Home
+                    ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE -> PhoneType.Mobile
+                    ContactsContract.CommonDataKinds.Phone.TYPE_WORK -> PhoneType.Work
+                    else -> PhoneType.Other
+                }
 
                 if (!flag) {
                     flag = true
@@ -155,15 +164,16 @@ class ContactRP {
                     val firstName = cursor.getString(3) ?: ""
                     val lastName = cursor.getString(4) ?: ""
 
-                    val photoURI = cursor.getString(8)?.toUri()
+                    val job = cursor.getString(5) ?: ""
+                    val company = cursor.getString(6) ?: ""
+
+                    val photoURI = cursor.getString(10)?.toUri()
 
                     phoneList.add(ContactPhone(phoneID, number, numberType))
 
                     contact = EditableContact(
-                        contactID, rawContactID,
-                        firstName, lastName, fullName,
-                        phones = phoneList.toList(),
-                        photoUri = photoURI
+                        contactID, rawContactID, firstName, lastName, job, company, fullName,
+                        phones = phoneList.toList(), photoUri = photoURI
                     )
                 }
                 else if (phoneList.indexOfFirst { it.number == number } == -1)

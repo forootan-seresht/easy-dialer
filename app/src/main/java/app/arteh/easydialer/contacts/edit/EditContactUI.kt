@@ -24,15 +24,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -57,7 +53,6 @@ import app.arteh.easydialer.R
 import app.arteh.easydialer.contacts.edit.models.ContactPhone
 import app.arteh.easydialer.contacts.edit.models.EditContactAction
 import app.arteh.easydialer.contacts.edit.models.EditableContact
-import app.arteh.easydialer.contacts.speed.SpeedDialEntry
 import app.arteh.easydialer.ui.CustomDialogue
 import app.arteh.easydialer.ui.CustomDigButtons
 import app.arteh.easydialer.ui.PaddingSides
@@ -76,7 +71,6 @@ import kotlin.random.Random
 @Composable
 fun EditScreen(editContactVM: EditContactVM = viewModel(), padding: PaddingSides) {
     val uiState = editContactVM.uiState.collectAsStateWithLifecycle().value
-    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -103,38 +97,10 @@ fun EditScreen(editContactVM: EditContactVM = viewModel(), padding: PaddingSides
         }
 
         Spacer(Modifier.height(12.dp))
-
-        // Delete Contact
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 5.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                modifier = Modifier
-                    .size(25.dp)
-                    .noRippleClickable({ editContactVM.showDelete() }),
-                painter = painterResource(R.drawable.delete),
-                contentDescription = null,
-                tint = AppColor.GradRed.resolve()
-            )
-
-            Text(text = "Delete", color = AppColor.GradRed.resolve())
-        }
     }
 
-    if (uiState.showDelete)
-        DigDelete(editContactVM::dismissPopup, { editContactVM.deleteContact(context) })
     if (uiState.showAdd)
         DigAddNumber(editContactVM::dismissPopup, editContactVM::addPhoneNumber)
-    if (uiState.showSpeedList)
-        DigSpeedDial(
-            uiState.speedSlot,
-            uiState.speedDialMap,
-            editContactVM::dismissPopup,
-            editContactVM::updateSpeedSlot
-        )
 }
 
 @Composable
@@ -221,13 +187,12 @@ private fun ContactInfo(
             phone,
             { onAction(EditContactAction.UpdatePhone(index, it)) },
             { onAction(EditContactAction.RemovePhone(index)) },
-            { onAction(EditContactAction.ShowSpeedDial(index)) }
         )
     }
 }
 
 @Composable
-fun ContactPhoto(photoUri: Uri?, onPickImage: (Uri?) -> Unit) {
+private fun ContactPhoto(photoUri: Uri?, onPickImage: (Uri?) -> Unit) {
     val picker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
@@ -277,7 +242,6 @@ private fun ItemPhoneNumber(
     phone: ContactPhone,
     updateNumber: (String) -> Unit,
     removeNumber: () -> Unit,
-    showSpeedDial: () -> Unit
 ) {
     if (!phone.isDeleted)
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -296,28 +260,7 @@ private fun ItemPhoneNumber(
                     tint = AppColor.GradRed.resolve()
                 )
             }
-
-            IconButton(onClick = showSpeedDial) {
-                Icon(
-                    painter = painterResource(R.drawable.speed),
-                    contentDescription = "Speed Dial",
-                    tint = AppColor.GradPurple.resolve()
-                )
-            }
         }
-}
-
-
-@Composable
-private fun DigDelete(dismissPopup: () -> Unit, deleteClicked: () -> Unit) {
-    CustomDialogue(
-        Modifier
-            .padding(20.dp)
-            .fillMaxWidth(), dismissPopup
-    ) {
-        Text("Are you sure to permanently delete this contact?")
-        CustomDigButtons("Delete", AppColor.GradRed.resolve(), deleteClicked, dismissPopup)
-    }
 }
 
 @Composable
@@ -340,67 +283,5 @@ private fun DigAddNumber(dismissPopup: () -> Unit, addClicked: (String) -> Unit)
             "Delete", AppColor.GradRed.resolve(),
             { addClicked(phoneNumber) }, dismissPopup
         )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DigSpeedDial(
-    selectedSlot: Int,
-    speedMap: Map<Int, SpeedDialEntry>,
-    dismissPopup: () -> Unit,
-    updateSlot: (Int) -> Unit,
-) {
-    ModalBottomSheet(
-        onDismissRequest = dismissPopup,
-        containerColor = MaterialTheme.colorScheme.surface,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    ) {
-        Column(Modifier.padding(15.dp)) {
-            Row(
-                modifier = Modifier
-                    .padding(5.dp)
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .noRippleClickable { updateSlot(-1) },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (selectedSlot == -1)
-                    Icon(
-                        painterResource(R.drawable.check),
-                        contentDescription = "Selected",
-                        tint = AppColor.GradGreen.resolve()
-                    )
-                Text(modifier = Modifier.padding(horizontal = 10.dp), text = "None")
-            }
-
-            for (i in 0 until 10)
-                Row(
-                    modifier = Modifier
-                        .padding(5.dp)
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surface)
-                        .noRippleClickable { updateSlot(i) },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (selectedSlot == i)
-                        Icon(
-                            painterResource(R.drawable.check),
-                            contentDescription = "Selected",
-                            tint = AppColor.GradGreen.resolve()
-                        )
-                    Text(modifier = Modifier.padding(horizontal = 15.dp), text = i.toString())
-                    Column {
-                        if (speedMap[i] != null) {
-                            Text(
-                                text = speedMap[i]!!.displayName,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(text = speedMap[i]!!.phoneNumber)
-                        }
-                    }
-                }
-        }
     }
 }

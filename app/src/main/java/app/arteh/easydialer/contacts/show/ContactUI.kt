@@ -1,10 +1,370 @@
 package app.arteh.easydialer.contacts.show
 
+import android.app.Activity
+import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
+import android.provider.MediaStore
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import app.arteh.easydialer.R
+import app.arteh.easydialer.contacts.edit.EditContactActivity
+import app.arteh.easydialer.contacts.edit.models.ContactPhone
+import app.arteh.easydialer.contacts.edit.models.EditableContact
+import app.arteh.easydialer.contacts.edit.models.PhoneType
+import app.arteh.easydialer.contacts.speed.SpeedDialEntry
+import app.arteh.easydialer.ui.CustomDialogue
+import app.arteh.easydialer.ui.CustomDigButtons
 import app.arteh.easydialer.ui.PaddingSides
+import app.arteh.easydialer.ui.noRippleClickable
+import app.arteh.easydialer.ui.theme.AppColor
+import app.arteh.easydialer.ui.theme.appTypography
+import app.arteh.easydialer.utility.Holder
+import kotlin.random.Random
 
 @Composable
 fun ShowScreen(contactVM: ContactVM = viewModel(), padding: PaddingSides) {
+    val uiState = contactVM.uiState.collectAsStateWithLifecycle().value
+    val context = LocalContext.current
 
+    if (uiState.contact != null)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    start = padding.start,
+                    top = padding.top,
+                    end = padding.end,
+                    bottom = padding.bottom
+                )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                TopRow(uiState.contact.contactID, contactVM::reloadContact, contactVM::shareContact)
+
+                ContactInfo(uiState.contact, contactVM::makeCall, contactVM::sendSMS)
+
+                // Delete Contact
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        modifier = Modifier
+                            .size(25.dp)
+                            .noRippleClickable(contactVM::showDelete),
+                        painter = painterResource(R.drawable.delete),
+                        contentDescription = null,
+                        tint = AppColor.GradRed.resolve()
+                    )
+
+                    Text(text = "Delete", color = AppColor.GradRed.resolve())
+                }
+            }
+
+            QuickButtons()
+        }
+
+    if (uiState.showDelete)
+        DigDelete(contactVM::dismissPopup, { contactVM.deleteContact(context) })
+    else  if (uiState.showSpeedList)
+        DigSpeedDial(
+            uiState.speedSlot,
+            uiState.speedDialMap,
+            contactVM::dismissPopup,
+            contactVM::updateSpeedSlot
+        )
+}
+
+@Composable
+private fun QuickButtons() {
+
+}
+
+@Composable
+private fun TopRow(contactID: Long, reloadContact: () -> Unit, onShare: () -> Unit) {
+    val context = LocalContext.current
+
+    val editLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) reloadContact()
+    }
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            modifier = Modifier
+                .size(35.dp)
+                .padding(5.dp)
+                .noRippleClickable({ (context as Activity).finish() }),
+            painter = painterResource(R.drawable.back),
+            contentDescription = "Back",
+            tint = AppColor.Icons.resolve()
+        )
+
+        Spacer(Modifier.weight(1f))
+
+        Icon(
+            modifier = Modifier
+                .size(35.dp)
+                .padding(5.dp)
+                .noRippleClickable({
+                    val intent = Intent(context, EditContactActivity::class.java)
+                    intent.putExtra("id", contactID)
+                    editLauncher.launch(intent)
+                }),
+            painter = painterResource(R.drawable.edit),
+            contentDescription = "Share",
+            tint = AppColor.Icons.resolve()
+        )
+
+        Icon(
+            modifier = Modifier
+                .size(35.dp)
+                .padding(5.dp)
+                .noRippleClickable(onShare),
+            painter = painterResource(R.drawable.edit),
+            contentDescription = "Share",
+            tint = AppColor.Icons.resolve()
+        )
+    }
+}
+
+@Composable
+private fun ContactInfo(contact: EditableContact, makeCall: (Int) -> Unit, sendSMS: (Int) -> Unit) {
+    ContactPhoto(contact.photoUri)
+
+    Text(contact.fullName, style = MaterialTheme.appTypography.h3)
+
+    if (contact.job.isNotEmpty() || contact.company.isNotEmpty())
+        Row {
+            if (contact.job.isNotEmpty())
+                Text(contact.job)
+
+            if (contact.job.isNotEmpty() && contact.company.isNotEmpty())
+                Text(" - ")
+
+            if (contact.company.isNotEmpty())
+                Text(contact.company)
+        }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(5.dp))
+            .padding(10.dp)
+    ) {
+        contact.phones.forEachIndexed { index, phone ->
+            ItemPhoneNumber(phone, { makeCall(index) }, { sendSMS(index) })
+        }
+    }
+}
+
+@Composable
+private fun ContactPhoto(photoUri: Uri?) {
+    val colorIndex = remember { Random.nextInt(0, 6) }
+
+    val context = LocalContext.current
+    var bitmap by remember(photoUri) { mutableStateOf<Bitmap?>(null) }
+
+    LaunchedEffect(photoUri) {
+        try {
+            bitmap =
+                photoUri?.let { MediaStore.Images.Media.getBitmap(context.contentResolver, it) }
+        } catch (e: Exception) {
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .size(140.dp)
+            .clip(CircleShape)
+            .background(Holder.colors[colorIndex]),
+        contentAlignment = Alignment.Center
+    ) {
+        if (bitmap != null)
+            Image(
+                bitmap = bitmap!!.asImageBitmap(),
+                contentDescription = null,
+                modifier = Modifier.size(140.dp),
+                contentScale = ContentScale.Crop
+            )
+        else
+            Icon(
+                painter = painterResource(R.drawable.person),
+                modifier = Modifier.size(80.dp),
+                contentDescription = "Contact image",
+                tint = Color.White
+            )
+    }
+}
+
+@Composable
+private fun ItemPhoneNumber(
+    phone: ContactPhone,
+    onCall: () -> Unit,
+    onSMS: () -> Unit
+) {
+    val icon = when (phone.type) {
+        PhoneType.Mobile -> R.drawable.mobile
+        PhoneType.Home -> R.drawable.home
+        PhoneType.Work -> R.drawable.work
+        PhoneType.Other -> R.drawable.call
+    }
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            modifier = Modifier
+                .padding(horizontal = 5.dp)
+                .size(30.dp),
+            painter = painterResource(icon),
+            contentDescription = null,
+            tint = AppColor.Icons.resolve()
+        )
+
+        Text(modifier = Modifier.weight(1f), text = phone.number)
+
+        Icon(
+            modifier = Modifier.padding(horizontal = 10.dp)
+                .size(40.dp)
+                .background(AppColor.GradGreen.resolve().copy(alpha = 0.1f), CircleShape)
+                .padding(7.dp)
+                .noRippleClickable(onCall),
+            painter = painterResource(R.drawable.call),
+            contentDescription = null,
+            tint = AppColor.GradGreen.resolve()
+        )
+        Icon(
+            modifier = Modifier
+                .size(40.dp)
+                .background(AppColor.GradBlue.resolve().copy(alpha = 0.1f), CircleShape)
+                .padding(7.dp)
+                .noRippleClickable(onSMS),
+            painter = painterResource(R.drawable.sms),
+            contentDescription = null,
+            tint = AppColor.GradBlue.resolve()
+        )
+    }
+}
+
+@Composable
+private fun DigDelete(dismissPopup: () -> Unit, deleteClicked: () -> Unit) {
+    CustomDialogue(
+        Modifier
+            .padding(20.dp)
+            .fillMaxWidth(), dismissPopup
+    ) {
+        Text("Are you sure to permanently delete this contact?")
+        CustomDigButtons("Delete", AppColor.GradRed.resolve(), deleteClicked, dismissPopup)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DigSpeedDial(
+    selectedSlot: Int,
+    speedMap: Map<Int, SpeedDialEntry>,
+    dismissPopup: () -> Unit,
+    updateSlot: (Int) -> Unit,
+) {
+    ModalBottomSheet(
+        onDismissRequest = dismissPopup,
+        containerColor = MaterialTheme.colorScheme.surface,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ) {
+        Column(Modifier.padding(15.dp)) {
+            Row(
+                modifier = Modifier
+                    .padding(5.dp)
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface)
+                    .noRippleClickable { updateSlot(-1) },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (selectedSlot == -1)
+                    Icon(
+                        painterResource(R.drawable.check),
+                        contentDescription = "Selected",
+                        tint = AppColor.GradGreen.resolve()
+                    )
+                Text(modifier = Modifier.padding(horizontal = 10.dp), text = "None")
+            }
+
+            for (i in 0 until 10)
+                Row(
+                    modifier = Modifier
+                        .padding(5.dp)
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface)
+                        .noRippleClickable { updateSlot(i) },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (selectedSlot == i)
+                        Icon(
+                            painterResource(R.drawable.check),
+                            contentDescription = "Selected",
+                            tint = AppColor.GradGreen.resolve()
+                        )
+                    Text(modifier = Modifier.padding(horizontal = 15.dp), text = i.toString())
+                    Column {
+                        if (speedMap[i] != null) {
+                            Text(
+                                text = speedMap[i]!!.displayName,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(text = speedMap[i]!!.phoneNumber)
+                        }
+                    }
+                }
+        }
+    }
 }
