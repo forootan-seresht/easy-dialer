@@ -15,6 +15,7 @@ enum class AppColor(val light: Color, val dark: Color) {
     GradRed(Color(0xFFDB395C), Color(0xFFDB395C)),
     GradYoda(Color(0xFFffa751), Color(0xFFffa751)),
     LayerBack(Color(0x88424242), Color(0x88424242)),
+    SearchBack(Color(0xFFFFFFFF), Color(0xFF424242)),
     ChartColor(Color(0xFF45b08c), Color(0xFF45b08c)),
     CancelDig(Color(0xFF818181), Color(0xFFC9C9C9)),
     Font(Color(0xFF3D3D3D), Color(0xFFFFFFFF));
