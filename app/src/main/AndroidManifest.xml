@@ -27,7 +27,6 @@
         <activity
             android:name=".contacts.show.ContactActivity"
             android:exported="false"
-            android:label="@string/title_activity_contact"
             android:theme="@android:style/Theme.Material.NoActionBar" />
         <activity
             android:name=".contacts.edit.EditContactActivity"
