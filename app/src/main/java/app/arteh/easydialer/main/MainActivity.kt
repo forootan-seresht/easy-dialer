@@ -1,6 +1,5 @@
 package app.arteh.easydialer.main
 
-import android.app.Application
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,11 +10,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.arteh.easydialer.clog.CallLogVM
-import app.arteh.easydialer.contacts.ContactRP
 import app.arteh.easydialer.contacts.list.ContactsVM
 import app.arteh.easydialer.dial.DialPadVM
 import app.arteh.easydialer.ui.EdgePadding
-import app.arteh.easydialer.ui.theme.EasyDialer
+import app.arteh.easydialer.ui.theme.EasyDialerTheme
 
 class MainActivity : ComponentActivity() {
 
@@ -38,7 +36,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            EasyDialer {
+            EasyDialerTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     MainScreen(
                         contactsVM = contactsVM,

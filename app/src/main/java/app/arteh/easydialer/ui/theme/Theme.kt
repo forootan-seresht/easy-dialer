@@ -35,7 +35,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun EasyDialer(
+fun EasyDialerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
