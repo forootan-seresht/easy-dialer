@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.arteh.easydialer.R
-import app.arteh.easydialer.contacts.edit.EditActivity
+import app.arteh.easydialer.contacts.edit.EditContactActivity
 import app.arteh.easydialer.contacts.show.models.Contact
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
@@ -67,12 +67,13 @@ fun ContactScreen(contactsVM: ContactsVM) {
 @Composable
 private fun SearchBar(contactsVM: ContactsVM) {
     val uiState = contactsVM.uiState.collectAsStateWithLifecycle().value
+    val context = LocalContext.current
 
     Row(
         modifier = Modifier
             .padding(vertical = 5.dp, horizontal = 10.dp)
             .fillMaxWidth()
-            .background(AppColor.LayerBack.resolve(), CircleShape)
+            .background(AppColor.SearchBack.resolve(), CircleShape)
             .padding(horizontal = 5.dp)
             .noRippleClickable({}),
         verticalAlignment = Alignment.CenterVertically
@@ -109,15 +110,17 @@ private fun SearchBar(contactsVM: ContactsVM) {
             placeholder = {
                 Text(text = "Search Contacts")
             })
-        Icon(
-            modifier = Modifier
-                .size(35.dp)
-                .padding(5.dp)
-                .noRippleClickable({}),
-            painter = painterResource(R.drawable.add_contact),
-            contentDescription = "Add Contact",
-            tint = AppColor.Icons.resolve()
-        )
+
+        if (uiState.searchText.isEmpty())
+            Icon(
+                modifier = Modifier
+                    .size(35.dp)
+                    .padding(5.dp)
+                    .noRippleClickable { contactsVM.goAddContact(context) },
+                painter = painterResource(R.drawable.add_contact),
+                contentDescription = "Add Contact",
+                tint = AppColor.Icons.resolve()
+            )
     }
 }
 
@@ -132,7 +135,7 @@ private fun ContactList(contactsVM: ContactsVM, modifier: Modifier) {
             }
 
             items(data, key = { it.key }) {
-                ItemContact(it, header.color, header.char, contactsVM::loadContacts)
+                ItemContact(it, header.color, header.char, contactsVM::reloadContacts)
             }
         }
     }
@@ -183,7 +186,7 @@ private fun ItemContact(contact: Contact, color: Color, char: Char, reload: () -
             )
             .padding(10.dp)
             .noRippleClickable({
-                val intent = Intent(context, EditActivity::class.java)
+                val intent = Intent(context, EditContactActivity::class.java)
                 intent.putExtra("id", contact.id)
                 editLauncher.launch(intent)
             }),
