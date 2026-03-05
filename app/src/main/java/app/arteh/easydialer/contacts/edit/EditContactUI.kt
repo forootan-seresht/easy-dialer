@@ -52,6 +52,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import app.arteh.easydialer.R
 import app.arteh.easydialer.contacts.edit.models.ContactPhone
 import app.arteh.easydialer.contacts.edit.models.EditContactAction
@@ -73,7 +74,7 @@ import kotlin.random.Random
 //todo show list of recent log for this contact
 
 @Composable
-fun EditScreen(editContactVM: EditContactVM, padding: PaddingSides) {
+fun EditScreen(editContactVM: EditContactVM = viewModel(), padding: PaddingSides) {
     val uiState = editContactVM.uiState.collectAsStateWithLifecycle().value
     val context = LocalContext.current
 
