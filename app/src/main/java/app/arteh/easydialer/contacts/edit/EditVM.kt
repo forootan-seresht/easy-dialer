@@ -28,7 +28,6 @@ import kotlinx.coroutines.launch
 class EditVM(savedStateHandle: SavedStateHandle, application: Application) :
     AndroidViewModel(application) {
 
-    val contactID: Long = savedStateHandle.get<Long>("id") ?: error("Contact ID is required")
     val rp = ContactRP(application)
 
     private var _uiState = MutableStateFlow(UIState())
@@ -221,6 +220,8 @@ class EditVM(savedStateHandle: SavedStateHandle, application: Application) :
 
         dismissPopup()
     }
+
+    val contactID: Long = savedStateHandle.get<Long>("id") ?: error("Contact ID is required")
 
     class Factory(
         val application: Application,
