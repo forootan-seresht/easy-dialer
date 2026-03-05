@@ -1,4 +1,4 @@
-package app.arteh.easydialer.contacts.show.models
+package app.arteh.easydialer.contacts.list.models
 
 data class UIState(
     val searchText: String = ""

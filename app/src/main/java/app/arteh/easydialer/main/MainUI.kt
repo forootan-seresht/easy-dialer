@@ -18,8 +18,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import app.arteh.easydialer.R
 import app.arteh.easydialer.clog.CLogScreen
 import app.arteh.easydialer.clog.CallLogVM
-import app.arteh.easydialer.contacts.show.ContactScreen
-import app.arteh.easydialer.contacts.show.ContactsVM
+import app.arteh.easydialer.contacts.list.ContactScreen
+import app.arteh.easydialer.contacts.list.ContactsVM
 import app.arteh.easydialer.dial.DialPadScreen
 import app.arteh.easydialer.dial.DialPadVM
 import app.arteh.easydialer.ui.Divider2

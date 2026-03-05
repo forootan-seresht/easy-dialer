@@ -19,13 +19,13 @@ class EditContactActivity : ComponentActivity() {
 
         val appContext = this.applicationContext as Application
 
-        val editVM: EditVM by viewModels { EditVM.Factory(appContext) }
+        val editContactVM: EditContactVM by viewModels { EditContactVM.Factory(appContext) }
 
         enableEdgeToEdge()
         setContent {
             EasyDialer {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    EditScreen(editVM, padding = EdgePadding(innerPadding, extra = 16.dp))
+                    EditScreen(editContactVM, padding = EdgePadding(innerPadding, extra = 16.dp))
                 }
             }
         }

@@ -7,6 +7,8 @@ data class EditableContact(
     val rawContactID: Long = 0,
     val firstName: String = "",
     val lastName: String = "",
+    val job: String = "",
+    val company: String = "",
     val fullName: String = "",
     val phones: List<ContactPhone> = listOf(),
     val photoUri: Uri? = null

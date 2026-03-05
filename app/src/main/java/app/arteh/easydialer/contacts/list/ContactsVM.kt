@@ -1,4 +1,4 @@
-package app.arteh.easydialer.contacts.show
+package app.arteh.easydialer.contacts.list
 
 import android.app.Application
 import android.content.Context
@@ -9,8 +9,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import app.arteh.easydialer.contacts.ContactRP
 import app.arteh.easydialer.contacts.edit.EditContactActivity
-import app.arteh.easydialer.contacts.show.models.Contact
-import app.arteh.easydialer.contacts.show.models.UIState
+import app.arteh.easydialer.contacts.list.models.Contact
+import app.arteh.easydialer.contacts.list.models.ContactHeader
+import app.arteh.easydialer.contacts.list.models.UIState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

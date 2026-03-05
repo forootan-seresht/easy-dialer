@@ -16,6 +16,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import app.arteh.easydialer.contacts.ContactRP
 import app.arteh.easydialer.contacts.edit.models.ContactPhone
+import app.arteh.easydialer.contacts.edit.models.EditContactAction
 import app.arteh.easydialer.contacts.edit.models.EditableContact
 import app.arteh.easydialer.contacts.edit.models.UIState
 import app.arteh.easydialer.contacts.speed.SpeedDialEntry
@@ -25,7 +26,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class EditVM(savedStateHandle: SavedStateHandle, application: Application) :
+class EditContactVM(savedStateHandle: SavedStateHandle, application: Application) :
     AndroidViewModel(application) {
 
     val rp = ContactRP(application)
@@ -59,12 +60,29 @@ class EditVM(savedStateHandle: SavedStateHandle, application: Application) :
         }
     }
 
-    fun updateName(name: String) {
-        _contact.value = _contact.value.copy(fullName = name)
+    fun onAction(action: EditContactAction) {
+        when (action) {
+            is EditContactAction.SetPhoto -> setPhoto(action.uri)
+            is EditContactAction.UpdateFirstName -> updateFirstName(action.name)
+            is EditContactAction.UpdateLastName -> updateLastName(action.lastName)
+            is EditContactAction.RemovePhone -> removePhone(action.index)
+            is EditContactAction.UpdatePhone -> updatePhone(action.index, action.phone)
+            is EditContactAction.ShowSpeedDial -> showSpeedDial(action.index)
+            is EditContactAction.UpdateCompany -> updateCompany(action.company)
+            is EditContactAction.UpdateJob -> updateJob(action.job)
+        }
     }
 
     fun updateFirstName(name: String) {
         _contact.value = _contact.value.copy(firstName = name)
+    }
+
+    fun updateJob(job: String) {
+        _contact.value = _contact.value.copy(job = job)
+    }
+
+    fun updateCompany(company: String) {
+        _contact.value = _contact.value.copy(company = company)
     }
 
     fun updateLastName(name: String) {
@@ -231,7 +249,7 @@ class EditVM(savedStateHandle: SavedStateHandle, application: Application) :
         override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
             val savedStateHandle = extras.createSavedStateHandle()
 
-            return EditVM(savedStateHandle, application) as T
+            return EditContactVM(savedStateHandle, application) as T
         }
     }
 }

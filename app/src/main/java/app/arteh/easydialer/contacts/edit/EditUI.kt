@@ -1,6 +1,7 @@
 package app.arteh.easydialer.contacts.edit
 
 import android.app.Activity
+import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import android.provider.MediaStore
@@ -53,17 +54,27 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.arteh.easydialer.R
 import app.arteh.easydialer.contacts.edit.models.ContactPhone
+import app.arteh.easydialer.contacts.edit.models.EditContactAction
+import app.arteh.easydialer.contacts.edit.models.EditableContact
 import app.arteh.easydialer.contacts.speed.SpeedDialEntry
 import app.arteh.easydialer.ui.CustomDialogue
 import app.arteh.easydialer.ui.CustomDigButtons
 import app.arteh.easydialer.ui.PaddingSides
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
+import app.arteh.easydialer.utility.Holder
+import kotlinx.coroutines.flow.StateFlow
+import kotlin.random.Random
+
+//todo for phone numbers and other field, by default it is not editable. show click on it to edit it then click on its tick to save it.
+//todo because it is also show contact, each number should have button to call and sms
+//todo add number should be under all numbers lke delete button
+//todo add block contact, share contact, add to favorite
+//todo show list of recent log for this contact
 
 @Composable
-fun EditScreen(editVM: EditVM, padding: PaddingSides) {
-    val editableContact = editVM.contact.collectAsStateWithLifecycle().value
-    val uiState = editVM.uiState.collectAsStateWithLifecycle().value
+fun EditScreen(editContactVM: EditContactVM, padding: PaddingSides) {
+    val uiState = editContactVM.uiState.collectAsStateWithLifecycle().value
     val context = LocalContext.current
 
     Column(
@@ -79,76 +90,12 @@ fun EditScreen(editVM: EditVM, padding: PaddingSides) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                modifier = Modifier
-                    .size(35.dp)
-                    .padding(5.dp)
-                    .noRippleClickable({ (context as Activity).finish() }),
-                painter = painterResource(R.drawable.back),
-                contentDescription = "Back",
-                tint = AppColor.Icons.resolve()
-            )
+        TopRow(editContactVM::saveContact)
 
-            Spacer(Modifier.weight(1f))
-
-            Icon(
-                modifier = Modifier
-                    .size(35.dp)
-                    .padding(5.dp)
-                    .noRippleClickable({ editVM.saveContact(context) }),
-                painter = painterResource(R.drawable.check),
-                contentDescription = "Save",
-                tint = AppColor.Icons.resolve()
-            )
-        }
-        // Photo
-        ContactPhoto(
-            photoUri = editableContact.photoUri,
-            onPickImage = editVM::setPhoto
-        )
-
-        if (editableContact.firstName.isNotEmpty() && editableContact.lastName.isNotEmpty()) {
-            OutlinedTextField(
-                value = editableContact.firstName,
-                onValueChange = editVM::updateFirstName,
-                label = { Text("First Name") },
-                modifier = Modifier.fillMaxWidth(),
-                textStyle = LocalTextStyle.current.copy(fontSize = 20.sp)
-            )
-
-            OutlinedTextField(
-                value = editableContact.lastName,
-                onValueChange = editVM::updateLastName,
-                label = { Text("Last Name") },
-                modifier = Modifier.fillMaxWidth(),
-                textStyle = LocalTextStyle.current.copy(fontSize = 20.sp)
-            )
-        }
-        else
-            OutlinedTextField(
-                value = editableContact.fullName,
-                onValueChange = editVM::updateName,
-                label = { Text("Name") },
-                modifier = Modifier.fillMaxWidth(),
-                textStyle = LocalTextStyle.current.copy(fontSize = 20.sp)
-            )
-
-        // Phones
-        Text("Phone Numbers", fontWeight = FontWeight.Bold)
-
-        editableContact.phones.forEachIndexed { index, phone ->
-            ItemPhoneNumber(
-                index,
-                phone,
-                editVM::updatePhone,
-                editVM::removePhone,
-                editVM::showSpeedDial
-            )
-        }
+        ContactInfo(editContactVM.contact, editContactVM::onAction)
 
         Button(
-            onClick = editVM::showAddPhone,
+            onClick = editContactVM::showAddPhone,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Add another phone")
@@ -166,7 +113,7 @@ fun EditScreen(editVM: EditVM, padding: PaddingSides) {
             Icon(
                 modifier = Modifier
                     .size(25.dp)
-                    .noRippleClickable({ editVM.showDelete() }),
+                    .noRippleClickable({ editContactVM.showDelete() }),
                 painter = painterResource(R.drawable.delete),
                 contentDescription = null,
                 tint = AppColor.GradRed.resolve()
@@ -177,17 +124,188 @@ fun EditScreen(editVM: EditVM, padding: PaddingSides) {
     }
 
     if (uiState.showDelete)
-        DigDelete(editVM::dismissPopup, { editVM.deleteContact(context) })
+        DigDelete(editContactVM::dismissPopup, { editContactVM.deleteContact(context) })
     if (uiState.showAdd)
-        DigAddNumber(editVM::dismissPopup, editVM::addPhoneNumber)
+        DigAddNumber(editContactVM::dismissPopup, editContactVM::addPhoneNumber)
     if (uiState.showSpeedList)
         DigSpeedDial(
             uiState.speedSlot,
             uiState.speedDialMap,
-            editVM::dismissPopup,
-            editVM::updateSpeedSlot
+            editContactVM::dismissPopup,
+            editContactVM::updateSpeedSlot
         )
 }
+
+@Composable
+private fun TopRow(onSaveContact: (Context) -> Unit) {
+    val context = LocalContext.current
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            modifier = Modifier
+                .size(35.dp)
+                .padding(5.dp)
+                .noRippleClickable({ (context as Activity).finish() }),
+            painter = painterResource(R.drawable.back),
+            contentDescription = "Back",
+            tint = AppColor.Icons.resolve()
+        )
+
+        Spacer(Modifier.weight(1f))
+
+        Icon(
+            modifier = Modifier
+                .size(35.dp)
+                .padding(5.dp)
+                .noRippleClickable { onSaveContact(context) },
+            painter = painterResource(R.drawable.check),
+            contentDescription = "Save",
+            tint = AppColor.Icons.resolve()
+        )
+    }
+}
+
+@Composable
+private fun ContactInfo(
+    contact: StateFlow<EditableContact>,
+    onAction: (EditContactAction) -> Unit
+) {
+    val editableContact = contact.collectAsStateWithLifecycle().value
+
+    // Photo
+    ContactPhoto(
+        photoUri = editableContact.photoUri,
+        onPickImage = { onAction(EditContactAction.SetPhoto(it)) }
+    )
+
+    OutlinedTextField(
+        value = editableContact.firstName,
+        onValueChange = { onAction(EditContactAction.UpdateFirstName(it)) },
+        label = { Text("First Name") },
+        modifier = Modifier.fillMaxWidth(),
+        textStyle = LocalTextStyle.current.copy(fontSize = 20.sp)
+    )
+
+    OutlinedTextField(
+        value = editableContact.lastName,
+        onValueChange = { onAction(EditContactAction.UpdateLastName(it)) },
+        label = { Text("Last Name") },
+        modifier = Modifier.fillMaxWidth(),
+        textStyle = LocalTextStyle.current.copy(fontSize = 20.sp)
+    )
+
+    Spacer(modifier = Modifier.height(10.dp))
+
+    OutlinedTextField(
+        value = editableContact.job,
+        onValueChange = { onAction(EditContactAction.UpdateJob(it)) },
+        label = { Text("Last Name") },
+        modifier = Modifier.fillMaxWidth(),
+        textStyle = LocalTextStyle.current.copy(fontSize = 20.sp)
+    )
+
+    OutlinedTextField(
+        value = editableContact.company,
+        onValueChange = { onAction(EditContactAction.UpdateCompany(it)) },
+        label = { Text("Last Name") },
+        modifier = Modifier.fillMaxWidth(),
+        textStyle = LocalTextStyle.current.copy(fontSize = 20.sp)
+    )
+
+    // Phones
+    Text("Phone Numbers", fontWeight = FontWeight.Bold)
+
+    editableContact.phones.forEachIndexed { index, phone ->
+        ItemPhoneNumber(
+            phone,
+            { onAction(EditContactAction.UpdatePhone(index, it)) },
+            { onAction(EditContactAction.RemovePhone(index)) },
+            { onAction(EditContactAction.ShowSpeedDial(index)) }
+        )
+    }
+}
+
+@Composable
+fun ContactPhoto(photoUri: Uri?, onPickImage: (Uri?) -> Unit) {
+    val picker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        onPickImage(uri)
+    }
+
+    val colorIndex = remember { Random.nextInt(0, 6) }
+
+    val context = LocalContext.current
+    var bitmap by remember(photoUri) { mutableStateOf<Bitmap?>(null) }
+
+    LaunchedEffect(photoUri) {
+        try {
+            bitmap =
+                photoUri?.let { MediaStore.Images.Media.getBitmap(context.contentResolver, it) }
+        } catch (e: Exception) {
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .size(140.dp)
+            .clip(CircleShape)
+            .background(Holder.colors[colorIndex])
+            .noRippleClickable { picker.launch("image/*") },
+        contentAlignment = Alignment.Center
+    ) {
+        if (bitmap != null)
+            Image(
+                bitmap = bitmap!!.asImageBitmap(),
+                contentDescription = null,
+                modifier = Modifier.size(140.dp),
+                contentScale = ContentScale.Crop
+            )
+        else
+            Icon(
+                painter = painterResource(R.drawable.person),
+                modifier = Modifier.size(80.dp),
+                contentDescription = "Contact image",
+                tint = Color.White
+            )
+    }
+}
+
+@Composable
+private fun ItemPhoneNumber(
+    phone: ContactPhone,
+    updateNumber: (String) -> Unit,
+    removeNumber: () -> Unit,
+    showSpeedDial: () -> Unit
+) {
+    if (!phone.isDeleted)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            OutlinedTextField(
+                value = phone.number,
+                onValueChange = { updateNumber(it) },
+                modifier = Modifier.weight(1f),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                label = { Text("Phone") }
+            )
+
+            IconButton(onClick = removeNumber) {
+                Icon(
+                    painter = painterResource(R.drawable.delete),
+                    contentDescription = "Remove phone",
+                    tint = AppColor.GradRed.resolve()
+                )
+            }
+
+            IconButton(onClick = showSpeedDial) {
+                Icon(
+                    painter = painterResource(R.drawable.speed),
+                    contentDescription = "Speed Dial",
+                    tint = AppColor.GradPurple.resolve()
+                )
+            }
+        }
+}
+
 
 @Composable
 private fun DigDelete(dismissPopup: () -> Unit, deleteClicked: () -> Unit) {
@@ -221,85 +339,6 @@ private fun DigAddNumber(dismissPopup: () -> Unit, addClicked: (String) -> Unit)
             "Delete", AppColor.GradRed.resolve(),
             { addClicked(phoneNumber) }, dismissPopup
         )
-    }
-}
-
-@Composable
-private fun ItemPhoneNumber(
-    index: Int,
-    phone: ContactPhone,
-    updateNumber: (Int, String) -> Unit,
-    removeNumber: (Int) -> Unit,
-    showSpeedDial: (Int) -> Unit
-) {
-    if (!phone.isDeleted)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            OutlinedTextField(
-                value = phone.number,
-                onValueChange = { updateNumber(index, it) },
-                modifier = Modifier.weight(1f),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                label = { Text("Phone") }
-            )
-
-            IconButton(onClick = { removeNumber(index) }) {
-                Icon(
-                    painter = painterResource(R.drawable.delete),
-                    contentDescription = "Remove phone",
-                    tint = AppColor.GradRed.resolve()
-                )
-            }
-
-            IconButton(onClick = { showSpeedDial(index) }) {
-                Icon(
-                    painter = painterResource(R.drawable.speed),
-                    contentDescription = "Speed Dial",
-                    tint = AppColor.GradPurple.resolve()
-                )
-            }
-        }
-}
-
-@Composable
-fun ContactPhoto(photoUri: Uri?, onPickImage: (Uri?) -> Unit) {
-    val picker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
-        onPickImage(uri)
-    }
-
-    val context = LocalContext.current
-    var bitmap by remember(photoUri) { mutableStateOf<Bitmap?>(null) }
-
-    LaunchedEffect(photoUri) {
-        try {
-            bitmap =
-                photoUri?.let { MediaStore.Images.Media.getBitmap(context.contentResolver, it) }
-        } catch (e: Exception) {
-        }
-    }
-
-    Box(
-        modifier = Modifier
-            .size(140.dp)
-            .clip(CircleShape)
-            .background(Color.LightGray.copy(alpha = 0.5f))
-            .noRippleClickable({ picker.launch("image/*") }),
-        contentAlignment = Alignment.Center
-    ) {
-        if (bitmap != null)
-            Image(
-                bitmap = bitmap!!.asImageBitmap(),
-                contentDescription = null,
-                modifier = Modifier.size(140.dp),
-                contentScale = ContentScale.Crop
-            )
-        else
-            Icon(
-                painter = painterResource(R.drawable.person),
-                modifier = Modifier.size(80.dp),
-                contentDescription = "Contact image"
-            )
     }
 }
 

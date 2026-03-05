@@ -5,8 +5,8 @@ import android.provider.ContactsContract
 import androidx.core.net.toUri
 import app.arteh.easydialer.contacts.edit.models.ContactPhone
 import app.arteh.easydialer.contacts.edit.models.EditableContact
-import app.arteh.easydialer.contacts.show.ContactHeader
-import app.arteh.easydialer.contacts.show.models.Contact
+import app.arteh.easydialer.contacts.list.models.ContactHeader
+import app.arteh.easydialer.contacts.list.models.Contact
 import app.arteh.easydialer.contacts.speed.SpeedDialEntry
 import app.arteh.easydialer.utility.Holder
 import app.arteh.easydialer.utility.PreferencesManager
@@ -116,6 +116,7 @@ class ContactRP(private val context: Context) {
 
             // Full display name
             ContactsContract.Contacts.DISPLAY_NAME,
+            ContactsContract.Contacts.DISPLAY_NAME,
 
             // Structured name parts
             ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME,
@@ -136,45 +137,41 @@ class ContactRP(private val context: Context) {
             "$columnID = ?", arrayOf(id.toString()), null
         )
 
-        if (cursor != null)
-            try {
-                val phoneList = mutableListOf<ContactPhone>()
-                var flag = false
+        cursor?.use { cursor ->
+            val phoneList = mutableListOf<ContactPhone>()
+            var flag = false
 
-                while (cursor.moveToNext()) {
-                    val phoneID = cursor.getLong(5)
-                    val number = cursor.getString(6).replace(" ", "")
-                    val numberType = cursor.getInt(7)
+            while (cursor.moveToNext()) {
+                val phoneID = cursor.getLong(5)
+                val number = cursor.getString(6).replace(" ", "")
+                val numberType = cursor.getInt(7)
 
-                    if (!flag) {
-                        flag = true
-                        val contactID = cursor.getLong(0)
-                        val rawContactID = cursor.getLong(1)
+                if (!flag) {
+                    flag = true
+                    val contactID = cursor.getLong(0)
+                    val rawContactID = cursor.getLong(1)
 
-                        val fullName = cursor.getString(2)
-                        val firstName = cursor.getString(3) ?: ""
-                        val lastName = cursor.getString(4) ?: ""
+                    val fullName = cursor.getString(2)
+                    val firstName = cursor.getString(3) ?: ""
+                    val lastName = cursor.getString(4) ?: ""
 
-                        val photoURI = cursor.getString(8)?.toUri()
+                    val photoURI = cursor.getString(8)?.toUri()
 
-                        phoneList.add(ContactPhone(phoneID, number, numberType))
+                    phoneList.add(ContactPhone(phoneID, number, numberType))
 
-                        contact = EditableContact(
-                            contactID, rawContactID,
-                            firstName, lastName, fullName,
-                            phoneList.toList(),
-                            photoURI
-                        )
-                    }
-                    else if (phoneList.indexOfFirst { it.number == number } == -1)
-                        phoneList.add(ContactPhone(phoneID, number, numberType))
+                    contact = EditableContact(
+                        contactID, rawContactID,
+                        firstName, lastName, fullName,
+                        phones = phoneList.toList(),
+                        photoUri = photoURI
+                    )
                 }
-
-                contact = contact.copy(phones = phoneList)
-
-            } finally {
-                cursor.close()
+                else if (phoneList.indexOfFirst { it.number == number } == -1)
+                    phoneList.add(ContactPhone(phoneID, number, numberType))
             }
+
+            contact = contact.copy(phones = phoneList)
+        }
 
         return contact
     }
