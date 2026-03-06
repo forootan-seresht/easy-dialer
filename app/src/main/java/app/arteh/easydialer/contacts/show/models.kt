@@ -10,5 +10,14 @@ data class UIState(
     val showSpeedList: Boolean = false,
     val speedSlot: Int = -1,
     val speedDialMap: Map<Int, SpeedDialEntry> = emptyMap()
-
 )
+
+sealed interface ContactAction{
+    data class MakeCall(val index: Int): ContactAction
+    data object ShowMakeCall: ContactAction
+    data class SendSMS(val index: Int): ContactAction
+    data object ShowSendSMS: ContactAction
+    data object ShowDelete: ContactAction
+    data object ShareContact: ContactAction
+    data object BlocKContact: ContactAction
+}

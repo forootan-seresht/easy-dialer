@@ -68,54 +68,31 @@ fun ShowScreen(contactVM: ContactVM = viewModel(), padding: PaddingSides) {
     val context = LocalContext.current
 
     if (uiState.contact != null)
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(AppColor.BackTrans.resolve())
                 .padding(
                     start = padding.start,
                     top = padding.top,
                     end = padding.end,
                     bottom = padding.bottom
                 )
+
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
+            TopRow(uiState.contact.contactID, contactVM::reloadContact)
 
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                TopRow(uiState.contact.contactID, contactVM::reloadContact, contactVM::shareContact)
+            ContactInfo(uiState.contact, contactVM::onAction)
 
-                ContactInfo(uiState.contact, contactVM::makeCall, contactVM::sendSMS)
-
-                // Delete Contact
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 5.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        modifier = Modifier
-                            .size(25.dp)
-                            .noRippleClickable(contactVM::showDelete),
-                        painter = painterResource(R.drawable.delete),
-                        contentDescription = null,
-                        tint = AppColor.GradRed.resolve()
-                    )
-
-                    Text(text = "Delete", color = AppColor.GradRed.resolve())
-                }
-            }
-
-            QuickButtons()
+            OptionsButtons(contactVM::onAction)
         }
 
     if (uiState.showDelete)
         DigDelete(contactVM::dismissPopup, { contactVM.deleteContact(context) })
-    else  if (uiState.showSpeedList)
+    else if (uiState.showSpeedList)
         DigSpeedDial(
             uiState.speedSlot,
             uiState.speedDialMap,
@@ -125,12 +102,35 @@ fun ShowScreen(contactVM: ContactVM = viewModel(), padding: PaddingSides) {
 }
 
 @Composable
-private fun QuickButtons() {
+private fun QuickButtons(onAction: (ContactAction) -> Unit) {
+    Row(horizontalArrangement = Arrangement.Center) {
+        Icon(
+            modifier = Modifier
+                .padding(horizontal = 10.dp)
+                .size(60.dp)
+                .background(AppColor.GradGreen.resolve().copy(alpha = 0.1f), CircleShape)
+                .padding(7.dp)
+                .noRippleClickable({ onAction(ContactAction.ShowMakeCall) }),
+            painter = painterResource(R.drawable.call),
+            contentDescription = null,
+            tint = AppColor.GradGreen.resolve()
+        )
 
+        Icon(
+            modifier = Modifier
+                .size(60.dp)
+                .background(AppColor.GradBlue.resolve().copy(alpha = 0.1f), CircleShape)
+                .padding(7.dp)
+                .noRippleClickable({ onAction(ContactAction.ShowSendSMS) }),
+            painter = painterResource(R.drawable.sms),
+            contentDescription = null,
+            tint = AppColor.GradBlue.resolve()
+        )
+    }
 }
 
 @Composable
-private fun TopRow(contactID: Long, reloadContact: () -> Unit, onShare: () -> Unit) {
+private fun TopRow(contactID: Long, reloadContact: () -> Unit) {
     val context = LocalContext.current
 
     val editLauncher = rememberLauncherForActivityResult(
@@ -162,24 +162,14 @@ private fun TopRow(contactID: Long, reloadContact: () -> Unit, onShare: () -> Un
                     editLauncher.launch(intent)
                 }),
             painter = painterResource(R.drawable.edit),
-            contentDescription = "Share",
-            tint = AppColor.Icons.resolve()
-        )
-
-        Icon(
-            modifier = Modifier
-                .size(35.dp)
-                .padding(5.dp)
-                .noRippleClickable(onShare),
-            painter = painterResource(R.drawable.edit),
-            contentDescription = "Share",
+            contentDescription = "Edit",
             tint = AppColor.Icons.resolve()
         )
     }
 }
 
 @Composable
-private fun ContactInfo(contact: EditableContact, makeCall: (Int) -> Unit, sendSMS: (Int) -> Unit) {
+private fun ContactInfo(contact: EditableContact, onAction: (ContactAction) -> Unit) {
     ContactPhoto(contact.photoUri)
 
     Text(contact.fullName, style = MaterialTheme.appTypography.h3)
@@ -196,6 +186,8 @@ private fun ContactInfo(contact: EditableContact, makeCall: (Int) -> Unit, sendS
                 Text(contact.company)
         }
 
+    QuickButtons(onAction)
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -203,13 +195,66 @@ private fun ContactInfo(contact: EditableContact, makeCall: (Int) -> Unit, sendS
             .padding(10.dp)
     ) {
         contact.phones.forEachIndexed { index, phone ->
-            ItemPhoneNumber(phone, { makeCall(index) }, { sendSMS(index) })
+            ItemPhoneNumber(
+                phone,
+                { onAction(ContactAction.MakeCall(index)) },
+                { onAction(ContactAction.SendSMS(index)) })
         }
     }
 }
 
 @Composable
-private fun ContactPhoto(photoUri: Uri?) {
+private fun OptionsButtons(onAction: (ContactAction) -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(5.dp))
+            .padding(10.dp)
+    ) {
+
+        ItemOption(
+            R.drawable.edit,
+            AppColor.Icons.resolve(),
+            "Share Contact",
+            { onAction(ContactAction.ShareContact) })
+
+        ItemOption(
+            R.drawable.delete,
+            AppColor.GradRed.resolve(),
+            "Delete",
+            { onAction(ContactAction.ShowDelete) })
+
+        ItemOption(
+            R.drawable.edit,
+            AppColor.GradRed.resolve(),
+            "Block aLl numbers",
+            { onAction(ContactAction.BlocKContact) })
+    }
+}
+
+@Composable
+private fun ItemOption(icon: Int, color: Color, text: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 5.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            modifier = Modifier
+                .size(25.dp)
+                .noRippleClickable(onClick),
+            painter = painterResource(icon),
+            contentDescription = null,
+            tint = color
+        )
+
+        Text(text = text, color = color)
+    }
+}
+
+@Composable
+fun ContactPhoto(photoUri: Uri?) {
     val colorIndex = remember { Random.nextInt(0, 6) }
 
     val context = LocalContext.current
@@ -260,11 +305,16 @@ private fun ItemPhoneNumber(
         PhoneType.Other -> R.drawable.call
     }
 
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = Modifier
+            .padding(vertical = 10.dp)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Icon(
             modifier = Modifier
                 .padding(horizontal = 5.dp)
-                .size(30.dp),
+                .size(25.dp),
             painter = painterResource(icon),
             contentDescription = null,
             tint = AppColor.Icons.resolve()
@@ -273,7 +323,8 @@ private fun ItemPhoneNumber(
         Text(modifier = Modifier.weight(1f), text = phone.number)
 
         Icon(
-            modifier = Modifier.padding(horizontal = 10.dp)
+            modifier = Modifier
+                .padding(horizontal = 10.dp)
                 .size(40.dp)
                 .background(AppColor.GradGreen.resolve().copy(alpha = 0.1f), CircleShape)
                 .padding(7.dp)

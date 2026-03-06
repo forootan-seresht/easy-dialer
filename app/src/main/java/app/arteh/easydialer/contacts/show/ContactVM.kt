@@ -19,6 +19,8 @@ import kotlinx.coroutines.launch
 class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
     AndroidViewModel(application) {
 
+    val contactID: Long = savedStateHandle.get<Long>("id") ?: error("Contact ID is required")
+
     private var _uiState = MutableStateFlow(UIState())
     val uiState = _uiState.asStateFlow()
 
@@ -27,6 +29,18 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
 
     init {
         reloadContact()
+    }
+
+    fun onAction(action: ContactAction) {
+        when (action) {
+            ContactAction.BlocKContact -> TODO()
+            is ContactAction.MakeCall -> TODO()
+            is ContactAction.SendSMS -> TODO()
+            ContactAction.ShareContact -> TODO()
+            ContactAction.ShowDelete -> TODO()
+            ContactAction.ShowMakeCall -> TODO()
+            ContactAction.ShowSendSMS -> TODO()
+        }
     }
 
     fun reloadContact() {
@@ -111,6 +125,4 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
     fun dismissPopup() {
         _uiState.update { it.copy(showDelete = false, showSpeedList = false) }
     }
-
-    val contactID: Long = savedStateHandle.get<Long>("id") ?: error("Contact ID is required")
 }
