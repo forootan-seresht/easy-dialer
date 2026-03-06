@@ -5,8 +5,9 @@ import app.arteh.easydialer.contacts.list.models.Contact
 data class Clog(
     val contact: Contact?,
     val number: String,
-    val status: Int,
+    val status: LogStatus,
     val date: String,
+    val time: String,
     val simID: Int,
     val key: Int
 )

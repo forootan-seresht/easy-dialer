@@ -3,6 +3,8 @@ package app.arteh.easydialer.clog
 import android.provider.MediaStore
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,7 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -34,28 +37,96 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import app.arteh.easydialer.utility.Holder
 import app.arteh.easydialer.R
 import app.arteh.easydialer.clog.models.Clog
+import app.arteh.easydialer.clog.models.LogStatus
+import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
 import app.arteh.easydialer.ui.theme.appTypography
+import app.arteh.easydialer.utility.Holder
 
 @Composable
 fun CLogScreen(callLogVM: CallLogVM) {
 
-    val callLogs = callLogVM.logsFlow.collectAsStateWithLifecycle().value
+    val uiState = callLogVM.uiState.collectAsStateWithLifecycle().value
 
-    Column() {
-        LazyColumn() {
-            itemsIndexed(callLogs) { idx, log ->
-                ItemCallLog(idx, log)
+    Column {
+        TopCategory(uiState.selectedStatus, callLogVM::changeLogType)
+
+        LazyColumn {
+            uiState.logs.forEach { (date, clogs) ->
+                stickyHeader {
+                    itemHeader(date)
+                }
+
+                items(clogs) { log ->
+                    ItemCallLog(log)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun ItemCallLog(idx: Int, log: Clog) {
+private fun TopCategory(selectedType: LogStatus, onChangeType: (LogStatus) -> Unit) {
+    Row(
+        modifier = Modifier
+            .padding(10.dp)
+            .horizontalScroll(rememberScrollState())
+    ) {
+        LogStatus.entries.forEach {
+            ItemCategory(it.icon, it.name, selectedType == it, { onChangeType(it) })
+        }
+    }
+}
+
+@Composable
+private fun ItemCategory(
+    icon: Int,
+    title: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    val borderAlpha = if (isSelected) 1f else 0.4f
+
+    Row(
+        modifier = Modifier
+            .padding(horizontal = 10.dp)
+            .border(
+                1.dp,
+                AppColor.Icons.resolve().copy(alpha = borderAlpha),
+                RoundedCornerShape(7.dp)
+            )
+            .padding(7.dp)
+            .noRippleClickable(onClick),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        Image(
+            modifier = Modifier
+                .padding(end = 5.dp)
+                .size(20.dp),
+            painter = painterResource(icon),
+            contentDescription = null,
+        )
+
+        Text(title)
+    }
+}
+
+@Composable
+private fun itemHeader(date: String) {
+    Text(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(AppColor.BackTrans.resolve())
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        text = date,
+    )
+}
+
+@Composable
+private fun ItemCallLog(log: Clog) {
     val context = LocalContext.current
     var bitmap by remember(log) { mutableStateOf<ImageBitmap?>(null) }
 
@@ -134,18 +205,16 @@ private fun ItemCallLog(idx: Int, log: Clog) {
             }
         }
 
-        val pair = when (log.status) {
-            1 -> ("Received" to R.drawable.call_received)
-            2 -> ("Made" to R.drawable.call_made)
-            3 -> ("Missed" to R.drawable.call_missed)
-            5 -> ("Rejected" to R.drawable.call_rejected)
-
-            else -> ("Others" to R.drawable.local_phone)
-        }
-
         Column {
-            Image(painter = painterResource(pair.second), contentDescription = pair.first)
-            Text(log.date)
+            Image(
+                painter = painterResource(log.status.icon),
+                contentDescription = log.status.fullName
+            )
+            Text(
+                modifier = Modifier.padding(top = 5.dp),
+                text = log.time,
+                style = MaterialTheme.appTypography.desc
+            )
         }
     }
 }
