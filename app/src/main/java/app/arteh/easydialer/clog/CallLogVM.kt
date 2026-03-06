@@ -1,10 +1,12 @@
 package app.arteh.easydialer.clog
 
 import android.app.Application
+import android.content.Intent
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.arteh.easydialer.clog.models.LogStatus
 import app.arteh.easydialer.clog.models.UIState
+import app.arteh.easydialer.contacts.show.ContactActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,5 +42,19 @@ class CallLogVM(application: Application) : AndroidViewModel(application) {
     fun changeLogType(type: LogStatus) {
         _uiState.update { it.copy(selectedStatus = type) }
         loadCallLog("")
+    }
+
+    fun goShowContact(contactID: Long){
+        if (contactID!=0L) {
+            val context = getApplication<Application>()
+
+            val intent = Intent(context, ContactActivity::class.java)
+            intent.apply {
+                putExtra("id", contactID)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+
+            context.startActivity(intent)
+        }
     }
 }

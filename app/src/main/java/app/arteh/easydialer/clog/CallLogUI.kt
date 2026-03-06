@@ -60,7 +60,7 @@ fun CLogScreen(callLogVM: CallLogVM) {
                 }
 
                 items(clogs) { log ->
-                    ItemCallLog(log)
+                    ItemCallLog(log, callLogVM::goShowContact)
                 }
             }
         }
@@ -126,7 +126,7 @@ private fun itemHeader(date: String) {
 }
 
 @Composable
-private fun ItemCallLog(log: Clog) {
+private fun ItemCallLog(log: Clog, onShowContact: (Long) -> Unit) {
     val context = LocalContext.current
     var bitmap by remember(log) { mutableStateOf<ImageBitmap?>(null) }
 
@@ -158,7 +158,8 @@ private fun ItemCallLog(log: Clog) {
                 color = MaterialTheme.colorScheme.surface,
                 RoundedCornerShape(5.dp)
             )
-            .padding(10.dp),
+            .padding(10.dp)
+            .noRippleClickable({ onShowContact(log.contact?.id ?: 0L) }),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (bitmap != null)
