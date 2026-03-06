@@ -62,9 +62,6 @@ import app.arteh.easydialer.utility.Holder
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.random.Random
 
-//todo for phone numbers and other field, by default it is not editable. show click on it to edit it then click on its tick to save it.
-//todo because it is also show contact, each number should have button to call and sms
-//todo add number should be under all numbers lke delete button
 //todo add block contact, share contact, add to favorite
 //todo show list of recent log for this contact
 
@@ -75,6 +72,7 @@ fun EditScreen(editContactVM: EditContactVM = viewModel(), padding: PaddingSides
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(AppColor.BackTrans.resolve())
             .padding(
                 start = padding.start,
                 top = padding.top,

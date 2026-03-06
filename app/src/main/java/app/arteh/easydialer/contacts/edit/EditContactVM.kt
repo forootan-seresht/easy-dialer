@@ -24,6 +24,8 @@ import kotlinx.coroutines.launch
 class EditContactVM(application: Application, savedStateHandle: SavedStateHandle) :
     AndroidViewModel(application) {
 
+    val contactID: Long = savedStateHandle.get<Long>("id") ?: error("Contact ID is required")
+
     private var _uiState = MutableStateFlow(UIState())
     val uiState = _uiState.asStateFlow()
 
@@ -32,7 +34,8 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            _contact.emit(Holder.contactRP.findContactByID(contactID, application))
+            val contact = Holder.contactRP.findContactByID(contactID, application)
+            _contact.emit(contact)
         }
     }
 
@@ -100,7 +103,9 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
         _contact.value = _contact.value.copy(photoUri = uri)
     }
 
-    fun dismissPopup() { _uiState.update { it.copy(showAdd = false) } }
+    fun dismissPopup() {
+        _uiState.update { it.copy(showAdd = false) }
+    }
 
     fun saveContact(context: Context) {
         val ops = ArrayList<ContentProviderOperation>()
@@ -165,6 +170,4 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
 
         context.contentResolver.applyBatch(ContactsContract.AUTHORITY, ops)
     }
-
-    val contactID: Long = savedStateHandle.get<Long>("id") ?: error("Contact ID is required")
 }
