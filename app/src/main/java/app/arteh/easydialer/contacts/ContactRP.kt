@@ -1,5 +1,6 @@
 package app.arteh.easydialer.contacts
 
+import android.content.ContentResolver
 import android.content.Context
 import android.provider.ContactsContract
 import androidx.core.net.toUri
@@ -117,13 +118,6 @@ class ContactRP {
             // Full display name
             ContactsContract.Contacts.DISPLAY_NAME,
 
-            // Structured name parts
-            ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME,
-            ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME,
-
-            ContactsContract.CommonDataKinds.Organization.TITLE,
-            ContactsContract.CommonDataKinds.Organization.COMPANY,
-
             // Phone info
             ContactsContract.CommonDataKinds.Phone._ID,
             ContactsContract.CommonDataKinds.Phone.NUMBER,
@@ -144,9 +138,9 @@ class ContactRP {
             var flag = false
 
             while (cursor.moveToNext()) {
-                val phoneID = cursor.getLong(7)
-                val number = cursor.getString(8).replace(" ", "")
-                val numberType = when (cursor.getInt(9)) {
+                val phoneID = cursor.getLong(3)
+                val number = cursor.getString(4).replace(" ", "")
+                val numberType = when (cursor.getInt(5)) {
                     ContactsContract.CommonDataKinds.Phone.TYPE_HOME -> PhoneType.Home
                     ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE -> PhoneType.Mobile
                     ContactsContract.CommonDataKinds.Phone.TYPE_WORK -> PhoneType.Work
@@ -159,15 +153,13 @@ class ContactRP {
                     val rawContactID = cursor.getLong(1)
 
                     val fullName = cursor.getString(2)
-                    val firstName = cursor.getString(3) ?: ""
-                    val lastName = cursor.getString(4) ?: ""
 
-                    val job = cursor.getString(5) ?: ""
-                    val company = cursor.getString(6) ?: ""
-
-                    val photoURI = cursor.getString(10)?.toUri()
+                    val photoURI = cursor.getString(6)?.toUri()
 
                     phoneList.add(ContactPhone(phoneID, number, numberType))
+
+                    val (firstName, lastName) = getContactName(cr, id)
+                    val (job, company) = getContactOrg(cr, id)
 
                     contact = EditableContact(
                         contactID, rawContactID, firstName, lastName, job, company, fullName,
@@ -193,5 +185,64 @@ class ContactRP {
 
     suspend fun updateSpeedDial(newSlot: Int, oldSlot: Int, speedDialEntry: SpeedDialEntry) {
         prefs.saveSpeedDial(newSlot, oldSlot, speedDialEntry)
+    }
+
+    fun getContactName(cr: ContentResolver, contactId: Long): Pair<String, String> {
+        val projection = arrayOf(
+            ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME,
+            ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME,
+        )
+
+        val cursor = cr.query(
+            ContactsContract.Data.CONTENT_URI,
+            projection,
+            "${ContactsContract.Data.CONTACT_ID} = ? AND " +
+                    "${ContactsContract.Data.MIMETYPE} = ?",
+            arrayOf(
+                contactId.toString(),
+                ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE
+            ),
+            null
+        )
+
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val given = it.getString(0) ?: ""
+                val family = it.getString(1) ?: ""
+                return given to family
+            }
+        }
+
+        return "" to ""
+    }
+
+    fun getContactOrg(cr: ContentResolver, contactId: Long): Pair<String, String> {
+
+        val projection = arrayOf(
+            ContactsContract.CommonDataKinds.Organization.TITLE,
+            ContactsContract.CommonDataKinds.Organization.COMPANY
+        )
+
+        val cursor = cr.query(
+            ContactsContract.Data.CONTENT_URI,
+            projection,
+            "${ContactsContract.Data.CONTACT_ID} = ? AND " +
+                    "${ContactsContract.Data.MIMETYPE} = ?",
+            arrayOf(
+                contactId.toString(),
+                ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE
+            ),
+            null
+        )
+
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val title = it.getString(0) ?: ""
+                val company = it.getString(1) ?: ""
+                return Pair(title, company)
+            }
+        }
+
+        return Pair("", "")
     }
 }
