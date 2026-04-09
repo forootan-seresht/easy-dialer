@@ -3,10 +3,8 @@ package app.arteh.easydialer.permissions
 import android.Manifest
 import android.app.role.RoleManager
 import android.content.Context
-import android.content.Context.TELECOM_SERVICE
 import android.content.pm.PackageManager
 import android.os.Build
-import android.telecom.TelecomManager
 import app.arteh.easydialer.utility.XiaomiUtilities
 
 class PermissionChecker {
@@ -47,15 +45,17 @@ class PermissionChecker {
         return roleManager.isRoleHeld(RoleManager.ROLE_DIALER)
     }
 
-    fun isMiuiCanDisplayOverlay(context: Context): Boolean {
+    fun isMiuiCanRunBackground(context: Context): Boolean {
         val utility = XiaomiUtilities()
         if (utility.isMIUI())
             return utility.isCustomPermissionGranted(context, utility.OP_BACKGROUND_START_ACTIVITY)
         return true
     }
 
-    private fun isDefaultTelecom(context: Context): Boolean {
-        val telecomManager = context.getSystemService(TELECOM_SERVICE) as TelecomManager
-        return context.packageName == telecomManager.getDefaultDialerPackage()
+    fun isMiuiCanShowLockScreen(context: Context): Boolean {
+        val utility = XiaomiUtilities()
+        if (utility.isMIUI())
+            return utility.isCustomPermissionGranted(context, utility.OP_SHOW_WHEN_LOCKED)
+        return true
     }
 }

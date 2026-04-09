@@ -111,7 +111,7 @@ fun PermissionScreen(permissionVM: PermissionVM = viewModel(), padding: PaddingS
             if (row.isVisible.value)
                 when (row.type) {
                     PermissionType.General -> GeneralPermissionItem(row)
-                    PermissionType.MiuiOverlay -> PermissionItem(
+                    PermissionType.Miui -> PermissionItem(
                         row,
                         { permissionVM.openMiuiDisplayOverlayPermission(context) })
 

@@ -13,8 +13,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import app.arteh.easydialer.R
-import app.arteh.easydialer.utility.XiaomiUtilities
 import app.arteh.easydialer.main.MainActivity
+import app.arteh.easydialer.utility.XiaomiUtilities
 
 class PermissionVM : ViewModel() {
 
@@ -73,11 +73,18 @@ class PermissionVM : ViewModel() {
             checkerFunction = permissionChecker::isDefaultDialer
         ),
         PermissionRow(
+            R.string.miui_lockscreen_permission,
+            R.string.miui_lockscreen_permission_desc,
+            "",
+            PermissionType.Miui,
+            checkerFunction = permissionChecker::isMiuiCanShowLockScreen
+        ),
+        PermissionRow(
             R.string.miui_overlay_permission,
             R.string.miui_overlay_permission_desc,
             "",
-            PermissionType.MiuiOverlay,
-            checkerFunction = permissionChecker::isMiuiCanDisplayOverlay
+            PermissionType.Miui,
+            checkerFunction = permissionChecker::isMiuiCanShowLockScreen
         ),
     )
 

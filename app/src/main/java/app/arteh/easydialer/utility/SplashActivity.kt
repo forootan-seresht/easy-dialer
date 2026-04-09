@@ -28,7 +28,7 @@ class SplashActivity : ComponentActivity() {
             !permissionChecker.WriteContactPermission(this) ||
             !permissionChecker.ReadContactPermission(this) ||
             !permissionChecker.isDefaultDialer(this) ||
-            !permissionChecker.isMiuiCanDisplayOverlay(this)
+            !permissionChecker.isMiuiCanRunBackground(this)
         ) {
             val intent = Intent(this, PermissionActivity::class.java)
             startActivity(intent)
