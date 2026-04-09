@@ -11,7 +11,6 @@ import androidx.lifecycle.viewModelScope
 import app.arteh.easydialer.calling.models.CallState
 import app.arteh.easydialer.calling.models.UIState
 import app.arteh.easydialer.calling.service.MyInCallService
-import app.arteh.easydialer.contacts.ContactRP
 import app.arteh.easydialer.utility.Holder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

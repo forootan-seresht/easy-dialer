@@ -62,6 +62,8 @@ import app.arteh.easydialer.ui.theme.appTypography
 import app.arteh.easydialer.utility.Holder
 import kotlin.random.Random
 
+//todo show list of recent log for this contact
+
 @Composable
 fun ShowScreen(contactVM: ContactVM = viewModel(), padding: PaddingSides) {
     val uiState = contactVM.uiState.collectAsStateWithLifecycle().value
@@ -109,7 +111,7 @@ private fun QuickButtons(onAction: (ContactAction) -> Unit) {
                 .padding(horizontal = 10.dp)
                 .size(60.dp)
                 .background(AppColor.GradGreen.resolve().copy(alpha = 0.1f), CircleShape)
-                .padding(7.dp)
+                .padding(10.dp)
                 .noRippleClickable({ onAction(ContactAction.ShowMakeCall) }),
             painter = painterResource(R.drawable.call),
             contentDescription = null,
@@ -120,7 +122,7 @@ private fun QuickButtons(onAction: (ContactAction) -> Unit) {
             modifier = Modifier
                 .size(60.dp)
                 .background(AppColor.GradBlue.resolve().copy(alpha = 0.1f), CircleShape)
-                .padding(7.dp)
+                .padding(10.dp)
                 .noRippleClickable({ onAction(ContactAction.ShowSendSMS) }),
             painter = painterResource(R.drawable.sms),
             contentDescription = null,
@@ -213,6 +215,12 @@ private fun OptionsButtons(onAction: (ContactAction) -> Unit) {
     ) {
 
         ItemOption(
+            R.drawable.star,
+            AppColor.Icons.resolve(),
+            "add to favorite",
+            { onAction(ContactAction.AddFavorite) })
+
+        ItemOption(
             R.drawable.edit,
             AppColor.Icons.resolve(),
             "Share Contact",
@@ -227,7 +235,7 @@ private fun OptionsButtons(onAction: (ContactAction) -> Unit) {
         ItemOption(
             R.drawable.edit,
             AppColor.GradRed.resolve(),
-            "Block aLl numbers",
+            "Block all numbers",
             { onAction(ContactAction.BlocKContact) })
     }
 }
@@ -237,7 +245,7 @@ private fun ItemOption(icon: Int, color: Color, text: String, onClick: () -> Uni
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 5.dp),
+            .padding(vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -249,7 +257,7 @@ private fun ItemOption(icon: Int, color: Color, text: String, onClick: () -> Uni
             tint = color
         )
 
-        Text(text = text, color = color)
+        Text(modifier = Modifier.padding(start = 10.dp), text = text, color = color)
     }
 }
 

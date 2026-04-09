@@ -81,12 +81,7 @@ private fun TopCategory(selectedType: LogStatus, onChangeType: (LogStatus) -> Un
 }
 
 @Composable
-private fun ItemCategory(
-    icon: Int,
-    title: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
+private fun ItemCategory(icon: Int, title: String, isSelected: Boolean, onClick: () -> Unit) {
     val borderAlpha = if (isSelected) 1f else 0.4f
 
     Row(

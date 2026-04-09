@@ -40,6 +40,7 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
             ContactAction.ShowDelete -> TODO()
             ContactAction.ShowMakeCall -> TODO()
             ContactAction.ShowSendSMS -> TODO()
+            ContactAction.AddFavorite -> TODO()
         }
     }
 

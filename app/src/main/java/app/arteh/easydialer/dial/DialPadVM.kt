@@ -8,10 +8,7 @@ import android.os.Bundle
 import android.telecom.TelecomManager
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import app.arteh.easydialer.contacts.ContactRP
 import app.arteh.easydialer.utility.Holder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

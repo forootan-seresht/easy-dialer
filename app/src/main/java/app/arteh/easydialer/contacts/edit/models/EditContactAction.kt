@@ -10,4 +10,5 @@ sealed interface EditContactAction {
     data class UpdateCompany(val company: String) : EditContactAction
     data class UpdatePhone(val index: Int, val phone: String) : EditContactAction
     data class RemovePhone(val index: Int) : EditContactAction
+    data class ChangeType(val index: Int, val type: PhoneType) : EditContactAction
 }

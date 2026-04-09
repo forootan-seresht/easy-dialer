@@ -6,8 +6,6 @@ import androidx.core.net.toUri
 import app.arteh.easydialer.contacts.edit.models.ContactPhone
 import app.arteh.easydialer.contacts.edit.models.EditableContact
 import app.arteh.easydialer.contacts.edit.models.PhoneType
-import app.arteh.easydialer.contacts.list.models.Contact
-import app.arteh.easydialer.contacts.list.models.ContactHeader
 import app.arteh.easydialer.contacts.speed.SpeedDialEntry
 import app.arteh.easydialer.utility.Holder
 import app.arteh.easydialer.utility.PreferencesManager

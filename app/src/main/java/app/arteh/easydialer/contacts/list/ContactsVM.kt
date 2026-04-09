@@ -5,9 +5,9 @@ import android.content.Context
 import android.content.Intent
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import app.arteh.easydialer.contacts.Contact
+import app.arteh.easydialer.contacts.ContactHeader
 import app.arteh.easydialer.contacts.edit.EditContactActivity
-import app.arteh.easydialer.contacts.list.models.Contact
-import app.arteh.easydialer.contacts.list.models.ContactHeader
 import app.arteh.easydialer.contacts.list.models.UIState
 import app.arteh.easydialer.contacts.show.ContactActivity
 import app.arteh.easydialer.utility.Holder

@@ -44,8 +44,8 @@ class CallLogVM(application: Application) : AndroidViewModel(application) {
         loadCallLog("")
     }
 
-    fun goShowContact(contactID: Long){
-        if (contactID!=0L) {
+    fun goShowContact(contactID: Long) {
+        if (contactID != 0L) {
             val context = getApplication<Application>()
 
             val intent = Intent(context, ContactActivity::class.java)

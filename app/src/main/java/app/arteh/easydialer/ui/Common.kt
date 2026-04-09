@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -45,6 +46,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import app.arteh.easydialer.R
 import app.arteh.easydialer.ui.theme.AppColor
 import app.arteh.easydialer.ui.theme.appTypography
@@ -86,6 +89,55 @@ fun CustomDialogue(
         Column(
             Modifier
                 .fillMaxWidth()
+                .padding(15.dp),
+            horizontalAlignment = if (centerH) Alignment.CenterHorizontally else Alignment.Start
+        ) {
+            content()
+        }
+    }
+}
+
+@Composable
+fun CustomPopup(
+    onBack: () -> Unit,
+    centerH: Boolean = false,
+    content: @Composable () -> Unit
+) {
+    var startAnimation by remember { mutableStateOf(false) }
+
+    // Animate the alpha value
+    if (!isSystemInDarkTheme()) {
+        val alpha by animateFloatAsState(
+            targetValue = if (startAnimation) 1f else 0f,
+            animationSpec = tween(durationMillis = 500),
+            label = "alphaAnimation"
+        )
+        LaunchedEffect(Unit) {
+            startAnimation = true
+        }
+        Spacer(
+            Modifier
+                .alpha(alpha)
+                .fillMaxSize()
+                .background(AppColor.LayerBack.resolve())
+                .noRippleClickable(onBack)
+        )
+    }
+    BackHandler { onBack() }
+    Popup(
+        alignment = Alignment.Center, // Center of the whole window
+        onDismissRequest = onBack,
+        properties = PopupProperties(
+            focusable = true,          // To dismiss when clicking outside
+            dismissOnClickOutside = true,
+            dismissOnBackPress = true
+        )
+    ) {
+        Column(
+            Modifier
+                .padding(20.dp)
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(5.dp))
                 .padding(15.dp),
             horizontalAlignment = if (centerH) Alignment.CenterHorizontally else Alignment.Start
         ) {
