@@ -24,9 +24,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,17 +56,15 @@ import app.arteh.easydialer.R
 import app.arteh.easydialer.contacts.edit.models.ContactPhone
 import app.arteh.easydialer.contacts.edit.models.EditContactAction
 import app.arteh.easydialer.contacts.edit.models.EditableContact
-import app.arteh.easydialer.ui.CustomDialogue
+import app.arteh.easydialer.contacts.edit.models.PhoneType
 import app.arteh.easydialer.ui.CustomDigButtons
+import app.arteh.easydialer.ui.CustomPopup
 import app.arteh.easydialer.ui.PaddingSides
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
 import app.arteh.easydialer.utility.Holder
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.random.Random
-
-//todo add block contact, share contact, add to favorite
-//todo show list of recent log for this contact
 
 @Composable
 fun EditScreen(editContactVM: EditContactVM = viewModel(), padding: PaddingSides) {
@@ -148,7 +149,13 @@ private fun ContactInfo(
         onValueChange = { onAction(EditContactAction.UpdateFirstName(it)) },
         label = { Text("First Name") },
         modifier = Modifier.fillMaxWidth(),
-        textStyle = LocalTextStyle.current.copy(fontSize = 20.sp)
+        textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
+        leadingIcon = {
+            Icon(
+                painter = painterResource(R.drawable.edit),
+                contentDescription = null
+            )
+        }
     )
 
     OutlinedTextField(
@@ -156,7 +163,13 @@ private fun ContactInfo(
         onValueChange = { onAction(EditContactAction.UpdateLastName(it)) },
         label = { Text("Last Name") },
         modifier = Modifier.fillMaxWidth(),
-        textStyle = LocalTextStyle.current.copy(fontSize = 20.sp)
+        textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
+        leadingIcon = {
+            Icon(
+                painter = painterResource(R.drawable.edit),
+                contentDescription = null
+            )
+        }
     )
 
     Spacer(modifier = Modifier.height(10.dp))
@@ -164,17 +177,29 @@ private fun ContactInfo(
     OutlinedTextField(
         value = editableContact.job,
         onValueChange = { onAction(EditContactAction.UpdateJob(it)) },
-        label = { Text("Last Name") },
+        label = { Text("Job title") },
         modifier = Modifier.fillMaxWidth(),
-        textStyle = LocalTextStyle.current.copy(fontSize = 20.sp)
+        textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
+        leadingIcon = {
+            Icon(
+                painter = painterResource(R.drawable.edit),
+                contentDescription = null
+            )
+        }
     )
 
     OutlinedTextField(
         value = editableContact.company,
         onValueChange = { onAction(EditContactAction.UpdateCompany(it)) },
-        label = { Text("Last Name") },
+        label = { Text("Company") },
         modifier = Modifier.fillMaxWidth(),
-        textStyle = LocalTextStyle.current.copy(fontSize = 20.sp)
+        textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
+        leadingIcon = {
+            Icon(
+                painter = painterResource(R.drawable.edit),
+                contentDescription = null
+            )
+        }
     )
 
     // Phones
@@ -185,6 +210,7 @@ private fun ContactInfo(
             phone,
             { onAction(EditContactAction.UpdatePhone(index, it)) },
             { onAction(EditContactAction.RemovePhone(index)) },
+            { onAction(EditContactAction.ChangeType(index, it)) },
         )
     }
 }
@@ -240,15 +266,20 @@ private fun ItemPhoneNumber(
     phone: ContactPhone,
     updateNumber: (String) -> Unit,
     removeNumber: () -> Unit,
+    changeType: (PhoneType) -> Unit,
 ) {
     if (!phone.isDeleted)
         Row(verticalAlignment = Alignment.CenterVertically) {
+            PhoneTypeDropdown(phone.type, changeType)
+
             OutlinedTextField(
                 value = phone.number,
                 onValueChange = { updateNumber(it) },
                 modifier = Modifier.weight(1f),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                label = { Text("Phone") }
+                label = { Text("Phone") },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Phone
+                ),
             )
 
             IconButton(onClick = removeNumber) {
@@ -262,24 +293,63 @@ private fun ItemPhoneNumber(
 }
 
 @Composable
-private fun DigAddNumber(dismissPopup: () -> Unit, addClicked: (String) -> Unit) {
+fun PhoneTypeDropdown(currentType: PhoneType, changeType: (PhoneType) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier.noRippleClickable { expanded = true }) {
+        Row {
+            Icon(painter = painterResource(currentType.icon), contentDescription = null)
+            Icon(painter = painterResource(R.drawable.drop_down), contentDescription = null)
+        }
+        DropdownMenu(
+            expanded = expanded,
+            { expanded = false },
+            Modifier.background(MaterialTheme.colorScheme.surface)
+        ) {
+            PhoneType.entries.forEach {
+                DropdownMenuItem(
+                    text = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                modifier = Modifier.padding(end = 10.dp),
+                                painter = painterResource(it.icon),
+                                contentDescription = it.fullName
+                            )
+
+                            Text(text = it.fullName)
+                        }
+                    },
+                    onClick = { changeType(it); expanded = false })
+            }
+        }
+    }
+}
+
+@Composable
+private fun DigAddNumber(dismissPopup: () -> Unit, onAddClicked: (String, PhoneType) -> Unit) {
+    var type by remember { mutableStateOf(PhoneType.Mobile) }
     var phoneNumber by remember { mutableStateOf("") }
 
-    CustomDialogue(
-        Modifier
-            .padding(20.dp)
-            .fillMaxWidth(), dismissPopup
-    ) {
-        OutlinedTextField(
-            modifier = Modifier
-                .padding(vertical = 10.dp)
-                .fillMaxWidth(),
-            value = phoneNumber,
-            onValueChange = { phoneNumber = it })
+    CustomPopup(dismissPopup) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            OutlinedTextField(
+                modifier = Modifier
+                    .padding(vertical = 10.dp)
+                    .fillMaxWidth(),
+                value = phoneNumber,
+                onValueChange = { phoneNumber = it },
+                label = { Text("Phone number") },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Phone
+                ),
+            )
+
+            PhoneTypeDropdown(type) { type = it }
+        }
 
         CustomDigButtons(
-            "Delete", AppColor.GradRed.resolve(),
-            { addClicked(phoneNumber) }, dismissPopup
+            "Add", AppColor.GradGreen.resolve(),
+            { onAddClicked(phoneNumber, type) }, dismissPopup
         )
     }
 }
