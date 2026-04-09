@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 
 enum class PermissionType {
     General,
-    MiuiOverlay,
+    Miui,
     DefDialer,
 }
 

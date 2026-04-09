@@ -40,7 +40,7 @@ class MyInCallService : InCallService() {
 
         // Launch call UI
         val intent = Intent(this, CallActivity::class.java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK  or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         Handler(Looper.getMainLooper()).post {
             startActivity(intent)
         }

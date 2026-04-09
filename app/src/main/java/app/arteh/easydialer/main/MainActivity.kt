@@ -23,9 +23,9 @@ class MainActivity : ComponentActivity() {
 
         Holder.contactRP.initialize(application)
 
-        val contactsVM: ContactsVM by viewModels ()
-        val callLogVM: CallLogVM by viewModels ()
-        val dialPadVM: DialPadVM by viewModels ()
+        val contactsVM: ContactsVM by viewModels()
+        val callLogVM: CallLogVM by viewModels()
+        val dialPadVM: DialPadVM by viewModels()
 
         enableEdgeToEdge()
 
