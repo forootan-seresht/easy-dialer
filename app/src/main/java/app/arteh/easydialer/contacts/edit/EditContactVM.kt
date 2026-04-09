@@ -48,7 +48,15 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
             is EditContactAction.UpdatePhone -> updatePhone(action.index, action.phone)
             is EditContactAction.UpdateCompany -> updateCompany(action.company)
             is EditContactAction.UpdateJob -> updateJob(action.job)
+            is EditContactAction.ChangeType -> updatePhoneType(action.index, action.type)
         }
+    }
+
+    fun updatePhoneType(index: Int, type: PhoneType) {
+        val list = contact.value.phones.toMutableList()
+        list[index] = list[index].copy(type = type)
+        val updatedContact = contact.value.copy(phones = list)
+        _contact.update { updatedContact }
     }
 
     fun updateFirstName(name: String) {
@@ -80,9 +88,9 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
         _uiState.update { it.copy(showAdd = true) }
     }
 
-    fun addPhoneNumber(number: String) {
+    fun addPhoneNumber(number: String, type: PhoneType) {
         val phones = _contact.value.phones.toMutableList()
-        phones.add(ContactPhone(0, number, PhoneType.Other))
+        phones.add(ContactPhone(0, number, type))
         _contact.value = _contact.value.copy(phones = phones)
 
         dismissPopup()
