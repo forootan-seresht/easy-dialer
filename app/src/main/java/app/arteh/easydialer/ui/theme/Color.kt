@@ -18,6 +18,7 @@ enum class AppColor(val light: Color, val dark: Color) {
     SearchBack(Color(0xFFFFFFFF), Color(0xFF424242)),
     ChartColor(Color(0xFF45b08c), Color(0xFF45b08c)),
     CancelDig(Color(0xFF818181), Color(0xFFC9C9C9)),
+    Desc(Color(0xFFA2A2A2), Color(0xFFABABAB)),
     Font(Color(0xFF3D3D3D), Color(0xFFFFFFFF));
 
     @Composable

@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -43,6 +44,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -328,7 +330,11 @@ private fun ItemPhoneNumber(
             tint = AppColor.Icons.resolve()
         )
 
-        Text(modifier = Modifier.weight(1f), text = phone.number)
+        Text(
+            modifier = Modifier.weight(1f),
+            text = phone.number,
+            style = LocalTextStyle.current.copy(textDirection = TextDirection.Ltr),
+        )
 
         Icon(
             modifier = Modifier

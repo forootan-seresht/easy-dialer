@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -34,6 +35,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -201,7 +203,13 @@ private fun ItemContact(contact: Contact, color: Color, char: Char, onShow: () -
 
         Column(modifier = Modifier.padding(horizontal = 10.dp)) {
             Text(text = contact.name, style = MaterialTheme.appTypography.h4)
-            Text(text = contact.phone, style = MaterialTheme.appTypography.desc)
+            Text(
+                text = contact.phone,
+                style = LocalTextStyle.current.copy(
+                    textDirection = TextDirection.Ltr,
+                    color = AppColor.Desc.resolve()
+                )
+            )
         }
     }
 }

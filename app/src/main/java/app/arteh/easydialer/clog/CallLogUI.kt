@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,6 +35,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -194,10 +196,22 @@ private fun ItemCallLog(log: Clog, onShowContact: (Long) -> Unit) {
                 .weight(1f)
         ) {
             if (log.contact == null)
-                Text(text = log.number, fontWeight = FontWeight.Bold)
+                Text(
+                    text = log.number,
+                    fontWeight = FontWeight.Bold,
+                    style = LocalTextStyle.current.copy(
+                        textDirection = TextDirection.Ltr,
+                        color = AppColor.Desc.resolve()
+                    )
+                )
             else {
                 Text(text = log.contact.name, fontWeight = FontWeight.Bold)
-                Text(text = log.number, style = MaterialTheme.appTypography.desc)
+                Text(
+                    text = log.number, style = LocalTextStyle.current.copy(
+                        textDirection = TextDirection.Ltr,
+                        color = AppColor.Desc.resolve()
+                    )
+                )
             }
         }
 
