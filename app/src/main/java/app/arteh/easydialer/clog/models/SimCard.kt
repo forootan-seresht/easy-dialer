@@ -1,3 +1,8 @@
 package app.arteh.easydialer.clog.models
 
-class SimCard(var id: Int, var name: String?, var carrier: String?, var account_id: String?)
+data class SimCard(
+    val id: Int,
+    val name: String?,
+    val carrier: String?,
+    val accountID: String?,
+)
