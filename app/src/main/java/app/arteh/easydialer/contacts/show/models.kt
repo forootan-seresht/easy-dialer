@@ -36,6 +36,9 @@ sealed interface ContactUIAction {
     data object ShowSendSMS : ContactUIAction
     data object ShowDelete : ContactUIAction
     data object ShowBlocK : ContactUIAction
+
+    data object ReloadContact : ContactUIAction
+    data object BlockNumbers : ContactUIAction
 }
 
 enum class ContactAction {

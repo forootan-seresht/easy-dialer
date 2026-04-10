@@ -83,7 +83,7 @@ fun ShowScreen(contactVM: ContactVM = viewModel(), padding: PaddingSides) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            TopRow(uiState.contact.contactID, contactVM::reloadContact)
+            TopRow(uiState.contact.contactID, uiState.contact.isStarred, contactVM::onAction)
 
             ContactInfo(uiState.contact, contactVM::onAction)
 
@@ -98,6 +98,9 @@ fun ShowScreen(contactVM: ContactVM = viewModel(), padding: PaddingSides) {
     else if (showState.showContactNumbers)
         DigContactNumbers(dismissPopup, uiState.contact!!.phones)
         { index, remember -> contactVM.onAction(ContactUIAction.SelectNumber(index, remember)) }
+    else if (showState.showBlock)
+        DigBlockNumbers(dismissPopup, uiState.contact!!.phones)
+        { contactVM.onAction(ContactUIAction.BlockNumbers) }
     else if (showState.showDelete)
         DigDelete(dismissPopup) { contactVM.onAction(ContactUIAction.DeleteContact(context)) }
     else if (showState.showSpeedList)
@@ -135,13 +138,13 @@ private fun QuickButtons(onAction: (ContactUIAction) -> Unit) {
 }
 
 @Composable
-private fun TopRow(contactID: Long, reloadContact: () -> Unit) {
+private fun TopRow(contactID: Long, isStarred: Boolean, onAction: (ContactUIAction) -> Unit) {
     val context = LocalContext.current
 
     val editLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) reloadContact()
+        if (result.resultCode == Activity.RESULT_OK) onAction(ContactUIAction.ReloadContact)
     }
 
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -157,6 +160,15 @@ private fun TopRow(contactID: Long, reloadContact: () -> Unit) {
 
         Spacer(Modifier.weight(1f))
 
+        Icon(
+            modifier = Modifier
+                .size(35.dp)
+                .padding(5.dp)
+                .noRippleClickable { onAction(ContactUIAction.AddFavorite) },
+            painter = painterResource(if (isStarred) R.drawable.star else R.drawable.star_empty),
+            contentDescription = null,
+            tint = if (isStarred) AppColor.GradYoda.resolve() else AppColor.Icons.resolve()
+        )
         Icon(
             modifier = Modifier
                 .size(35.dp)
@@ -218,28 +230,22 @@ private fun OptionsButtons(contact: EditableContact, onAction: (ContactUIAction)
     ) {
 
         ItemOption(
-            R.drawable.star,
-            if (contact.isStarred) AppColor.GradYoda.resolve() else AppColor.Icons.resolve(),
-            "add to favorite"
-        ) { onAction(ContactUIAction.AddFavorite) }
-
-        ItemOption(
             R.drawable.edit,
             AppColor.Icons.resolve(),
             "Share Contact",
             { onAction(ContactUIAction.ShareContact) })
 
         ItemOption(
+            R.drawable.edit,
+            AppColor.GradRed.resolve(),
+            "Block numbers",
+            { onAction(ContactUIAction.ShowBlocK) })
+
+        ItemOption(
             R.drawable.delete,
             AppColor.GradRed.resolve(),
             "Delete"
         ) { onAction(ContactUIAction.ShowDelete) }
-
-        ItemOption(
-            R.drawable.edit,
-            AppColor.GradRed.resolve(),
-            "Block all numbers",
-            { onAction(ContactUIAction.ShowBlocK) })
     }
 }
 
@@ -329,7 +335,9 @@ private fun ItemPhoneNumber(phone: ContactPhone, onCall: () -> Unit, onSMS: () -
         )
 
         Text(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 10.dp),
             text = phone.number,
             style = LocalTextStyle.current.copy(textDirection = TextDirection.Ltr),
         )

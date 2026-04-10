@@ -98,6 +98,26 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
                     makeCall(action.index)
                 else sendSMS(action.index)
             }
+
+            ContactUIAction.ReloadContact -> reloadContact()
+            ContactUIAction.BlockNumbers -> blockNumbers()
+        }
+    }
+
+    fun blockNumbers() {
+        dismissPopup()
+
+        viewModelScope.launch {
+            val phoneNumbers = uiState.value.contact!!.phones.toMutableList()
+            val context = getApplication<Application>()
+
+            phoneNumbers.forEachIndexed { index, phone ->
+                Holder.contactRP.blockNumber(context, phone.number)
+
+                phoneNumbers[index] = phoneNumbers[index].copy(isBLocked = true)
+            }
+
+            _uiState.update { it.copy(contact = it.contact!!.copy(phones = phoneNumbers)) }
         }
     }
 

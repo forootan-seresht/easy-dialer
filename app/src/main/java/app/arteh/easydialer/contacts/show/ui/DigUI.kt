@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
@@ -26,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.arteh.easydialer.Holder
@@ -83,7 +85,7 @@ internal fun DigMyNumbers(
 
                 Text(
                     modifier = Modifier.padding(horizontal = 10.dp),
-                    text = card.carrier ?: index.toString()
+                    text = card.carrier ?: index.toString(),
                 )
             }
         }
@@ -133,7 +135,8 @@ internal fun DigContactNumbers(
 
                 Text(
                     modifier = Modifier.padding(horizontal = 10.dp),
-                    text = phone.number
+                    text = phone.number,
+                    style = LocalTextStyle.current.copy(textDirection = TextDirection.Ltr)
                 )
             }
         }
@@ -154,6 +157,30 @@ internal fun DigContactNumbers(
                     .noRippleClickable { onClick(radioIndex.value, true) }, text = "Always"
             )
         }
+    }
+}
+
+@Composable
+internal fun DigBlockNumbers(
+    dismissPopup: () -> Unit,
+    phones: List<ContactPhone>,
+    onBlock: () -> Unit
+) {
+    CustomPopup(dismissPopup) {
+
+        Text("You will no longer receive calls or text from", fontWeight = FontWeight.Bold)
+
+        Spacer(Modifier.height(10.dp))
+
+        phones.forEach { phone ->
+            Text(
+                modifier = Modifier.padding(horizontal = 10.dp),
+                text = phone.number,
+                style = LocalTextStyle.current.copy(textDirection = TextDirection.Ltr)
+            )
+        }
+
+        CustomDigButtons("Block", AppColor.GradRed.resolve(), onBlock, dismissPopup)
     }
 }
 
