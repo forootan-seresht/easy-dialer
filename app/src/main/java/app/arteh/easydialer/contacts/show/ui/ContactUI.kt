@@ -94,14 +94,11 @@ fun ShowScreen(contactVM: ContactVM = viewModel(), padding: PaddingSides) {
     if (showState.showMyNumbers)
         DigMyNumbers(dismissPopup, contactVM.simCardRP.simCardList)
         { index, remember -> contactVM.onAction(ContactUIAction.SelectSim(index, remember)) }
-
     else if (showState.showContactNumbers)
         DigContactNumbers(dismissPopup, uiState.contact!!.phones)
         { index, remember -> contactVM.onAction(ContactUIAction.SelectSim(index, remember)) }
-
     else if (showState.showDelete)
         DigDelete(dismissPopup) { contactVM.onAction(ContactUIAction.DeleteContact(context)) }
-
     else if (showState.showSpeedList)
         DigSpeedDial(
             uiState.speedSlot, uiState.speedDialMap, dismissPopup
