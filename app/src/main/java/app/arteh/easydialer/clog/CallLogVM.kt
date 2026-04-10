@@ -26,7 +26,6 @@ class CallLogVM(application: Application) : AndroidViewModel(application) {
         if (!loaded) {
             loaded = true
 
-            rp.getSimCards()
             loadCallLog("")
         }
     }
