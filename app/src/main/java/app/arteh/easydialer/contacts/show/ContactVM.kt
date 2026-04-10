@@ -4,7 +4,10 @@ import android.app.Activity
 import android.app.Application
 import android.content.ContentUris
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.provider.ContactsContract
+import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -32,6 +35,7 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
 
     val simCardRP = SimCardRP(application)
     var currentAction = ContactAction.None
+    var activeSim = 0
 
 
     init {
@@ -58,30 +62,79 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
             ContactUIAction.ShareContact -> shareContact()
             ContactUIAction.ShowDelete -> _showState.update { it.copy(showDelete = true) }
             ContactUIAction.ShowMakeCall -> {
+                currentAction = ContactAction.Call
+
                 if (has2Sims(ContactAction.Call)) return
 
                 val defaultIndex = getDefaultNumber(ContactAction.Call)
                 if (defaultIndex == -1) return
-                else makeCall(0)
+                else makeCall(defaultIndex)
             }
 
             ContactUIAction.ShowSendSMS -> {
-                if (simCardRP.simCardList.size > 1) {
-                    currentAction = ContactAction.SMS
-                    _showState.update { it.copy(showMyNumbers = true) }
-                }
-                else sendSMS(0)
+                currentAction = ContactAction.SMS
+                val defaultIndex = getDefaultNumber(ContactAction.SMS)
+                if (defaultIndex == -1) return
+                else sendSMS(defaultIndex)
             }
 
             ContactUIAction.AddFavorite -> addToFavorite()
             is ContactUIAction.DeleteContact -> deleteContact(action.context)
             is ContactUIAction.UpdateSpeedSlot -> updateSpeedSlot(action.slot)
-            is ContactUIAction.SelectSim -> {}
+            is ContactUIAction.SelectSim -> {
+                activeSim = action.index
+
+                if (action.remember)
+                    saveDefaultSim(action.index)
+            }
+
+            is ContactUIAction.SelectNumber -> {
+                if (action.remember)
+                    saveDefaultNumber(action.index)
+
+                dismissPopup()
+
+                if (currentAction == ContactAction.Call)
+                    makeCall(action.index)
+                else sendSMS(action.index)
+            }
+        }
+    }
+
+    fun saveDefaultSim(index: Int) {
+        val id = simCardRP.simCardList[index].id
+
+        _uiState.update { it.copy(contact = it.contact!!.copy(defaultSimID = id)) }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            Holder.contactRP.saveDefaultSim(contactID, id)
+        }
+    }
+
+    fun saveDefaultNumber(index: Int) {
+        val phones = uiState.value.contact!!.phones.toMutableList()
+
+        phones[index] = phones[index].copy(isDefault = true)
+
+        _uiState.update { it.copy(contact = it.contact!!.copy(phones = phones)) }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            Holder.contactRP.saveDefaultNumber(contactID, phones[index].phoneID)
         }
     }
 
     fun has2Sims(action: ContactAction): Boolean {
         if (simCardRP.simCardList.size > 1) {
+            val defaultSimID = uiState.value.contact!!.defaultSimID
+
+            if (uiState.value.contact!!.defaultSimID != -1)
+                simCardRP.simCardList.forEachIndexed { index, card ->
+                    if (card.id == defaultSimID) {
+                        activeSim = index
+                        return false
+                    }
+                }
+
             currentAction = action
             _showState.update { it.copy(showMyNumbers = true) }
             return true
@@ -106,11 +159,9 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
     }
 
     fun makeCall(index: Int) {
-        if (simCardRP.simCardList.size > 1) {
-            currentAction = ContactAction.Call
-            _showState.update { it.copy(showMyNumbers = true) }
-            return
-        }
+        if (has2Sims(ContactAction.Call) && activeSim == -1) return
+
+
     }
 
     fun reloadContact() {
@@ -133,25 +184,21 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
     }
 
     fun sendSMS(index: Int) {
-        if (simCardRP.simCardList.size > 1) {
-            currentAction = ContactAction.SMS
-            _showState.update { it.copy(showMyNumbers = true) }
-            return
+        val phoneNumber = uiState.value.contact!!.phones[index].number
+        val context = getApplication<Application>()
+
+        val intent = Intent(Intent.ACTION_SENDTO).apply {
+            data = "smsto:${Uri.encode(phoneNumber)}".toUri()
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
+
+        context.startActivity(intent)
     }
 
     fun showSpeedDial(phoneIDX: Int) {
         selectedPhoneIDX = phoneIDX
 
         _showState.update { it.copy(showSpeedList = true) }
-    }
-
-    fun showDelete() {
-        _showState.update { it.copy(showDelete = true) }
-    }
-
-    fun showMakeCall() {
-
     }
 
     fun deleteContact(context: Context) {

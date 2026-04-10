@@ -27,6 +27,7 @@ sealed interface ContactUIAction {
     data class UpdateSpeedSlot(val slot: Int) : ContactUIAction
     data class DeleteContact(val context: Context) : ContactUIAction
     data class SelectSim(val index: Int, val remember: Boolean) : ContactUIAction
+    data class SelectNumber(val index: Int, val remember: Boolean) : ContactUIAction
     data object AddFavorite : ContactUIAction
     data object ShareContact : ContactUIAction
 

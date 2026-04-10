@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import app.arteh.easydialer.calling.models.CallState
 import app.arteh.easydialer.calling.models.UIState
 import app.arteh.easydialer.calling.service.MyInCallService
+import app.arteh.easydialer.db.AppDatabase
 import app.arteh.easydialer.utility.Holder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,7 +30,7 @@ class CallVM(application: Application) : AndroidViewModel(application) {
 
     init {
         if (Holder.contactRP.contactList.isEmpty())
-            Holder.contactRP.initialize(application)
+            Holder.contactRP.initialize(application, AppDatabase.getInstance(application))
 
         viewModelScope.launch {
             MyInCallService.callState.collect { info ->

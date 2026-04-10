@@ -97,7 +97,7 @@ fun ShowScreen(contactVM: ContactVM = viewModel(), padding: PaddingSides) {
         { index, remember -> contactVM.onAction(ContactUIAction.SelectSim(index, remember)) }
     else if (showState.showContactNumbers)
         DigContactNumbers(dismissPopup, uiState.contact!!.phones)
-        { index, remember -> contactVM.onAction(ContactUIAction.SelectSim(index, remember)) }
+        { index, remember -> contactVM.onAction(ContactUIAction.SelectNumber(index, remember)) }
     else if (showState.showDelete)
         DigDelete(dismissPopup) { contactVM.onAction(ContactUIAction.DeleteContact(context)) }
     else if (showState.showSpeedList)

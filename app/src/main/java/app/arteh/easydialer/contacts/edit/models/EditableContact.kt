@@ -13,5 +13,5 @@ data class EditableContact(
     val isStarred: Boolean = false,
     val phones: List<ContactPhone> = listOf(),
     val photoUri: Uri? = null,
-    val isDefault: Boolean = false
+    val defaultSimID: Int = -1,
 )

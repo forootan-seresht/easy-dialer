@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.arteh.easydialer.clog.CallLogVM
 import app.arteh.easydialer.contacts.list.ContactsVM
+import app.arteh.easydialer.db.AppDatabase
 import app.arteh.easydialer.dial.DialPadVM
 import app.arteh.easydialer.ui.EdgePadding
 import app.arteh.easydialer.ui.theme.EasyDialerTheme
@@ -21,7 +22,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        Holder.contactRP.initialize(application)
+        Holder.contactRP.initialize(application, AppDatabase.getInstance(this))
 
         val contactsVM: ContactsVM by viewModels()
         val callLogVM: CallLogVM by viewModels()

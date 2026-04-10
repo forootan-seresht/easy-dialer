@@ -2,6 +2,7 @@ package app.arteh.easydialer.utility
 
 import androidx.compose.ui.graphics.Color
 import app.arteh.easydialer.contacts.ContactRP
+import app.arteh.easydialer.db.AppDatabase
 
 object Holder {
     val colors = listOf(

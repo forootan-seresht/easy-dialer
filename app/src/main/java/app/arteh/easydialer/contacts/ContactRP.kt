@@ -12,6 +12,8 @@ import app.arteh.easydialer.contacts.edit.models.ContactPhone
 import app.arteh.easydialer.contacts.edit.models.EditableContact
 import app.arteh.easydialer.contacts.edit.models.PhoneType
 import app.arteh.easydialer.contacts.speed.SpeedDialEntry
+import app.arteh.easydialer.db.AppDatabase
+import app.arteh.easydialer.db.ContactDefaults
 import app.arteh.easydialer.utility.Holder
 import app.arteh.easydialer.utility.PreferencesManager
 import kotlinx.coroutines.flow.Flow
@@ -19,14 +21,16 @@ import kotlinx.coroutines.flow.Flow
 class ContactRP {
     private lateinit var prefs: PreferencesManager
     var contactList = listOf<Contact>()
+    lateinit var db: AppDatabase
 
     lateinit var speedDialMap: Flow<Map<Int, SpeedDialEntry>>
     var lazyKey = 0
 
-    fun initialize(context: Context) {
+    fun initialize(context: Context, instance: AppDatabase) {
         prefs = PreferencesManager(context)
         contactList = queryContacts("", context)
         speedDialMap = prefs.loadSpeedDIal()
+        db = instance
     }
 
     fun loadContacts(name: String, context: Context): Map<ContactHeader, List<Contact>> {
@@ -200,7 +204,18 @@ class ContactRP {
                     )
             }
 
-            contact = contact.copy(phones = phoneList)
+            val contactDefaults = db.contactDefaultsDao().getByID(contact.contactID)
+
+            if (contactDefaults != null)
+                phoneList.forEachIndexed { index, phone ->
+                    if (phone.phoneID == contactDefaults.numberID)
+                        phoneList[index] = phoneList[index].copy(isDefault = true)
+                }
+
+            contact = contact.copy(
+                phones = phoneList,
+                defaultSimID = contactDefaults?.simID ?: -1,
+            )
         }
 
         return contact
@@ -339,5 +354,15 @@ class ContactRP {
         }
 
         return favorites
+    }
+
+    fun saveDefaultSim(contactID: Long, simID: Int) {
+        if (db.contactDefaultsDao().updateSim(contactID, simID) == 0)
+            db.contactDefaultsDao().insert(ContactDefaults(contactID, simID, 0L))
+    }
+
+    fun saveDefaultNumber(contactID: Long, numberID: Long) {
+        if (db.contactDefaultsDao().updateNumber(contactID, numberID) == 0)
+            db.contactDefaultsDao().insert(ContactDefaults(contactID, 0, numberID))
     }
 }
