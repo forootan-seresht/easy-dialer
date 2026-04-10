@@ -10,6 +10,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import app.arteh.easydialer.contacts.speed.SpeedDialEntry
 import app.arteh.easydialer.utility.Holder
+import app.arteh.easydialer.utility.SimCardRP
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,33 +25,17 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
     private var _uiState = MutableStateFlow(UIState())
     val uiState = _uiState.asStateFlow()
 
+    private var _showState = MutableStateFlow(ShowState())
+    val showState = _showState.asStateFlow()
+
     var selectedPhoneIDX: Int = 0
+
+    val simCardRP = SimCardRP(application)
+    var currentAction = ContactAction.None
 
 
     init {
         reloadContact()
-    }
-
-    fun onAction(action: ContactAction) {
-        when (action) {
-            ContactAction.BlocKContact -> TODO()
-            is ContactAction.MakeCall -> TODO()
-            is ContactAction.SendSMS -> TODO()
-            ContactAction.ShareContact -> TODO()
-            ContactAction.ShowDelete -> TODO()
-            ContactAction.ShowMakeCall -> TODO()
-            ContactAction.ShowSendSMS -> TODO()
-            ContactAction.AddFavorite -> TODO()
-        }
-    }
-
-    fun reloadContact() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val contact = Holder.contactRP.findContactByID(contactID, getApplication())
-
-            _uiState.update { it.copy(contact = contact) }
-        }
-
         viewModelScope.launch {
             Holder.contactRP.speedDialMap.collect { map ->
                 var slot: Int = -1
@@ -65,26 +50,108 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
         }
     }
 
+    fun onAction(action: ContactUIAction) {
+        when (action) {
+            ContactUIAction.ShowBlocK -> _showState.update { it.copy(showBlock = true) }
+            is ContactUIAction.MakeCall -> makeCall(action.index)
+            is ContactUIAction.SendSMS -> sendSMS(action.index)
+            ContactUIAction.ShareContact -> shareContact()
+            ContactUIAction.ShowDelete -> _showState.update { it.copy(showDelete = true) }
+            ContactUIAction.ShowMakeCall -> {
+                if (has2Sims(ContactAction.Call)) return
+
+                val defaultIndex = getDefaultNumber(ContactAction.Call)
+                if (defaultIndex == -1) return
+                else makeCall(0)
+            }
+
+            ContactUIAction.ShowSendSMS -> {
+                if (simCardRP.simCardList.size > 1) {
+                    currentAction = ContactAction.SMS
+                    _showState.update { it.copy(showMyNumbers = true) }
+                }
+                else sendSMS(0)
+            }
+
+            ContactUIAction.AddFavorite -> addToFavorite()
+            is ContactUIAction.DeleteContact -> deleteContact(action.context)
+            is ContactUIAction.UpdateSpeedSlot -> updateSpeedSlot(action.slot)
+            is ContactUIAction.SelectSim -> {}
+        }
+    }
+
+    fun has2Sims(action: ContactAction): Boolean {
+        if (simCardRP.simCardList.size > 1) {
+            currentAction = action
+            _showState.update { it.copy(showMyNumbers = true) }
+            return true
+        }
+
+        return false
+    }
+
+    fun getDefaultNumber(action: ContactAction): Int {
+        val numbers = uiState.value.contact!!.phones
+
+        if (numbers.size > 1) {
+            numbers.forEachIndexed { index, phone ->
+                if (phone.isDefault) return index
+            }
+
+            currentAction = action
+            _showState.update { it.copy(showContactNumbers = true) }
+            return -1
+        }
+        else return 0
+    }
+
+    fun makeCall(index: Int) {
+        if (simCardRP.simCardList.size > 1) {
+            currentAction = ContactAction.Call
+            _showState.update { it.copy(showMyNumbers = true) }
+            return
+        }
+    }
+
+    fun reloadContact() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val contact = Holder.contactRP.findContactByID(contactID, getApplication())
+
+            var isBLocked = false
+            for (phone in contact.phones)
+                if (phone.isBLocked) {
+                    isBLocked = true
+                    break
+                }
+
+            _uiState.update { it.copy(contact = contact, isBLocked = isBLocked) }
+        }
+    }
+
     fun shareContact() {
 
     }
 
-    fun makeCall(index: Int) {
-
-    }
-
     fun sendSMS(index: Int) {
-
+        if (simCardRP.simCardList.size > 1) {
+            currentAction = ContactAction.SMS
+            _showState.update { it.copy(showMyNumbers = true) }
+            return
+        }
     }
 
     fun showSpeedDial(phoneIDX: Int) {
         selectedPhoneIDX = phoneIDX
 
-        _uiState.update { it.copy(showSpeedList = true) }
+        _showState.update { it.copy(showSpeedList = true) }
     }
 
     fun showDelete() {
-        _uiState.update { it.copy(showDelete = true) }
+        _showState.update { it.copy(showDelete = true) }
+    }
+
+    fun showMakeCall() {
+
     }
 
     fun deleteContact(context: Context) {
@@ -124,6 +191,21 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
     }
 
     fun dismissPopup() {
-        _uiState.update { it.copy(showDelete = false, showSpeedList = false) }
+        _showState.update {
+            it.copy(
+                showDelete = false,
+                showSpeedList = false,
+                showBlock = false,
+                showMyNumbers = false,
+                showContactNumbers = false,
+            )
+        }
+    }
+
+    fun addToFavorite() {
+        val isStarred = uiState.value.contact!!.isStarred
+        Holder.contactRP.setFavorite(getApplication(), contactID, !isStarred)
+
+        _uiState.update { it.copy(contact = it.contact!!.copy(isStarred = !isStarred)) }
     }
 }

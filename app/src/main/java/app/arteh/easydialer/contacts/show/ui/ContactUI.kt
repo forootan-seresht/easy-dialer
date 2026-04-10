@@ -1,4 +1,4 @@
-package app.arteh.easydialer.contacts.show
+package app.arteh.easydialer.contacts.show.ui
 
 import android.app.Activity
 import android.content.Intent
@@ -22,13 +22,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,10 +40,8 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.arteh.easydialer.R
@@ -54,9 +49,8 @@ import app.arteh.easydialer.contacts.edit.EditContactActivity
 import app.arteh.easydialer.contacts.edit.models.ContactPhone
 import app.arteh.easydialer.contacts.edit.models.EditableContact
 import app.arteh.easydialer.contacts.edit.models.PhoneType
-import app.arteh.easydialer.contacts.speed.SpeedDialEntry
-import app.arteh.easydialer.ui.CustomDialogue
-import app.arteh.easydialer.ui.CustomDigButtons
+import app.arteh.easydialer.contacts.show.ContactUIAction
+import app.arteh.easydialer.contacts.show.ContactVM
 import app.arteh.easydialer.ui.PaddingSides
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
@@ -69,6 +63,7 @@ import kotlin.random.Random
 @Composable
 fun ShowScreen(contactVM: ContactVM = viewModel(), padding: PaddingSides) {
     val uiState = contactVM.uiState.collectAsStateWithLifecycle().value
+    val showState = contactVM.showState.collectAsStateWithLifecycle().value
     val context = LocalContext.current
 
     if (uiState.contact != null)
@@ -94,19 +89,27 @@ fun ShowScreen(contactVM: ContactVM = viewModel(), padding: PaddingSides) {
             OptionsButtons(contactVM::onAction)
         }
 
-    if (uiState.showDelete)
-        DigDelete(contactVM::dismissPopup, { contactVM.deleteContact(context) })
-    else if (uiState.showSpeedList)
+    val dismissPopup = contactVM::dismissPopup
+
+    if (showState.showMyNumbers)
+        DigMyNumbers(dismissPopup, contactVM.simCardRP.simCardList)
+        { index, remember -> contactVM.onAction(ContactUIAction.SelectSim(index, remember)) }
+
+    else if (showState.showContactNumbers)
+        DigContactNumbers(dismissPopup, uiState.contact!!.phones)
+        { index, remember -> contactVM.onAction(ContactUIAction.SelectSim(index, remember)) }
+
+    else if (showState.showDelete)
+        DigDelete(dismissPopup) { contactVM.onAction(ContactUIAction.DeleteContact(context)) }
+
+    else if (showState.showSpeedList)
         DigSpeedDial(
-            uiState.speedSlot,
-            uiState.speedDialMap,
-            contactVM::dismissPopup,
-            contactVM::updateSpeedSlot
-        )
+            uiState.speedSlot, uiState.speedDialMap, dismissPopup
+        ) { contactVM.onAction(ContactUIAction.UpdateSpeedSlot(it)) }
 }
 
 @Composable
-private fun QuickButtons(onAction: (ContactAction) -> Unit) {
+private fun QuickButtons(onAction: (ContactUIAction) -> Unit) {
     Row(horizontalArrangement = Arrangement.Center) {
         Icon(
             modifier = Modifier
@@ -114,7 +117,7 @@ private fun QuickButtons(onAction: (ContactAction) -> Unit) {
                 .size(60.dp)
                 .background(AppColor.GradGreen.resolve().copy(alpha = 0.1f), CircleShape)
                 .padding(10.dp)
-                .noRippleClickable({ onAction(ContactAction.ShowMakeCall) }),
+                .noRippleClickable({ onAction(ContactUIAction.ShowMakeCall) }),
             painter = painterResource(R.drawable.call),
             contentDescription = null,
             tint = AppColor.GradGreen.resolve()
@@ -125,7 +128,7 @@ private fun QuickButtons(onAction: (ContactAction) -> Unit) {
                 .size(60.dp)
                 .background(AppColor.GradBlue.resolve().copy(alpha = 0.1f), CircleShape)
                 .padding(10.dp)
-                .noRippleClickable({ onAction(ContactAction.ShowSendSMS) }),
+                .noRippleClickable({ onAction(ContactUIAction.ShowSendSMS) }),
             painter = painterResource(R.drawable.sms),
             contentDescription = null,
             tint = AppColor.GradBlue.resolve()
@@ -173,7 +176,7 @@ private fun TopRow(contactID: Long, reloadContact: () -> Unit) {
 }
 
 @Composable
-private fun ContactInfo(contact: EditableContact, onAction: (ContactAction) -> Unit) {
+private fun ContactInfo(contact: EditableContact, onAction: (ContactUIAction) -> Unit) {
     ContactPhoto(contact.photoUri)
 
     Text(contact.fullName, style = MaterialTheme.appTypography.h3)
@@ -201,14 +204,14 @@ private fun ContactInfo(contact: EditableContact, onAction: (ContactAction) -> U
         contact.phones.forEachIndexed { index, phone ->
             ItemPhoneNumber(
                 phone,
-                { onAction(ContactAction.MakeCall(index)) },
-                { onAction(ContactAction.SendSMS(index)) })
+                { onAction(ContactUIAction.MakeCall(index)) },
+                { onAction(ContactUIAction.SendSMS(index)) })
         }
     }
 }
 
 @Composable
-private fun OptionsButtons(onAction: (ContactAction) -> Unit) {
+private fun OptionsButtons(onAction: (ContactUIAction) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -220,25 +223,25 @@ private fun OptionsButtons(onAction: (ContactAction) -> Unit) {
             R.drawable.star,
             AppColor.Icons.resolve(),
             "add to favorite",
-            { onAction(ContactAction.AddFavorite) })
+            { onAction(ContactUIAction.AddFavorite) })
 
         ItemOption(
             R.drawable.edit,
             AppColor.Icons.resolve(),
             "Share Contact",
-            { onAction(ContactAction.ShareContact) })
+            { onAction(ContactUIAction.ShareContact) })
 
         ItemOption(
             R.drawable.delete,
             AppColor.GradRed.resolve(),
             "Delete",
-            { onAction(ContactAction.ShowDelete) })
+            { onAction(ContactUIAction.ShowDelete) })
 
         ItemOption(
             R.drawable.edit,
             AppColor.GradRed.resolve(),
             "Block all numbers",
-            { onAction(ContactAction.BlocKContact) })
+            { onAction(ContactUIAction.ShowBlocK) })
     }
 }
 
@@ -303,11 +306,7 @@ fun ContactPhoto(photoUri: Uri?) {
 }
 
 @Composable
-private fun ItemPhoneNumber(
-    phone: ContactPhone,
-    onCall: () -> Unit,
-    onSMS: () -> Unit
-) {
+private fun ItemPhoneNumber(phone: ContactPhone, onCall: () -> Unit, onSMS: () -> Unit) {
     val icon = when (phone.type) {
         PhoneType.Mobile -> R.drawable.mobile
         PhoneType.Home -> R.drawable.home
@@ -357,79 +356,5 @@ private fun ItemPhoneNumber(
             contentDescription = null,
             tint = AppColor.GradBlue.resolve()
         )
-    }
-}
-
-@Composable
-private fun DigDelete(dismissPopup: () -> Unit, deleteClicked: () -> Unit) {
-    CustomDialogue(
-        Modifier
-            .padding(20.dp)
-            .fillMaxWidth(), dismissPopup
-    ) {
-        Text("Are you sure to permanently delete this contact?")
-        CustomDigButtons("Delete", AppColor.GradRed.resolve(), deleteClicked, dismissPopup)
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DigSpeedDial(
-    selectedSlot: Int,
-    speedMap: Map<Int, SpeedDialEntry>,
-    dismissPopup: () -> Unit,
-    updateSlot: (Int) -> Unit,
-) {
-    ModalBottomSheet(
-        onDismissRequest = dismissPopup,
-        containerColor = MaterialTheme.colorScheme.surface,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    ) {
-        Column(Modifier.padding(15.dp)) {
-            Row(
-                modifier = Modifier
-                    .padding(5.dp)
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .noRippleClickable { updateSlot(-1) },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (selectedSlot == -1)
-                    Icon(
-                        painterResource(R.drawable.check),
-                        contentDescription = "Selected",
-                        tint = AppColor.GradGreen.resolve()
-                    )
-                Text(modifier = Modifier.padding(horizontal = 10.dp), text = "None")
-            }
-
-            for (i in 0 until 10)
-                Row(
-                    modifier = Modifier
-                        .padding(5.dp)
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surface)
-                        .noRippleClickable { updateSlot(i) },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (selectedSlot == i)
-                        Icon(
-                            painterResource(R.drawable.check),
-                            contentDescription = "Selected",
-                            tint = AppColor.GradGreen.resolve()
-                        )
-                    Text(modifier = Modifier.padding(horizontal = 15.dp), text = i.toString())
-                    Column {
-                        if (speedMap[i] != null) {
-                            Text(
-                                text = speedMap[i]!!.displayName,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(text = speedMap[i]!!.phoneNumber)
-                        }
-                    }
-                }
-        }
     }
 }
