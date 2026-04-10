@@ -1,7 +1,11 @@
 package app.arteh.easydialer.contacts
 
 import android.content.ContentResolver
+import android.content.ContentUris
+import android.content.ContentValues
 import android.content.Context
+import android.net.Uri
+import android.provider.BlockedNumberContract
 import android.provider.ContactsContract
 import androidx.core.net.toUri
 import app.arteh.easydialer.contacts.edit.models.ContactPhone
@@ -117,6 +121,8 @@ class ContactRP {
 
             // Full display name
             ContactsContract.Contacts.DISPLAY_NAME,
+            //is favorite
+            ContactsContract.Contacts.STARRED,
 
             // Phone info
             ContactsContract.CommonDataKinds.Phone._ID,
@@ -137,10 +143,24 @@ class ContactRP {
             val phoneList = mutableListOf<ContactPhone>()
             var flag = false
 
+            val idIndex =
+                cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)
+            val rawIDIndex =
+                cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.RAW_CONTACT_ID)
+            val nameIndex = cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
+            val starredIndex = cursor.getColumnIndex(ContactsContract.Contacts.STARRED)
+            val phoneIDIndex =
+                cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone._ID)
+            val numberIndex =
+                cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+            val phoneTypeIndex =
+                cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE)
+            val photoIndex = cursor.getColumnIndex(ContactsContract.PhoneLookup.PHOTO_URI)
+
             while (cursor.moveToNext()) {
-                val phoneID = cursor.getLong(3)
-                val number = cursor.getString(4).replace(" ", "")
-                val numberType = when (cursor.getInt(5)) {
+                val phoneID = cursor.getLong(phoneIDIndex)
+                val number = cursor.getString(numberIndex).replace(" ", "")
+                val numberType = when (cursor.getInt(phoneTypeIndex)) {
                     ContactsContract.CommonDataKinds.Phone.TYPE_HOME -> PhoneType.Home
                     ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE -> PhoneType.Mobile
                     ContactsContract.CommonDataKinds.Phone.TYPE_WORK -> PhoneType.Work
@@ -149,25 +169,35 @@ class ContactRP {
 
                 if (!flag) {
                     flag = true
-                    val contactID = cursor.getLong(0)
-                    val rawContactID = cursor.getLong(1)
+                    val contactID = cursor.getLong(idIndex)
+                    val rawContactID = cursor.getLong(rawIDIndex)
 
-                    val fullName = cursor.getString(2)
+                    val fullName = cursor.getString(nameIndex)
+                    val isStarred = cursor.getInt(starredIndex) == 1
+                    val isBlocked = isNumberBlocked(context, number)
+                    val photoURI = cursor.getString(photoIndex)?.toUri()
 
-                    val photoURI = cursor.getString(6)?.toUri()
-
-                    phoneList.add(ContactPhone(phoneID, number, numberType))
+                    phoneList.add(
+                        ContactPhone(phoneID, number, numberType, isBlocked)
+                    )
 
                     val (firstName, lastName) = getContactName(cr, id)
                     val (job, company) = getContactOrg(cr, id)
 
                     contact = EditableContact(
                         contactID, rawContactID, firstName, lastName, job, company, fullName,
-                        phones = phoneList.toList(), photoUri = photoURI
+                        isStarred, phones = phoneList.toList(), photoUri = photoURI
                     )
                 }
                 else if (phoneList.indexOfFirst { it.number == number } == -1)
-                    phoneList.add(ContactPhone(phoneID, number, numberType))
+                    phoneList.add(
+                        ContactPhone(
+                            phoneID,
+                            number,
+                            numberType,
+                            isNumberBlocked(context, number)
+                        )
+                    )
             }
 
             contact = contact.copy(phones = phoneList)
@@ -244,5 +274,70 @@ class ContactRP {
         }
 
         return Pair("", "")
+    }
+
+    //Block
+    fun blockNumber(context: Context, phoneNumber: String) {
+        val values = ContentValues()
+        values.put(BlockedNumberContract.BlockedNumbers.COLUMN_ORIGINAL_NUMBER, phoneNumber)
+
+        // The URI for the blocked numbers table
+        context.contentResolver.insert(BlockedNumberContract.BlockedNumbers.CONTENT_URI, values)
+    }
+
+    fun unblockNumber(context: Context, phoneNumber: String) {
+        val uri = Uri.withAppendedPath(
+            BlockedNumberContract.BlockedNumbers.CONTENT_URI,
+            Uri.encode(phoneNumber)
+        )
+
+        context.contentResolver.delete(uri, null, null)
+    }
+
+    fun isNumberBlocked(context: Context, number: String): Boolean {
+        return BlockedNumberContract.isBlocked(context, number)
+    }
+
+
+    //Favorite
+    fun setFavorite(context: Context, contactId: Long, isFavorite: Boolean) {
+        val values = ContentValues().apply {
+            put(ContactsContract.Contacts.STARRED, if (isFavorite) 1 else 0)
+        }
+
+        val uri = ContactsContract.Contacts.getLookupUri(contactId, null)
+            ?: ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, contactId)
+
+        context.contentResolver.update(uri, values, null, null)
+    }
+
+    fun getFavoriteContacts(context: Context): List<Contact> {
+        val favorites = mutableListOf<Contact>()
+
+        val projection = arrayOf(
+            ContactsContract.Contacts._ID,
+            ContactsContract.Contacts.DISPLAY_NAME,
+            ContactsContract.Contacts.PHOTO_URI
+        )
+
+        val cursor = context.contentResolver.query(
+            ContactsContract.Contacts.CONTENT_URI,
+            projection,
+            "${ContactsContract.Contacts.STARRED} = 1",
+            null,
+            ContactsContract.Contacts.DISPLAY_NAME + " ASC"
+        )
+
+        cursor?.use {
+            while (it.moveToNext()) {
+                val id = it.getLong(0)
+                val name = it.getString(1)
+                val photo = it.getString(2)
+
+//                favorites.add(Contact(id, name, photo))
+            }
+        }
+
+        return favorites
     }
 }

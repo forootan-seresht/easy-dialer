@@ -13,5 +13,7 @@ data class ContactPhone(
     val phoneID: Long = 0,
     val number: String,
     val type: PhoneType,
+    val isBLocked: Boolean = false,
     val isDeleted: Boolean = false,
+    val isDefault: Boolean = false,
 )
