@@ -103,17 +103,18 @@ internal fun DigContactNumbers(
     phones: List<ContactPhone>,
     onClick: (Int, Boolean) -> Unit
 ) {
-    CustomPopup(dismissPopup) {
-        var radioIndex = remember {
-            var index: Int = 0
-            for (i in 0 until phones.size)
-                if (phones[i].isDefault) {
-                    index = i
-                    break
-                }
+    val radioIndex = remember {
+        var index = 0
+        for (i in 0 until phones.size)
+            if (phones[i].isDefault) {
+                index = i
+                break
+            }
 
-            return@remember index
-        }
+        return@remember mutableStateOf(index)
+    }
+
+    CustomPopup(dismissPopup) {
 
         Text("Choose phone number", fontWeight = FontWeight.Bold)
 
@@ -124,11 +125,11 @@ internal fun DigContactNumbers(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(10.dp)
-                    .noRippleClickable { radioIndex = index },
+                    .noRippleClickable { radioIndex.value = index },
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
-                RadioButton(radioIndex == index, { radioIndex = index })
+                val selected = radioIndex.value == index
+                RadioButton(selected, { radioIndex.value = index })
 
                 Text(
                     modifier = Modifier.padding(horizontal = 10.dp),
@@ -144,13 +145,13 @@ internal fun DigContactNumbers(
                 modifier = Modifier
                     .wrapContentSize()
                     .padding(horizontal = 15.dp)
-                    .noRippleClickable { onClick(radioIndex, false) }, text = "Just once"
+                    .noRippleClickable { onClick(radioIndex.value, false) }, text = "Just once"
             )
             Text(
                 modifier = Modifier
                     .wrapContentSize()
                     .padding(horizontal = 15.dp)
-                    .noRippleClickable { onClick(radioIndex, true) }, text = "Always"
+                    .noRippleClickable { onClick(radioIndex.value, true) }, text = "Always"
             )
         }
     }
