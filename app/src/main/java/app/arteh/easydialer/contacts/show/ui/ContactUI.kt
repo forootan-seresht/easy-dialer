@@ -9,6 +9,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -86,7 +87,7 @@ fun ShowScreen(contactVM: ContactVM = viewModel(), padding: PaddingSides) {
 
             ContactInfo(uiState.contact, contactVM::onAction)
 
-            OptionsButtons(contactVM::onAction)
+            OptionsButtons(uiState.contact, contactVM::onAction)
         }
 
     val dismissPopup = contactVM::dismissPopup
@@ -110,7 +111,7 @@ private fun QuickButtons(onAction: (ContactUIAction) -> Unit) {
     Row(horizontalArrangement = Arrangement.Center) {
         Icon(
             modifier = Modifier
-                .padding(horizontal = 10.dp)
+                .padding(horizontal = 15.dp)
                 .size(60.dp)
                 .background(AppColor.GradGreen.resolve().copy(alpha = 0.1f), CircleShape)
                 .padding(10.dp)
@@ -124,7 +125,7 @@ private fun QuickButtons(onAction: (ContactUIAction) -> Unit) {
             modifier = Modifier
                 .size(60.dp)
                 .background(AppColor.GradBlue.resolve().copy(alpha = 0.1f), CircleShape)
-                .padding(10.dp)
+                .padding(15.dp)
                 .noRippleClickable({ onAction(ContactUIAction.ShowSendSMS) }),
             painter = painterResource(R.drawable.sms),
             contentDescription = null,
@@ -208,7 +209,7 @@ private fun ContactInfo(contact: EditableContact, onAction: (ContactUIAction) ->
 }
 
 @Composable
-private fun OptionsButtons(onAction: (ContactUIAction) -> Unit) {
+private fun OptionsButtons(contact: EditableContact, onAction: (ContactUIAction) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -218,9 +219,9 @@ private fun OptionsButtons(onAction: (ContactUIAction) -> Unit) {
 
         ItemOption(
             R.drawable.star,
-            AppColor.Icons.resolve(),
-            "add to favorite",
-            { onAction(ContactUIAction.AddFavorite) })
+            if (contact.isStarred) AppColor.GradYoda.resolve() else AppColor.Icons.resolve(),
+            "add to favorite"
+        ) { onAction(ContactUIAction.AddFavorite) }
 
         ItemOption(
             R.drawable.edit,
@@ -231,8 +232,8 @@ private fun OptionsButtons(onAction: (ContactUIAction) -> Unit) {
         ItemOption(
             R.drawable.delete,
             AppColor.GradRed.resolve(),
-            "Delete",
-            { onAction(ContactUIAction.ShowDelete) })
+            "Delete"
+        ) { onAction(ContactUIAction.ShowDelete) }
 
         ItemOption(
             R.drawable.edit,
@@ -314,7 +315,8 @@ private fun ItemPhoneNumber(phone: ContactPhone, onCall: () -> Unit, onSMS: () -
     Row(
         modifier = Modifier
             .padding(vertical = 10.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable(onClick = onCall),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -334,20 +336,9 @@ private fun ItemPhoneNumber(phone: ContactPhone, onCall: () -> Unit, onSMS: () -
 
         Icon(
             modifier = Modifier
-                .padding(horizontal = 10.dp)
-                .size(40.dp)
-                .background(AppColor.GradGreen.resolve().copy(alpha = 0.1f), CircleShape)
-                .padding(7.dp)
-                .noRippleClickable(onCall),
-            painter = painterResource(R.drawable.call),
-            contentDescription = null,
-            tint = AppColor.GradGreen.resolve()
-        )
-        Icon(
-            modifier = Modifier
                 .size(40.dp)
                 .background(AppColor.GradBlue.resolve().copy(alpha = 0.1f), CircleShape)
-                .padding(7.dp)
+                .padding(10.dp)
                 .noRippleClickable(onSMS),
             painter = painterResource(R.drawable.sms),
             contentDescription = null,
