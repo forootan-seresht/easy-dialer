@@ -52,6 +52,8 @@ import app.arteh.easydialer.contacts.edit.models.EditableContact
 import app.arteh.easydialer.contacts.edit.models.PhoneType
 import app.arteh.easydialer.contacts.show.ContactUIAction
 import app.arteh.easydialer.contacts.show.ContactVM
+import app.arteh.easydialer.dialer.DigContactNumbers
+import app.arteh.easydialer.dialer.DigMySimCards
 import app.arteh.easydialer.ui.PaddingSides
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
@@ -65,6 +67,8 @@ import kotlin.random.Random
 fun ShowScreen(contactVM: ContactVM = viewModel(), padding: PaddingSides) {
     val uiState = contactVM.uiState.collectAsStateWithLifecycle().value
     val showState = contactVM.showState.collectAsStateWithLifecycle().value
+    val dialerShowState = contactVM.dialerHR.showState.collectAsStateWithLifecycle().value
+
     val context = LocalContext.current
 
     if (uiState.contact != null)
@@ -92,12 +96,10 @@ fun ShowScreen(contactVM: ContactVM = viewModel(), padding: PaddingSides) {
 
     val dismissPopup = contactVM::dismissPopup
 
-    if (showState.showMyNumbers)
-        DigMyNumbers(dismissPopup, contactVM.simCardRP.simCardList)
-        { index, remember -> contactVM.onAction(ContactUIAction.SelectSim(index, remember)) }
-    else if (showState.showContactNumbers)
-        DigContactNumbers(dismissPopup, uiState.contact!!.phones)
-        { index, remember -> contactVM.onAction(ContactUIAction.SelectNumber(index, remember)) }
+    if (dialerShowState.showMyNumbers)
+        DigMySimCards(contactVM.dialerHR::dismissPopup, contactVM.simCardHR.simCardList, contactVM.dialerHR::selectSim)
+    else if (dialerShowState.showContactNumbers)
+        DigContactNumbers(contactVM.dialerHR::dismissPopup, uiState.contact!!.phones, contactVM.dialerHR::selectNumber)
     else if (showState.showBlock)
         DigBlockNumbers(dismissPopup, uiState.contact!!.phones)
         { contactVM.onAction(ContactUIAction.BlockNumbers) }
@@ -127,7 +129,7 @@ private fun QuickButtons(onAction: (ContactUIAction) -> Unit) {
         Icon(
             modifier = Modifier
                 .size(60.dp)
-                .background(AppColor.GradBlue.resolve().copy(alpha = 0.1f), CircleShape)
+                .background(AppColor.GradPurple.resolve().copy(alpha = 0.1f), CircleShape)
                 .padding(15.dp)
                 .noRippleClickable({ onAction(ContactUIAction.ShowSendSMS) }),
             painter = painterResource(R.drawable.sms),

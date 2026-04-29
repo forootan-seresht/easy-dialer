@@ -8,33 +8,38 @@ import android.telephony.SubscriptionManager
 import androidx.core.app.ActivityCompat
 import app.arteh.easydialer.clog.models.SimCard
 
-class SimCardRP(context: Context) {
+class SimCardHR(context: Context) {
     val simCardList = mutableListOf<SimCard>()
 
     init {
+        fetchSimCards(context)
+    }
+
+    /** because we check/get permissions at the beginning of app, permission is granted in most of the time*/
+    fun fetchSimCards(context: Context) {
         val subManager = context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE)
                 as SubscriptionManager
         val telecom = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.READ_PHONE_STATE
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            val lis = telecom.callCapablePhoneAccounts
+
+        val permissionStatus = ActivityCompat.checkSelfPermission(
+            context, Manifest.permission.READ_PHONE_STATE
+        )
+
+        if (permissionStatus == PackageManager.PERMISSION_GRANTED) {
+            val accounts = telecom.callCapablePhoneAccounts
 
             if (subManager.getActiveSubscriptionInfoCount() > 0) {
                 val localList = subManager.getActiveSubscriptionInfoList() ?: emptyList()
 
-                for (info in localList) {
+                for (info in localList)
                     simCardList.add(
                         SimCard(
                             info.subscriptionId,
                             info.displayName.toString(),
                             info.carrierName.toString(),
-                            telecom.getPhoneAccount(lis[0]).accountHandle.id,
+                            telecom.getPhoneAccount(accounts[0]).accountHandle.id,
                         )
                     )
-                }
             }
         }
     }

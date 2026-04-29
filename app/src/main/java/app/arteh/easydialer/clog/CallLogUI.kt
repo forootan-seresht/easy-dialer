@@ -8,11 +8,13 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,14 +36,18 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.arteh.easydialer.R
+import app.arteh.easydialer.clog.models.CLogAction
 import app.arteh.easydialer.clog.models.Clog
 import app.arteh.easydialer.clog.models.LogStatus
+import app.arteh.easydialer.dialer.DigMySimCards
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
 import app.arteh.easydialer.ui.theme.appTypography
@@ -50,7 +56,8 @@ import app.arteh.easydialer.utility.Holder
 @Composable
 fun CLogScreen(callLogVM: CallLogVM) {
 
-    val uiState = callLogVM.uiState.collectAsStateWithLifecycle().value
+    val uiState by callLogVM.uiState.collectAsStateWithLifecycle()
+    val dialerShowState by callLogVM.dialerHR.showState.collectAsStateWithLifecycle()
 
     Column {
         TopCategory(uiState.selectedStatus, callLogVM::changeLogType)
@@ -61,12 +68,19 @@ fun CLogScreen(callLogVM: CallLogVM) {
                     itemHeader(date)
                 }
 
-                items(clogs) { log ->
-                    ItemCallLog(log, callLogVM::goShowContact)
+                itemsIndexed(clogs) { index, log ->
+                    ItemCallLog(index, log, callLogVM::onAction)
                 }
             }
         }
     }
+
+    if (dialerShowState.showMyNumbers)
+        DigMySimCards(
+            callLogVM.dialerHR::dismissPopup,
+            callLogVM.simCardHR.simCardList,
+            callLogVM.dialerHR::selectSim
+        )
 }
 
 @Composable
@@ -123,14 +137,17 @@ private fun itemHeader(date: String) {
 }
 
 @Composable
-private fun ItemCallLog(log: Clog, onShowContact: (Long) -> Unit) {
+private fun ItemCallLog(index: Int, log: Clog, onAction: (CLogAction) -> Unit) {
+    var expanded by remember(log) { mutableStateOf(false) }
     val context = LocalContext.current
     var bitmap by remember(log) { mutableStateOf<ImageBitmap?>(null) }
+
+    val grayColor = AppColor.UnContactBack.resolve()
 
     val firstChar = log.contact?.name?.firstOrNull()?.uppercaseChar() ?: '#'
     val color = if (log.contact != null)
         Holder.colors[(firstChar).toInt() % 7]
-    else AppColor.Gray1.resolve()
+    else grayColor
 
     if (log.contact != null) {
         LaunchedEffect(log) {
@@ -147,7 +164,7 @@ private fun ItemCallLog(log: Clog, onShowContact: (Long) -> Unit) {
         }
     }
 
-    Row(
+    Column(
         Modifier
             .padding(horizontal = 10.dp, vertical = 5.dp)
             .fillMaxWidth()
@@ -156,75 +173,150 @@ private fun ItemCallLog(log: Clog, onShowContact: (Long) -> Unit) {
                 RoundedCornerShape(5.dp)
             )
             .padding(10.dp)
-            .noRippleClickable({ onShowContact(log.contact?.id ?: 0L) }),
+            .noRippleClickable { expanded = !expanded },
+    ) {
+        Row(
+            Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (bitmap != null)
+                Image(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(CircleShape)
+                        .noRippleClickable {
+                            onAction(CLogAction.ShowContact(log.contact?.id ?: 0L))
+                        },
+                    bitmap = bitmap!!,
+                    contentDescription = null
+                )
+            else
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .background(color, CircleShape)
+                        .noRippleClickable {
+                            onAction(CLogAction.ShowContact(log.contact?.id ?: 0L))
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+
+                    if (log.contact != null)
+                        Text(
+                            text = firstChar.toString(),
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            fontSize = 18.sp
+                        )
+                    else Icon(
+                        modifier = Modifier.size(40.dp),
+                        painter = painterResource(R.drawable.person),
+                        contentDescription = null,
+                        tint = AppColor.Font.resolve(),
+                    )
+                }
+
+            Column(
+                Modifier
+                    .padding(horizontal = 10.dp)
+                    .weight(1f)
+            ) {
+                if (log.contact == null)
+                    Text(
+                        text = log.number,
+                        fontWeight = FontWeight.Bold,
+                        style = LocalTextStyle.current.copy(
+                            textDirection = TextDirection.Ltr,
+                            color = AppColor.Desc.resolve()
+                        )
+                    )
+                else {
+                    Text(text = log.contact.name, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = log.number, style = LocalTextStyle.current.copy(
+                            textDirection = TextDirection.Ltr,
+                            color = AppColor.Desc.resolve()
+                        )
+                    )
+                }
+            }
+
+            Column {
+                Image(
+                    painter = painterResource(log.status.icon),
+                    contentDescription = log.status.fullName
+                )
+                Text(
+                    modifier = Modifier.padding(top = 5.dp),
+                    text = log.time,
+                    style = MaterialTheme.appTypography.desc
+                )
+            }
+        }
+
+        if (expanded) {
+            Spacer(Modifier.height(10.dp))
+
+            ItemExpand(
+                grayColor,
+                0.dp,
+                AppColor.GradGreen.resolve(),
+                R.drawable.call,
+                R.string.call,
+                RoundedCornerShape(7.dp, 7.dp, 0.dp, 0.dp),
+                { onAction(CLogAction.ShowMakeCall(log)) }
+            )
+            ItemExpand(
+                grayColor,
+                3.dp,
+                AppColor.GradPurple.resolve(),
+                R.drawable.sms,
+                R.string.send_message,
+                RoundedCornerShape(0.dp)
+            ) { onAction(CLogAction.ShowSendSMS(log)) }
+            ItemExpand(
+                grayColor,
+                0.dp,
+                AppColor.GradBlue.resolve(),
+                R.drawable.history,
+                R.string.show_history,
+                RoundedCornerShape(0.dp, 0.dp, 7.dp, 7.dp),
+                { onAction(CLogAction.ShowHistory(index)) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun ItemExpand(
+    grayColor: Color,
+    paddVert: Dp,
+    color: Color,
+    drawable: Int,
+    text: Int,
+    shape: RoundedCornerShape,
+    onAction: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .padding(horizontal = 10.dp, vertical = paddVert)
+            .fillMaxWidth()
+            .background(grayColor, shape)
+            .padding(10.dp)
+            .noRippleClickable(onAction),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (bitmap != null)
-            Image(
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(CircleShape),
-                bitmap = bitmap!!,
-                contentDescription = null
-            )
-        else
-            Box(
-                modifier = Modifier
-                    .size(60.dp)
-                    .background(color, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
+        Icon(
+            modifier = Modifier
+                .padding(end = 10.dp)
+                .size(45.dp)
+                .background(color.copy(alpha = 0.1f), CircleShape)
+                .padding(10.dp),
+            painter = painterResource(drawable),
+            contentDescription = null,
+            tint = color
+        )
 
-                if (log.contact != null)
-                    Text(
-                        text = firstChar.toString(),
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        fontSize = 18.sp
-                    )
-                else Icon(
-                    modifier = Modifier.size(40.dp),
-                    painter = painterResource(R.drawable.person),
-                    contentDescription = null,
-                    tint = Color.Black,
-                )
-            }
-
-        Column(
-            Modifier
-                .padding(horizontal = 10.dp)
-                .weight(1f)
-        ) {
-            if (log.contact == null)
-                Text(
-                    text = log.number,
-                    fontWeight = FontWeight.Bold,
-                    style = LocalTextStyle.current.copy(
-                        textDirection = TextDirection.Ltr,
-                        color = AppColor.Desc.resolve()
-                    )
-                )
-            else {
-                Text(text = log.contact.name, fontWeight = FontWeight.Bold)
-                Text(
-                    text = log.number, style = LocalTextStyle.current.copy(
-                        textDirection = TextDirection.Ltr,
-                        color = AppColor.Desc.resolve()
-                    )
-                )
-            }
-        }
-
-        Column {
-            Image(
-                painter = painterResource(log.status.icon),
-                contentDescription = log.status.fullName
-            )
-            Text(
-                modifier = Modifier.padding(top = 5.dp),
-                text = log.time,
-                style = MaterialTheme.appTypography.desc
-            )
-        }
+        Text(stringResource(text))
     }
 }

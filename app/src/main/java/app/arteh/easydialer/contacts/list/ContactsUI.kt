@@ -41,6 +41,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.arteh.easydialer.R
 import app.arteh.easydialer.contacts.Contact
+import app.arteh.easydialer.contacts.list.models.ContactAction
+import app.arteh.easydialer.dialer.DigMySimCards
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
 import app.arteh.easydialer.ui.theme.appTypography
@@ -63,7 +65,9 @@ fun ContactScreen(contactsVM: ContactsVM) {
 
 @Composable
 private fun SearchBar(contactsVM: ContactsVM) {
-    val uiState = contactsVM.uiState.collectAsStateWithLifecycle().value
+    val uiState by contactsVM.uiState.collectAsStateWithLifecycle()
+    val dialerShowState by contactsVM.dialerHR.showState.collectAsStateWithLifecycle()
+
 
     Row(
         modifier = Modifier
@@ -118,6 +122,13 @@ private fun SearchBar(contactsVM: ContactsVM) {
                 tint = AppColor.Icons.resolve()
             )
     }
+
+    if (dialerShowState.showMyNumbers)
+        DigMySimCards(
+            contactsVM.dialerHR::dismissPopup,
+            contactsVM.simCardHR.simCardList,
+            contactsVM.dialerHR::selectSim
+        )
 }
 
 @Composable
@@ -131,7 +142,7 @@ private fun ContactList(contactsVM: ContactsVM, modifier: Modifier) {
             }
 
             items(data, key = { it.key }) {
-                ItemContact(it, header.color, header.char, { contactsVM.goShowContact(it.id) })
+                ItemContact(it, header.color, header.char, contactsVM::onAction)
             }
         }
     }
@@ -149,7 +160,9 @@ private fun itemHeader(char: Char) {
 }
 
 @Composable
-private fun ItemContact(contact: Contact, color: Color, char: Char, onShow: () -> Unit) {
+private fun ItemContact(
+    contact: Contact, color: Color, char: Char, onAction: (ContactAction) -> Unit
+) {
     val context = LocalContext.current
     var bitmap by remember(contact) { mutableStateOf<ImageBitmap?>(null) }
 
@@ -175,14 +188,15 @@ private fun ItemContact(contact: Contact, color: Color, char: Char, onShow: () -
                 RoundedCornerShape(10.dp)
             )
             .padding(10.dp)
-            .noRippleClickable(onShow),
+            .noRippleClickable { onAction(ContactAction.ShowMakeCall(contact)) },
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (bitmap != null)
             Image(
                 modifier = Modifier
                     .size(60.dp)
-                    .clip(CircleShape),
+                    .clip(CircleShape)
+                    .noRippleClickable { onAction(ContactAction.ShowContact(contact.id)) },
                 bitmap = bitmap!!,
                 contentDescription = null
             )
@@ -190,7 +204,8 @@ private fun ItemContact(contact: Contact, color: Color, char: Char, onShow: () -
             Box(
                 modifier = Modifier
                     .size(60.dp)
-                    .background(color, CircleShape),
+                    .background(color, CircleShape)
+                    .noRippleClickable { onAction(ContactAction.ShowContact(contact.id)) },
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -201,7 +216,11 @@ private fun ItemContact(contact: Contact, color: Color, char: Char, onShow: () -
                 )
             }
 
-        Column(modifier = Modifier.padding(horizontal = 10.dp)) {
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 10.dp)
+                .weight(1f)
+        ) {
             Text(text = contact.name, style = MaterialTheme.appTypography.h4)
             Text(
                 text = contact.phone,
@@ -211,5 +230,17 @@ private fun ItemContact(contact: Contact, color: Color, char: Char, onShow: () -
                 )
             )
         }
+
+        Icon(
+            modifier = Modifier
+                .padding(end = 10.dp)
+                .size(45.dp)
+                .background(AppColor.GradPurple.resolve().copy(alpha = 0.1f), CircleShape)
+                .padding(10.dp)
+                .noRippleClickable({ onAction(ContactAction.ShowSendSMS(contact)) }),
+            painter = painterResource(R.drawable.sms),
+            contentDescription = null,
+            tint = AppColor.GradPurple.resolve()
+        )
     }
 }

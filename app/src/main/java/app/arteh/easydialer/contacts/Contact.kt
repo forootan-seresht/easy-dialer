@@ -8,5 +8,6 @@ data class Contact(
     val phone: String,
     val thumbUri: Uri?,
     val photoUri: Uri?,
+    val defaultSimID: Int,
     val key: Int
 )

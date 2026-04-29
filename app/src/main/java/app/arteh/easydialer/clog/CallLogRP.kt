@@ -7,7 +7,7 @@ import androidx.core.net.toUri
 import app.arteh.easydialer.clog.models.Clog
 import app.arteh.easydialer.clog.models.LogStatus
 import app.arteh.easydialer.utility.Holder
-import app.arteh.easydialer.utility.SimCardRP
+import app.arteh.easydialer.utility.SimCardHR
 import java.text.SimpleDateFormat
 import java.util.Date
 import kotlin.math.min
@@ -15,7 +15,7 @@ import kotlin.math.min
 class CallLogRP(val context: Context) {
 
     var lazyKey = 0
-    val simCardRP = SimCardRP(context)
+    val simCardRP = SimCardHR(context)
 
     @SuppressLint("Range")
     fun loadCallLog(phone: String, selectedStatus: LogStatus): Map<String, List<Clog>> {
@@ -82,11 +82,13 @@ class CallLogRP(val context: Context) {
                     val simdID =
                         simCardRP.getSimSlot(cursor.getString(cursor.getColumnIndex(CallLog.Calls.PHONE_ACCOUNT_ID)))
 
-                    val status = when (cursor.getInt(cursor.getColumnIndex(CallLog.Calls.TYPE))) {
+                    val typeInt = cursor.getInt(cursor.getColumnIndex(CallLog.Calls.TYPE))
+
+                    val status = when (typeInt) {
                         CallLog.Calls.INCOMING_TYPE -> LogStatus.Incoming
                         CallLog.Calls.OUTGOING_TYPE -> LogStatus.Outgoing
                         CallLog.Calls.MISSED_TYPE -> LogStatus.Missed
-                        CallLog.Calls.REJECTED_TYPE -> LogStatus.Rejected
+                        CallLog.Calls.REJECTED_TYPE,CallLog.Calls.BLOCKED_TYPE -> LogStatus.Rejected
                         else -> LogStatus.Other
                     }
 

@@ -94,7 +94,17 @@ class ContactRP {
                 val thumbURI = cursor.getString(thumbIndex)?.toUri()
                 val photoURI = cursor.getString(photoIndex)?.toUri()
 
-                val contact = Contact(id, name, number, thumbURI, photoURI, lazyKey++)
+                val contactDefaults = db.contactDefaultsDao().getByID(id)
+
+                val contact = Contact(
+                    id,
+                    name,
+                    number,
+                    thumbURI,
+                    photoURI,
+                    contactDefaults?.simID ?: -1,
+                    lazyKey++
+                )
                 contactMList.add(contact)
             }
         }

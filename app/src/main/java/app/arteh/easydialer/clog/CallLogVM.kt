@@ -4,9 +4,13 @@ import android.app.Application
 import android.content.Intent
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import app.arteh.easydialer.clog.models.CLogAction
 import app.arteh.easydialer.clog.models.LogStatus
 import app.arteh.easydialer.clog.models.UIState
+import app.arteh.easydialer.contacts.show.ContactAction
 import app.arteh.easydialer.contacts.show.ContactActivity
+import app.arteh.easydialer.dialer.DialerHR
+import app.arteh.easydialer.utility.SimCardHR
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,11 +26,29 @@ class CallLogVM(application: Application) : AndroidViewModel(application) {
 
     var loaded = false
 
+    val simCardHR = SimCardHR(application)
+    val dialerHR = DialerHR(simCardHR, application, {}, {})
+
     fun load() {
         if (!loaded) {
             loaded = true
 
             loadCallLog("")
+        }
+    }
+
+    fun onAction(action: CLogAction) {
+        when (action) {
+            is CLogAction.ShowContact -> goShowContact(action.contactID)
+            is CLogAction.ShowHistory -> TODO()
+            is CLogAction.ShowMakeCall ->
+                dialerHR.makeAction(
+                    ContactAction.Call, action.clog.simID, action.clog.number
+                )
+
+            is CLogAction.ShowSendSMS -> dialerHR.makeAction(
+                ContactAction.Call, action.clog.simID, action.clog.number
+            )
         }
     }
 
