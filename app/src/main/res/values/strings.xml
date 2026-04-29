@@ -26,4 +26,7 @@
     <string name="miui_lockscreen_permission_desc" translatable="false">To Show on lockScreen in miui launcher</string>
     <string name="miui_overlay_permission" translatable="false">Show call from background</string>
     <string name="miui_overlay_permission_desc" translatable="false">To show call from background in miui launcher</string>
+    <string name="call">Call</string>
+    <string name="send_message">Send Message</string>
+    <string name="show_history">Show History</string>
 </resources>

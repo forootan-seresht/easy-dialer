@@ -6,4 +6,7 @@
     <string name="preparations">準備</string>
     <string name="notif_permission">Grant Post Notification Permission</string>
     <string name="notif_permission_desc">To keep connection to other device when Airlink is transferring files in the background, a notification must be posted</string>
+    <string name="call">Call</string>
+    <string name="send_message">Send Message</string>
+    <string name="show_history">Show History</string>
 </resources>
