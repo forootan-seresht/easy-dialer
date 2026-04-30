@@ -78,4 +78,8 @@
     <string name="no_speed_dial1">لم تقم بتعيين الاتصال السريع لهذا الزر بعد.</string>
     <string name="no_speed_dial2">يرجى اختيار جهة اتصال من شاشة جهات الاتصال.</string>
     <string name="no_longer">لن تتلقى بعد الآن مكالمات أو رسائل نصية من</string>
+    <string name="details">Details</string>
+    <string name="email">Email</string>
+    <string name="note">Note</string>
+    <string name="no_app_found_to_send_email">No app found to send Email</string>
 </resources>

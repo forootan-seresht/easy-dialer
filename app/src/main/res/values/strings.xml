@@ -80,4 +80,8 @@
     <string name="no_speed_dial1">You have not set Speed Dial for this button yet.</string>
     <string name="no_speed_dial2">Please select a contact from Contact Screen.</string>
     <string name="no_longer">You will no longer receive calls or text from</string>
+    <string name="details">Details</string>
+    <string name="email">Email</string>
+    <string name="note">Note</string>
+    <string name="no_app_found_to_send_email">No app found to send Email</string>
 </resources>
