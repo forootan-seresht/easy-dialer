@@ -92,7 +92,7 @@ fun ShowScreen(contactVM: ContactVM = viewModel(), padding: PaddingSides) {
 
             ContactInfo(uiState.contact, contactVM::onAction)
 
-            OptionsButtons(uiState.contact, contactVM::onAction)
+            OptionsButtons(contactVM::onAction)
         }
 
     val dismissPopup = contactVM::dismissPopup
@@ -143,7 +143,7 @@ private fun QuickButtons(onAction: (ContactUIAction) -> Unit) {
                 .noRippleClickable({ onAction(ContactUIAction.ShowSendSMS) }),
             painter = painterResource(R.drawable.sms),
             contentDescription = null,
-            tint = AppColor.GradBlue.resolve()
+            tint = AppColor.GradPurple.resolve()
         )
     }
 }
@@ -229,10 +229,57 @@ private fun ContactInfo(contact: EditableContact, onAction: (ContactUIAction) ->
                 { onAction(ContactUIAction.SendSMS(index)) })
         }
     }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(5.dp))
+            .padding(10.dp)
+    ) {
+        if (contact.email.isNotEmpty())
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp)
+                    .noRippleClickable({ onAction(ContactUIAction.OpenEmail) }),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                Icon(
+                    modifier = Modifier
+                        .padding(horizontal = 5.dp)
+                        .size(25.dp),
+                    painter = painterResource(R.drawable.email),
+                    contentDescription = stringResource(R.string.email),
+                    tint = AppColor.Icons.resolve()
+                )
+
+                Text(contact.email)
+            }
+
+        if (contact.note.isNotEmpty())
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp),
+            ) {
+
+                Icon(
+                    modifier = Modifier
+                        .padding(horizontal = 5.dp)
+                        .size(25.dp),
+                    painter = painterResource(R.drawable.notes),
+                    contentDescription = stringResource(R.string.note),
+                    tint = AppColor.Icons.resolve()
+                )
+
+                Text(contact.note)
+            }
+    }
 }
 
 @Composable
-private fun OptionsButtons(contact: EditableContact, onAction: (ContactUIAction) -> Unit) {
+private fun OptionsButtons(onAction: (ContactUIAction) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -346,22 +393,22 @@ private fun ItemPhoneNumber(phone: ContactPhone, onCall: () -> Unit, onSMS: () -
         )
 
         Text(
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 10.dp),
+            modifier = Modifier.padding(horizontal = 10.dp),
             text = phone.number,
             style = LocalTextStyle.current.copy(textDirection = TextDirection.Ltr),
         )
 
+        Spacer(Modifier.weight(1f))
+
         Icon(
             modifier = Modifier
                 .size(40.dp)
-                .background(AppColor.GradBlue.resolve().copy(alpha = 0.1f), CircleShape)
+                .background(AppColor.GradPurple.resolve().copy(alpha = 0.1f), CircleShape)
                 .padding(10.dp)
                 .noRippleClickable(onSMS),
             painter = painterResource(R.drawable.sms),
             contentDescription = null,
-            tint = AppColor.GradBlue.resolve()
+            tint = AppColor.GradPurple.resolve()
         )
     }
 }

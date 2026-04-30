@@ -4,10 +4,15 @@ import android.app.Activity
 import android.app.Application
 import android.content.ContentUris
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.provider.ContactsContract
+import android.widget.Toast
+import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import app.arteh.easydialer.R
 import app.arteh.easydialer.contacts.speed.SpeedDialEntry
 import app.arteh.easydialer.dialer.DialerHR
 import app.arteh.easydialer.utility.Holder
@@ -91,6 +96,28 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
             is ContactUIAction.UpdateSpeedSlot -> updateSpeedSlot(action.slot)
             ContactUIAction.ReloadContact -> reloadContact()
             ContactUIAction.BlockNumbers -> blockNumbers()
+            ContactUIAction.OpenEmail -> sendEmail()
+        }
+    }
+
+    fun sendEmail() {
+        val context = getApplication<Application>()
+
+        try {
+            val address = uiState.value.contact!!.email
+
+            val intent = Intent(Intent.ACTION_SENDTO).apply {
+                data = "emailto:${Uri.encode(address)}".toUri()
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(
+                context,
+                context.getString(R.string.no_app_found_to_send_email),
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 

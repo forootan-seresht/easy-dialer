@@ -23,7 +23,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -90,15 +89,6 @@ fun EditScreen(editContactVM: EditContactVM = viewModel(), padding: PaddingSides
         TopRow(editContactVM::saveContact)
 
         ContactInfo(editContactVM.contact, editContactVM::onAction)
-
-        Button(
-            onClick = editContactVM::showAddPhone,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(stringResource(R.string.add_phone))
-        }
-
-        Spacer(Modifier.height(12.dp))
     }
 
     if (uiState.showAdd)
@@ -179,47 +169,11 @@ private fun ContactInfo(
 
     Spacer(modifier = Modifier.height(10.dp))
 
-    OutlinedTextField(
-        value = editableContact.job,
-        onValueChange = { onAction(EditContactAction.UpdateJob(it)) },
-        label = { Text(stringResource(R.string.job_title)) },
-        modifier = Modifier.fillMaxWidth(),
-        textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
-        leadingIcon = {
-            Icon(
-                painter = painterResource(R.drawable.edit),
-                contentDescription = null
-            )
-        },
-        colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = AppColor.Gray1.resolve()),
-    )
+    NumberSection(editableContact, onAction)
 
-    OutlinedTextField(
-        value = editableContact.company,
-        onValueChange = { onAction(EditContactAction.UpdateCompany(it)) },
-        label = { Text(stringResource(R.string.company)) },
-        modifier = Modifier.fillMaxWidth(),
-        textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
-        leadingIcon = {
-            Icon(
-                painter = painterResource(R.drawable.edit),
-                contentDescription = null
-            )
-        },
-        colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = AppColor.Gray1.resolve()),
-    )
+    Spacer(modifier = Modifier.height(10.dp))
 
-    // Phones
-    Text(stringResource(R.string.phone_numbers), fontWeight = FontWeight.Bold)
-
-    editableContact.phones.forEachIndexed { index, phone ->
-        ItemPhoneNumber(
-            phone,
-            { onAction(EditContactAction.UpdatePhone(index, it)) },
-            { onAction(EditContactAction.RemovePhone(index)) },
-            { onAction(EditContactAction.ChangeType(index, it)) },
-        )
-    }
+    DetailsSection(editableContact, onAction)
 }
 
 @Composable
@@ -269,6 +223,75 @@ private fun ContactPhoto(photoUri: Uri?, onPickImage: (Uri?) -> Unit) {
 }
 
 @Composable
+private fun DetailsSection(editableContact: EditableContact, onAction: (EditContactAction) -> Unit) {
+    Text(
+        modifier = Modifier.fillMaxWidth(),
+        text = stringResource(R.string.details),
+        fontWeight = FontWeight.SemiBold
+    )
+
+    OutlinedTextField(
+        value = editableContact.job,
+        onValueChange = { onAction(EditContactAction.UpdateJob(it)) },
+        label = { Text(stringResource(R.string.job_title)) },
+        modifier = Modifier.fillMaxWidth(),
+        textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
+        leadingIcon = {
+            Icon(
+                painter = painterResource(R.drawable.edit),
+                contentDescription = null
+            )
+        },
+        colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = AppColor.Gray1.resolve()),
+    )
+
+    OutlinedTextField(
+        value = editableContact.company,
+        onValueChange = { onAction(EditContactAction.UpdateCompany(it)) },
+        label = { Text(stringResource(R.string.company)) },
+        modifier = Modifier.fillMaxWidth(),
+        textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
+        leadingIcon = {
+            Icon(
+                painter = painterResource(R.drawable.edit),
+                contentDescription = null
+            )
+        },
+        colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = AppColor.Gray1.resolve()),
+    )
+
+    Spacer(modifier = Modifier.height(15.dp))
+}
+
+@Composable
+private fun NumberSection(editableContact: EditableContact, onAction: (EditContactAction) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            modifier = Modifier.weight(1f),
+            text = stringResource(R.string.phone_numbers),
+            fontWeight = FontWeight.Bold
+        )
+
+        IconButton(onClick = { onAction(EditContactAction.ShowAddPhone) }) {
+            Icon(
+                painterResource(R.drawable.add),
+                contentDescription = "Add Phone",
+                tint = AppColor.Icons.resolve()
+            )
+        }
+    }
+
+    editableContact.phones.forEachIndexed { index, phone ->
+        ItemPhoneNumber(
+            phone,
+            { onAction(EditContactAction.UpdatePhone(index, it)) },
+            { onAction(EditContactAction.RemovePhone(index)) },
+            { onAction(EditContactAction.ChangeType(index, it)) },
+        )
+    }
+}
+
+@Composable
 private fun ItemPhoneNumber(
     phone: ContactPhone,
     updateNumber: (String) -> Unit,
@@ -283,7 +306,7 @@ private fun ItemPhoneNumber(
                 value = phone.number,
                 onValueChange = { updateNumber(it) },
                 modifier = Modifier.weight(1f),
-                label = { Text(stringResource(R.string.phone)) },
+                label = { Text(stringResource(phone.type.fullName)) },
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Phone
                 ),
@@ -306,13 +329,12 @@ fun PhoneTypeDropdown(currentType: PhoneType, changeType: (PhoneType) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.noRippleClickable { expanded = true }) {
-        Row {
-            Icon(
-                painter = painterResource(currentType.icon),
-                contentDescription = null,
-                tint = AppColor.Icons.resolve()
-            )
-        }
+        Icon(
+            modifier = Modifier.padding(horizontal = 5.dp),
+            painter = painterResource(currentType.icon),
+            contentDescription = null,
+            tint = AppColor.Icons.resolve()
+        )
         DropdownMenu(
             expanded = expanded,
             { expanded = false },
@@ -325,7 +347,7 @@ fun PhoneTypeDropdown(currentType: PhoneType, changeType: (PhoneType) -> Unit) {
                             Icon(
                                 modifier = Modifier.padding(end = 10.dp),
                                 painter = painterResource(it.icon),
-                                contentDescription = stringResource(it.fullName) ,
+                                contentDescription = stringResource(it.fullName),
                                 tint = AppColor.Icons.resolve()
                             )
 

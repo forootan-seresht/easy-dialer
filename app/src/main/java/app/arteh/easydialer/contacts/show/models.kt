@@ -26,6 +26,7 @@ sealed interface ContactUIAction {
     data class DeleteContact(val context: Context) : ContactUIAction
     data object AddFavorite : ContactUIAction
     data object ShareContact : ContactUIAction
+    data object OpenEmail : ContactUIAction
 
     //Dialogs
     data object ShowMakeCall : ContactUIAction

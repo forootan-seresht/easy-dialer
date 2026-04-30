@@ -26,7 +26,7 @@ class ContactRP {
     lateinit var speedDialMap: Flow<Map<Int, SpeedDialEntry>>
     var lazyKey = 0
 
-   suspend fun initialize(context: Context, instance: AppDatabase) {
+    suspend fun initialize(context: Context, instance: AppDatabase) {
         prefs = PreferencesManager(context)
         db = instance
         contactList = queryContacts("", context)
@@ -97,13 +97,8 @@ class ContactRP {
                 val contactDefaults = db.contactDefaultsDao().getByID(id)
 
                 val contact = Contact(
-                    id,
-                    name,
-                    number,
-                    thumbURI,
-                    photoURI,
-                    contactDefaults?.simID ?: -1,
-                    lazyKey++
+                    id, name, number, thumbURI, photoURI,
+                    contactDefaults?.simID ?: -1, lazyKey++
                 )
                 contactMList.add(contact)
             }
@@ -197,10 +192,12 @@ class ContactRP {
 
                     val (firstName, lastName) = getContactName(cr, id)
                     val (job, company) = getContactOrg(cr, id)
+                    val email = getEmail(cr, id)
+                    val note = getNote(cr, id)
 
                     contact = EditableContact(
-                        contactID, rawContactID, firstName, lastName, job, company, fullName,
-                        isStarred, phones = phoneList.toList(), photoUri = photoURI
+                        contactID, rawContactID, firstName, lastName, job, company, email, note,
+                        fullName, isStarred, phones = phoneList.toList(), photoUri = photoURI
                     )
                 }
                 else if (phoneList.indexOfFirst { it.number == number } == -1)
@@ -299,6 +296,50 @@ class ContactRP {
         }
 
         return Pair("", "")
+    }
+
+    fun getEmail(cr: ContentResolver, contactId: Long): String {
+        val projection = arrayOf(ContactsContract.CommonDataKinds.Email.ADDRESS)
+
+        val cursor = cr.query(
+            ContactsContract.Data.CONTENT_URI,
+            projection,
+            "${ContactsContract.Data.CONTACT_ID} = ? AND " +
+                    "${ContactsContract.Data.MIMETYPE} = ?",
+            arrayOf(
+                contactId.toString(),
+                ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE
+            ),
+            null
+        )
+
+        cursor?.use {
+            if (it.moveToFirst()) return it.getString(0) ?: ""
+        }
+
+        return ""
+    }
+
+    fun getNote(cr: ContentResolver, contactId: Long): String {
+        val projection = arrayOf(ContactsContract.CommonDataKinds.Note.NOTE)
+
+        val cursor = cr.query(
+            ContactsContract.Data.CONTENT_URI,
+            projection,
+            "${ContactsContract.Data.CONTACT_ID} = ? AND " +
+                    "${ContactsContract.Data.MIMETYPE} = ?",
+            arrayOf(
+                contactId.toString(),
+                ContactsContract.CommonDataKinds.Note.CONTENT_ITEM_TYPE
+            ),
+            null
+        )
+
+        cursor?.use {
+            if (it.moveToFirst()) return it.getString(0) ?: ""
+        }
+
+        return ""
     }
 
     //Block

@@ -3,6 +3,7 @@ package app.arteh.easydialer.contacts.edit.models
 import android.net.Uri
 
 sealed interface EditContactAction {
+    data object ShowAddPhone: EditContactAction
     data class SetPhoto(val uri: Uri?) : EditContactAction
     data class UpdateFirstName(val name: String) : EditContactAction
     data class UpdateLastName(val lastName: String) : EditContactAction

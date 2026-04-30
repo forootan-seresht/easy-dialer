@@ -9,6 +9,8 @@ data class EditableContact(
     val lastName: String = "",
     val job: String = "",
     val company: String = "",
+    val email: String = "",
+    val note: String = "",
     val fullName: String = "",
     val isStarred: Boolean = false,
     val phones: List<ContactPhone> = listOf(),

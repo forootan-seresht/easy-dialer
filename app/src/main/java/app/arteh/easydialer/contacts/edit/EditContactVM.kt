@@ -49,6 +49,7 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
             is EditContactAction.UpdateCompany -> updateCompany(action.company)
             is EditContactAction.UpdateJob -> updateJob(action.job)
             is EditContactAction.ChangeType -> updatePhoneType(action.index, action.type)
+            EditContactAction.ShowAddPhone -> showAddPhone()
         }
     }
 
