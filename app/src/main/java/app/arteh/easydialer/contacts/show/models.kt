@@ -27,6 +27,7 @@ sealed interface ContactUIAction {
     data object AddFavorite : ContactUIAction
     data object ShareContact : ContactUIAction
     data object OpenEmail : ContactUIAction
+    data object ReloadData : ContactUIAction
 
     //Dialogs
     data object ShowMakeCall : ContactUIAction

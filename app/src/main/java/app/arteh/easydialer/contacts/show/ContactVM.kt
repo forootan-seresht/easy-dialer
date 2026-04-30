@@ -97,6 +97,7 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
             ContactUIAction.ReloadContact -> reloadContact()
             ContactUIAction.BlockNumbers -> blockNumbers()
             ContactUIAction.OpenEmail -> sendEmail()
+            ContactUIAction.ReloadData -> reloadContact()
         }
     }
 

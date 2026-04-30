@@ -154,9 +154,7 @@ private fun TopRow(contactID: Long, isStarred: Boolean, onAction: (ContactUIActi
 
     val editLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) onAction(ContactUIAction.ReloadContact)
-    }
+    ) { result -> onAction(ContactUIAction.ReloadContact) }
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
