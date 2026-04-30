@@ -1,10 +1,10 @@
 package app.arteh.easydialer.contacts.edit
 
+import android.app.Activity
 import android.app.Application
 import android.content.ContentProviderOperation
 import android.content.ContentUris
 import android.content.Context
-import android.net.Uri
 import android.provider.ContactsContract
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
@@ -41,15 +41,17 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
 
     fun onAction(action: EditContactAction) {
         when (action) {
-            is EditContactAction.SetPhoto -> setPhoto(action.uri)
-            is EditContactAction.UpdateFirstName -> updateFirstName(action.name)
-            is EditContactAction.UpdateLastName -> updateLastName(action.lastName)
+            is EditContactAction.SetPhoto -> _contact.update { it.copy(photoUri = action.uri) }
+            is EditContactAction.UpdateFirstName -> _contact.update { it.copy(firstName = action.name) }
+            is EditContactAction.UpdateLastName -> _contact.update { it.copy(lastName = action.lastName) }
             is EditContactAction.RemovePhone -> removePhone(action.index)
             is EditContactAction.UpdatePhone -> updatePhone(action.index, action.phone)
-            is EditContactAction.UpdateCompany -> updateCompany(action.company)
-            is EditContactAction.UpdateJob -> updateJob(action.job)
+            is EditContactAction.UpdateCompany -> _contact.update { it.copy(company = action.company) }
+            is EditContactAction.UpdateJob -> _contact.update { it.copy(job = action.job) }
             is EditContactAction.ChangeType -> updatePhoneType(action.index, action.type)
-            EditContactAction.ShowAddPhone -> showAddPhone()
+            EditContactAction.ShowAddPhone -> _uiState.update { it.copy(showAdd = true) }
+            is EditContactAction.UpdateEmail -> _contact.update { it.copy(email = action.email) }
+            is EditContactAction.UpdateNote -> _contact.update { it.copy(note = action.note) }
         }
     }
 
@@ -60,22 +62,6 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
         _contact.update { updatedContact }
     }
 
-    fun updateFirstName(name: String) {
-        _contact.value = _contact.value.copy(firstName = name)
-    }
-
-    fun updateJob(job: String) {
-        _contact.value = _contact.value.copy(job = job)
-    }
-
-    fun updateCompany(company: String) {
-        _contact.value = _contact.value.copy(company = company)
-    }
-
-    fun updateLastName(name: String) {
-        _contact.value = _contact.value.copy(lastName = name)
-    }
-
     fun updatePhone(index: Int, newNumber: String) {
         val phones = _contact.value.phones.toMutableList()
 
@@ -83,10 +69,6 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
         phones[index] = contactNumber.copy(number = newNumber)
 
         _contact.value = _contact.value.copy(phones = phones)
-    }
-
-    fun showAddPhone() {
-        _uiState.update { it.copy(showAdd = true) }
     }
 
     fun addPhoneNumber(number: String, type: PhoneType) {
@@ -106,10 +88,6 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
         else phones.removeAt(index)
 
         _contact.value = _contact.value.copy(phones = phones)
-    }
-
-    fun setPhoto(uri: Uri?) {
-        _contact.value = _contact.value.copy(photoUri = uri)
     }
 
     fun dismissPopup() {
@@ -142,17 +120,79 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
                 .build()
         )
 
+        //Job
+        ops.add(
+            ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
+                .withSelection(
+                    "${ContactsContract.Data.RAW_CONTACT_ID}=? AND ${ContactsContract.Data.MIMETYPE}=?",
+                    arrayOf(
+                        rawContactID.toString(),
+                        ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE
+                    )
+                )
+                .withValue(
+                    ContactsContract.CommonDataKinds.Organization.TITLE,
+                    contact.value.job
+                )
+                .withValue(
+                    ContactsContract.CommonDataKinds.Organization.COMPANY,
+                    contact.value.company
+                )
+                .build()
+        )
+
+        //Email
+        ops.add(
+            ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
+                .withSelection(
+                    "${ContactsContract.Data.RAW_CONTACT_ID}=? AND ${ContactsContract.Data.MIMETYPE}=?",
+                    arrayOf(
+                        rawContactID.toString(),
+                        ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE
+                    )
+                )
+                .withValue(
+                    ContactsContract.CommonDataKinds.Email.ADDRESS,
+                    contact.value.email
+                )
+                .build()
+        )
+
+        //Note
+        ops.add(
+            ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
+                .withSelection(
+                    "${ContactsContract.Data.RAW_CONTACT_ID}=? AND ${ContactsContract.Data.MIMETYPE}=?",
+                    arrayOf(
+                        rawContactID.toString(),
+                        ContactsContract.CommonDataKinds.Note.CONTENT_ITEM_TYPE
+                    )
+                )
+                .withValue(
+                    ContactsContract.CommonDataKinds.Note.NOTE,
+                    contact.value.note
+                )
+                .build()
+        )
+
+        val mimeType = ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE
+
         // Phones update / insert
         contact.value.phones.forEach {
+            val phoneType = when (it.type) {
+                PhoneType.Mobile -> ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE
+                PhoneType.Home -> ContactsContract.CommonDataKinds.Phone.TYPE_HOME
+                PhoneType.Work -> ContactsContract.CommonDataKinds.Phone.TYPE_WORK
+                PhoneType.Other -> ContactsContract.CommonDataKinds.Phone.TYPE_OTHER
+            }
+
             if (it.phoneID == 0L) {
                 // New number
                 ops.add(
                     ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
                         .withValue(ContactsContract.Data.RAW_CONTACT_ID, rawContactID)
-                        .withValue(
-                            ContactsContract.Data.MIMETYPE,
-                            ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE
-                        )
+                        .withValue(ContactsContract.Data.MIMETYPE, mimeType)
+                        .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, phoneType)
                         .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, it.number)
                         .build()
                 )
@@ -172,11 +212,15 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
                                 ContactsContract.Data.CONTENT_URI, it.phoneID
                             )
                         ).withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, it.number)
+                            .withValue(ContactsContract.Data.MIMETYPE, mimeType)
+                            .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, phoneType)
                             .build()
                     )
             }
         }
 
         context.contentResolver.applyBatch(ContactsContract.AUTHORITY, ops)
+
+        (context as Activity).finish()
     }
 }

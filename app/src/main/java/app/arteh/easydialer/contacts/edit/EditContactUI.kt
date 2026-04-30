@@ -223,7 +223,9 @@ private fun ContactPhoto(photoUri: Uri?, onPickImage: (Uri?) -> Unit) {
 }
 
 @Composable
-private fun DetailsSection(editableContact: EditableContact, onAction: (EditContactAction) -> Unit) {
+private fun DetailsSection(
+    editableContact: EditableContact, onAction: (EditContactAction) -> Unit
+) {
     Text(
         modifier = Modifier.fillMaxWidth(),
         text = stringResource(R.string.details),
@@ -254,6 +256,36 @@ private fun DetailsSection(editableContact: EditableContact, onAction: (EditCont
         leadingIcon = {
             Icon(
                 painter = painterResource(R.drawable.edit),
+                contentDescription = null
+            )
+        },
+        colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = AppColor.Gray1.resolve()),
+    )
+
+    OutlinedTextField(
+        value = editableContact.email,
+        onValueChange = { onAction(EditContactAction.UpdateEmail(it)) },
+        label = { Text(stringResource(R.string.email_address)) },
+        modifier = Modifier.fillMaxWidth(),
+        textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
+        leadingIcon = {
+            Icon(
+                painter = painterResource(R.drawable.email),
+                contentDescription = null
+            )
+        },
+        colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = AppColor.Gray1.resolve()),
+    )
+
+    OutlinedTextField(
+        value = editableContact.note,
+        onValueChange = { onAction(EditContactAction.UpdateNote(it)) },
+        label = { Text(stringResource(R.string.note)) },
+        modifier = Modifier.fillMaxWidth(),
+        textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
+        leadingIcon = {
+            Icon(
+                painter = painterResource(R.drawable.notes),
                 contentDescription = null
             )
         },
