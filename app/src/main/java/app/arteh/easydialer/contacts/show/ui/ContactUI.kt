@@ -140,7 +140,7 @@ private fun QuickButtons(onAction: (ContactUIAction) -> Unit) {
                 .size(60.dp)
                 .background(AppColor.GradPurple.resolve().copy(alpha = 0.1f), CircleShape)
                 .padding(15.dp)
-                .noRippleClickable({ onAction(ContactUIAction.ShowSendSMS) }),
+                .noRippleClickable { onAction(ContactUIAction.ShowSendSMS) },
             painter = painterResource(R.drawable.sms),
             contentDescription = null,
             tint = AppColor.GradPurple.resolve()
