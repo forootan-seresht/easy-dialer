@@ -108,7 +108,7 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
             val address = uiState.value.contact!!.email
 
             val intent = Intent(Intent.ACTION_SENDTO).apply {
-                data = "emailto:${Uri.encode(address)}".toUri()
+                data = "mailto:${Uri.encode(address)}".toUri()
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
 
