@@ -35,10 +35,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun EasyDialerTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable () -> Unit
-) {
+fun EasyDialerTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
     val colorScheme = when {
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
@@ -49,7 +46,7 @@ fun EasyDialerTheme(
     CompositionLocalProvider(LocalAppTypography provides typography) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = Typography, // optional base typography
+            typography = Typography,
             content = content
         )
     }
