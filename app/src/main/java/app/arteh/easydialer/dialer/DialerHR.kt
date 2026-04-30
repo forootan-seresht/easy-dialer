@@ -46,7 +46,7 @@ class DialerHR(
 
         if (phoneIndex == -1) return
 
-        val defaultNumber = numbers[phoneNumberIndex].number
+        val defaultNumber = numbers[phoneIndex].number
 
         if (action == ContactAction.Call)
             dialNumber(defaultNumber)
