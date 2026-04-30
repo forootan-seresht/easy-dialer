@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
@@ -108,7 +109,7 @@ private fun SearchBar(contactsVM: ContactsVM) {
                 unfocusedIndicatorColor = Color.Transparent,
             ),
             placeholder = {
-                Text(text = "Search Contacts")
+                Text(text = stringResource(R.string.search_contacts))
             })
 
         if (uiState.searchText.isEmpty())
@@ -118,7 +119,7 @@ private fun SearchBar(contactsVM: ContactsVM) {
                     .padding(5.dp)
                     .noRippleClickable(contactsVM::goAddContact),
                 painter = painterResource(R.drawable.add_contact),
-                contentDescription = "Add Contact",
+                contentDescription = stringResource(R.string.add_contact),
                 tint = AppColor.Icons.resolve()
             )
     }

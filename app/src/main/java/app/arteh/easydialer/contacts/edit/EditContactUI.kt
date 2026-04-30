@@ -31,6 +31,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,6 +47,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDirection
@@ -93,7 +95,7 @@ fun EditScreen(editContactVM: EditContactVM = viewModel(), padding: PaddingSides
             onClick = editContactVM::showAddPhone,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Add another phone")
+            Text(stringResource(R.string.add_phone))
         }
 
         Spacer(Modifier.height(12.dp))
@@ -114,7 +116,7 @@ private fun TopRow(onSaveContact: (Context) -> Unit) {
                 .padding(5.dp)
                 .noRippleClickable({ (context as Activity).finish() }),
             painter = painterResource(R.drawable.back),
-            contentDescription = "Back",
+            contentDescription = stringResource(R.string.back),
             tint = AppColor.Icons.resolve()
         )
 
@@ -126,8 +128,8 @@ private fun TopRow(onSaveContact: (Context) -> Unit) {
                 .padding(5.dp)
                 .noRippleClickable { onSaveContact(context) },
             painter = painterResource(R.drawable.check),
-            contentDescription = "Save",
-            tint = AppColor.Icons.resolve()
+            contentDescription = stringResource(R.string.save_changes),
+            tint = MaterialTheme.colorScheme.primary
         )
     }
 }
@@ -148,7 +150,7 @@ private fun ContactInfo(
     OutlinedTextField(
         value = editableContact.firstName,
         onValueChange = { onAction(EditContactAction.UpdateFirstName(it)) },
-        label = { Text("First Name") },
+        label = { Text(stringResource(R.string.first_name)) },
         modifier = Modifier.fillMaxWidth(),
         textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
         leadingIcon = {
@@ -156,13 +158,14 @@ private fun ContactInfo(
                 painter = painterResource(R.drawable.edit),
                 contentDescription = null
             )
-        }
+        },
+        colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = AppColor.Gray1.resolve()),
     )
 
     OutlinedTextField(
         value = editableContact.lastName,
         onValueChange = { onAction(EditContactAction.UpdateLastName(it)) },
-        label = { Text("Last Name") },
+        label = { Text(stringResource(R.string.last_name)) },
         modifier = Modifier.fillMaxWidth(),
         textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
         leadingIcon = {
@@ -170,7 +173,8 @@ private fun ContactInfo(
                 painter = painterResource(R.drawable.edit),
                 contentDescription = null
             )
-        }
+        },
+        colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = AppColor.Gray1.resolve()),
     )
 
     Spacer(modifier = Modifier.height(10.dp))
@@ -178,7 +182,7 @@ private fun ContactInfo(
     OutlinedTextField(
         value = editableContact.job,
         onValueChange = { onAction(EditContactAction.UpdateJob(it)) },
-        label = { Text("Job title") },
+        label = { Text(stringResource(R.string.job_title)) },
         modifier = Modifier.fillMaxWidth(),
         textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
         leadingIcon = {
@@ -186,13 +190,14 @@ private fun ContactInfo(
                 painter = painterResource(R.drawable.edit),
                 contentDescription = null
             )
-        }
+        },
+        colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = AppColor.Gray1.resolve()),
     )
 
     OutlinedTextField(
         value = editableContact.company,
         onValueChange = { onAction(EditContactAction.UpdateCompany(it)) },
-        label = { Text("Company") },
+        label = { Text(stringResource(R.string.company)) },
         modifier = Modifier.fillMaxWidth(),
         textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
         leadingIcon = {
@@ -200,11 +205,12 @@ private fun ContactInfo(
                 painter = painterResource(R.drawable.edit),
                 contentDescription = null
             )
-        }
+        },
+        colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = AppColor.Gray1.resolve()),
     )
 
     // Phones
-    Text("Phone Numbers", fontWeight = FontWeight.Bold)
+    Text(stringResource(R.string.phone_numbers), fontWeight = FontWeight.Bold)
 
     editableContact.phones.forEachIndexed { index, phone ->
         ItemPhoneNumber(
@@ -256,7 +262,7 @@ private fun ContactPhoto(photoUri: Uri?, onPickImage: (Uri?) -> Unit) {
             Icon(
                 painter = painterResource(R.drawable.person),
                 modifier = Modifier.size(80.dp),
-                contentDescription = "Contact image",
+                contentDescription = stringResource(R.string.contact_image),
                 tint = Color.White
             )
     }
@@ -277,17 +283,18 @@ private fun ItemPhoneNumber(
                 value = phone.number,
                 onValueChange = { updateNumber(it) },
                 modifier = Modifier.weight(1f),
-                label = { Text("Phone") },
+                label = { Text(stringResource(R.string.phone)) },
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Phone
                 ),
                 textStyle = LocalTextStyle.current.copy(textDirection = TextDirection.Ltr),
+                colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = AppColor.Gray1.resolve()),
             )
 
             IconButton(onClick = removeNumber) {
                 Icon(
                     painter = painterResource(R.drawable.delete),
-                    contentDescription = "Remove phone",
+                    contentDescription = stringResource(R.string.remove_phone),
                     tint = AppColor.GradRed.resolve()
                 )
             }
@@ -300,8 +307,11 @@ fun PhoneTypeDropdown(currentType: PhoneType, changeType: (PhoneType) -> Unit) {
 
     Box(modifier = Modifier.noRippleClickable { expanded = true }) {
         Row {
-            Icon(painter = painterResource(currentType.icon), contentDescription = null)
-            Icon(painter = painterResource(R.drawable.drop_down), contentDescription = null)
+            Icon(
+                painter = painterResource(currentType.icon),
+                contentDescription = null,
+                tint = AppColor.Icons.resolve()
+            )
         }
         DropdownMenu(
             expanded = expanded,
@@ -315,10 +325,11 @@ fun PhoneTypeDropdown(currentType: PhoneType, changeType: (PhoneType) -> Unit) {
                             Icon(
                                 modifier = Modifier.padding(end = 10.dp),
                                 painter = painterResource(it.icon),
-                                contentDescription = it.fullName
+                                contentDescription = stringResource(it.fullName) ,
+                                tint = AppColor.Icons.resolve()
                             )
 
-                            Text(text = it.fullName)
+                            Text(text = stringResource(it.fullName))
                         }
                     },
                     onClick = { changeType(it); expanded = false })
@@ -340,7 +351,7 @@ private fun DigAddNumber(dismissPopup: () -> Unit, onAddClicked: (String, PhoneT
                     .fillMaxWidth(),
                 value = phoneNumber,
                 onValueChange = { phoneNumber = it },
-                label = { Text("Phone number") },
+                label = { Text(stringResource(R.string.phone_number)) },
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Phone
                 ),
@@ -350,7 +361,7 @@ private fun DigAddNumber(dismissPopup: () -> Unit, onAddClicked: (String, PhoneT
         }
 
         CustomDigButtons(
-            "Add", AppColor.GradGreen.resolve(),
+            stringResource(R.string.add), AppColor.GradGreen.resolve(),
             { onAddClicked(phoneNumber, type) }, dismissPopup
         )
     }

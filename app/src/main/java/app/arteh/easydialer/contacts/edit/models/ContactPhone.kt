@@ -2,11 +2,11 @@ package app.arteh.easydialer.contacts.edit.models
 
 import app.arteh.easydialer.R
 
-enum class PhoneType(val fullName: String, val icon: Int) {
-    Mobile("Mobile", R.drawable.mobile),
-    Home("Home", R.drawable.home),
-    Work("Work", R.drawable.work),
-    Other("Other", R.drawable.call)
+enum class PhoneType(val fullName: Int, val icon: Int) {
+    Mobile(R.string.mobile, R.drawable.mobile),
+    Home(R.string.home, R.drawable.home),
+    Work(R.string.work, R.drawable.work),
+    Other(R.string.other, R.drawable.call)
 }
 
 data class ContactPhone(

@@ -29,10 +29,10 @@ class CallVM(application: Application) : AndroidViewModel(application) {
     var isFirstTime = true
 
     init {
-        if (Holder.contactRP.contactList.isEmpty())
-            Holder.contactRP.initialize(application, AppDatabase.getInstance(application))
-
         viewModelScope.launch {
+            if (Holder.contactRP.contactList.isEmpty())
+                Holder.contactRP.initialize(application, AppDatabase.getInstance(application))
+
             MyInCallService.callState.collect { info ->
                 if (info != null) {
                     if (isFirstTime) {

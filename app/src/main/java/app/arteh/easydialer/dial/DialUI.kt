@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -83,7 +84,7 @@ fun DialedNumberDisplay(number: String, onBackspace: () -> Unit) {
                 .size(50.dp)
                 .noRippleClickable(onBackspace),
             painter = painterResource(R.drawable.backspace),
-            contentDescription = "Call",
+            contentDescription = stringResource(R.string.clear),
             tint = AppColor.GradYoda.resolve()
         )
     }
@@ -150,7 +151,7 @@ fun CallControls(onCall: () -> Unit) {
         Icon(
             modifier = Modifier.size(50.dp),
             painter = painterResource(R.drawable.call),
-            contentDescription = "Call",
+            contentDescription = stringResource(R.string.call),
             tint = Color.White
         )
     }

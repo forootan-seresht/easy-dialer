@@ -43,6 +43,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -256,7 +257,7 @@ fun CustomDigButtons(
                 .wrapContentSize()
                 .padding(5.dp)
                 .noRippleClickable(onCancel),
-            text = "Cancel",
+            text = stringResource(R.string.cancel),
             style = MaterialTheme.appTypography.cancel,
         )
         Text(

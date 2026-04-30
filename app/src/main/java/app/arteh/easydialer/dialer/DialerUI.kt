@@ -14,12 +14,14 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
@@ -40,7 +42,7 @@ fun DigMySimCards(
     CustomPopup(dismissPopup) {
         var remember by remember { mutableStateOf(false) }
 
-        Text("Choose SIM for this call", fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.choose_sim), fontWeight = FontWeight.Bold)
 
         Spacer(Modifier.height(10.dp))
 
@@ -71,7 +73,7 @@ fun DigMySimCards(
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(remember, { remember = it })
-            Text("Remember this choice")
+            Text(stringResource(R.string.remember_this_choice))
         }
     }
 }
@@ -90,12 +92,12 @@ fun DigContactNumbers(
                 break
             }
 
-        return@remember mutableStateOf(index)
+        return@remember mutableIntStateOf(index)
     }
 
     CustomPopup(dismissPopup) {
 
-        Text("Choose phone number", fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.choose_phone_number), fontWeight = FontWeight.Bold)
 
         Spacer(Modifier.height(10.dp))
 
@@ -125,13 +127,15 @@ fun DigContactNumbers(
                 modifier = Modifier
                     .wrapContentSize()
                     .padding(horizontal = 15.dp)
-                    .noRippleClickable { onClick(radioIndex.value, false) }, text = "Just once"
+                    .noRippleClickable { onClick(radioIndex.value, false) },
+                text = stringResource(R.string.just_once)
             )
             Text(
                 modifier = Modifier
                     .wrapContentSize()
                     .padding(horizontal = 15.dp)
-                    .noRippleClickable { onClick(radioIndex.value, true) }, text = "Always"
+                    .noRippleClickable { onClick(radioIndex.value, true) },
+                text = stringResource(R.string.always)
             )
         }
     }

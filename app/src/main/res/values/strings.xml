@@ -4,29 +4,80 @@
     <string name="next">Next Step</string>
     <string name="channel_name">notification</string>
     <string name="channel_description">To keep connection in the background</string>
-    <string name="back">back</string>
+    <string name="back">Back</string>
     <string name="preparations">Preparations</string>
     <string name="notif_permission">Grant Post Notification Permission</string>
     <string name="notif_permission_desc">To keep app running in the background, a notification must be posted</string>
-    <string name="read_log_permission" translatable="false">Grant Read Call log Permission</string>
-    <string name="read_log_permission_desc" translatable="false">To read recent calls</string>
-    <string name="read_state_permission" translatable="false">Grant Read Phone state Permission</string>
-    <string name="read_state_permission_desc" translatable="false">To read when receive calls</string>
-    <string name="make_call_permission" translatable="false">Grant Make Call Permission</string>
-    <string name="make_call_permission_desc" translatable="false">To make calls</string>
-    <string name="write_log_permission" translatable="false">Grant Write Call log Permission</string>
-    <string name="write_log_permission_desc" translatable="false">To write recent calls</string>
-    <string name="write_contact_permission" translatable="false">Grant Write Contact Permission</string>
-    <string name="write_contact_permission_desc" translatable="false">To add contacts</string>
-    <string name="read_contact_permission" translatable="false">Grant Read Contact Permission</string>
-    <string name="read_contact_permission_desc" translatable="false">To read contacts</string>
-    <string name="def_dialer_permission" translatable="false">Set as default dialer</string>
-    <string name="def_dialer_permission_desc" translatable="false">To set this app as default dialer</string>
-    <string name="miui_lockscreen_permission" translatable="false">Show on lockScreen</string>
-    <string name="miui_lockscreen_permission_desc" translatable="false">To Show on lockScreen in miui launcher</string>
-    <string name="miui_overlay_permission" translatable="false">Show call from background</string>
-    <string name="miui_overlay_permission_desc" translatable="false">To show call from background in miui launcher</string>
+    <string name="read_log_permission">Grant Read Call log Permission</string>
+    <string name="read_log_permission_desc">To read recent calls</string>
+    <string name="read_state_permission">Grant Read Phone state Permission</string>
+    <string name="read_state_permission_desc">To read when receive calls</string>
+    <string name="make_call_permission">Grant Make Call Permission</string>
+    <string name="make_call_permission_desc">To make calls</string>
+    <string name="write_log_permission">Grant Write Call log Permission</string>
+    <string name="write_log_permission_desc">To write recent calls</string>
+    <string name="write_contact_permission">Grant Write Contact Permission</string>
+    <string name="write_contact_permission_desc">To add contacts</string>
+    <string name="read_contact_permission">Grant Read Contact Permission</string>
+    <string name="read_contact_permission_desc">To read contacts</string>
+    <string name="def_dialer_permission">Set as default dialer</string>
+    <string name="def_dialer_permission_desc">To set this app as default dialer</string>
+    <string name="miui_lockscreen_permission">Show on lockScreen</string>
+    <string name="miui_lockscreen_permission_desc">To Show on lockScreen in miui launcher</string>
+    <string name="miui_overlay_permission">Show call from background</string>
+    <string name="miui_overlay_permission_desc">To show call from background in miui launcher</string>
     <string name="call">Call</string>
     <string name="send_message">Send Message</string>
     <string name="show_history">Show History</string>
+    <string name="answer">Answer</string>
+    <string name="all">All</string>
+    <string name="incoming">Incoming</string>
+    <string name="outgoing">Outgoing</string>
+    <string name="missed">Missed</string>
+    <string name="rejected">Rejected</string>
+    <string name="others">Others</string>
+    <string name="add">Add</string>
+    <string name="add_phone">Add another phone</string>
+    <string name="add_contact">Add Contact</string>
+    <string name="sure_delete">Are you sure to permanently delete this contact?</string>
+    <string name="always">Always</string>
+    <string name="just_once">Just once</string>
+    <string name="unlock">Unlock</string>
+    <string name="block">Block</string>
+    <string name="block_numbers">Block numbers</string>
+    <string name="company">Company</string>
+    <string name="contact_image">Contact image</string>
+    <string name="clear">Clear</string>
+    <string name="choose_phone_number">Choose phone number</string>
+    <string name="choose_sim">Choose SIM for this call</string>
+    <string name="contacts">Contacts</string>
+    <string name="call_logs">Call logs</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="dial">Dial</string>
+    <string name="first_name">First Name</string>
+    <string name="home">Home</string>
+    <string name="job_title">Job title</string>
+    <string name="last_name">Last Name</string>
+    <string name="speaker">Speaker</string>
+    <string name="end">End</string>
+    <string name="mute">Mute</string>
+    <string name="mobile">Mobile</string>
+    <string name="work">Work</string>
+    <string name="other">Other</string>
+    <string name="none">None</string>
+    <string name="phone_numbers">Phone Numbers</string>
+    <string name="phone">Phone</string>
+    <string name="phone_number">Phone number</string>
+    <string name="return_to_call">Return to call</string>
+    <string name="reject">Reject</string>
+    <string name="remove_phone">Remove phone</string>
+    <string name="remember_this_choice">Remember this choice</string>
+    <string name="save_changes">Save changes</string>
+    <string name="search_contacts">Search Contacts</string>
+    <string name="share_contact">Share Contact</string>
+    <string name="unknown">Unknown</string>
+    <string name="no_speed_dial1">You have not set Speed Dial for this button yet.</string>
+    <string name="no_speed_dial2">Please select a contact from Contact Screen.</string>
+    <string name="no_longer">You will no longer receive calls or text from</string>
 </resources>

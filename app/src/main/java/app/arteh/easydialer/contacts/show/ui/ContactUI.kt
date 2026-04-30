@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -97,9 +98,17 @@ fun ShowScreen(contactVM: ContactVM = viewModel(), padding: PaddingSides) {
     val dismissPopup = contactVM::dismissPopup
 
     if (dialerShowState.showMyNumbers)
-        DigMySimCards(contactVM.dialerHR::dismissPopup, contactVM.simCardHR.simCardList, contactVM.dialerHR::selectSim)
+        DigMySimCards(
+            contactVM.dialerHR::dismissPopup,
+            contactVM.simCardHR.simCardList,
+            contactVM.dialerHR::selectSim
+        )
     else if (dialerShowState.showContactNumbers)
-        DigContactNumbers(contactVM.dialerHR::dismissPopup, uiState.contact!!.phones, contactVM.dialerHR::selectNumber)
+        DigContactNumbers(
+            contactVM.dialerHR::dismissPopup,
+            uiState.contact!!.phones,
+            contactVM.dialerHR::selectNumber
+        )
     else if (showState.showBlock)
         DigBlockNumbers(dismissPopup, uiState.contact!!.phones)
         { contactVM.onAction(ContactUIAction.BlockNumbers) }
@@ -156,7 +165,7 @@ private fun TopRow(contactID: Long, isStarred: Boolean, onAction: (ContactUIActi
                 .padding(5.dp)
                 .noRippleClickable({ (context as Activity).finish() }),
             painter = painterResource(R.drawable.back),
-            contentDescription = "Back",
+            contentDescription = stringResource(R.string.back),
             tint = AppColor.Icons.resolve()
         )
 
@@ -234,13 +243,13 @@ private fun OptionsButtons(contact: EditableContact, onAction: (ContactUIAction)
         ItemOption(
             R.drawable.edit,
             AppColor.Icons.resolve(),
-            "Share Contact",
+            stringResource(R.string.share_contact),
             { onAction(ContactUIAction.ShareContact) })
 
         ItemOption(
             R.drawable.edit,
             AppColor.GradRed.resolve(),
-            "Block numbers",
+            stringResource(R.string.block_numbers),
             { onAction(ContactUIAction.ShowBlocK) })
 
         ItemOption(
@@ -305,7 +314,7 @@ fun ContactPhoto(photoUri: Uri?) {
             Icon(
                 painter = painterResource(R.drawable.person),
                 modifier = Modifier.size(80.dp),
-                contentDescription = "Contact image",
+                contentDescription = stringResource(R.string.contact_image),
                 tint = Color.White
             )
     }

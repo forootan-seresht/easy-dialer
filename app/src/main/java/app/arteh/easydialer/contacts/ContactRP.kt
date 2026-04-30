@@ -26,14 +26,14 @@ class ContactRP {
     lateinit var speedDialMap: Flow<Map<Int, SpeedDialEntry>>
     var lazyKey = 0
 
-    fun initialize(context: Context, instance: AppDatabase) {
+   suspend fun initialize(context: Context, instance: AppDatabase) {
         prefs = PreferencesManager(context)
+        db = instance
         contactList = queryContacts("", context)
         speedDialMap = prefs.loadSpeedDIal()
-        db = instance
     }
 
-    fun loadContacts(name: String, context: Context): Map<ContactHeader, List<Contact>> {
+    suspend fun loadContacts(name: String, context: Context): Map<ContactHeader, List<Contact>> {
         val contactMList = queryContacts(name, context)
 
         return contactMList.sortedBy { it.name }.groupBy { contact ->
@@ -46,7 +46,7 @@ class ContactRP {
         }
     }
 
-    fun queryContacts(name: String, context: Context): List<Contact> {
+    suspend fun queryContacts(name: String, context: Context): List<Contact> {
         val contactMList = mutableListOf<Contact>()
 
         val cr = context.contentResolver
@@ -125,7 +125,7 @@ class ContactRP {
         return contactMList
     }
 
-    fun findContactByID(id: Long, context: Context): EditableContact {
+    suspend fun findContactByID(id: Long, context: Context): EditableContact {
         val cr = context.contentResolver
         var contact = EditableContact()
 
@@ -366,12 +366,12 @@ class ContactRP {
         return favorites
     }
 
-    fun saveDefaultSim(contactID: Long, simID: Int) {
+    suspend fun saveDefaultSim(contactID: Long, simID: Int) {
         if (db.contactDefaultsDao().updateSim(contactID, simID) == 0)
             db.contactDefaultsDao().insert(ContactDefaults(contactID, simID, 0L))
     }
 
-    fun saveDefaultNumber(contactID: Long, numberID: Long) {
+    suspend fun saveDefaultNumber(contactID: Long, numberID: Long) {
         if (db.contactDefaultsDao().updateNumber(contactID, numberID) == 0)
             db.contactDefaultsDao().insert(ContactDefaults(contactID, 0, numberID))
     }

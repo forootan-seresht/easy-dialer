@@ -229,7 +229,7 @@ private fun PermissionItem(
                     .size(dimensionResource(R.dimen.permission_lock))
                     .padding(10.dp),
                 painter = painterResource(R.drawable.unlock2),
-                contentDescription = "Arrow",
+                contentDescription = stringResource(R.string.unlock),
             )
         }
     }

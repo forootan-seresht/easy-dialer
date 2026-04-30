@@ -9,6 +9,7 @@ import android.telecom.TelecomManager
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import app.arteh.easydialer.R
 import app.arteh.easydialer.utility.Holder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -55,8 +56,8 @@ class DialPadVM(application: Application) : AndroidViewModel(application) {
                 }
                 else
                     Toast.makeText(
-                        context, "You have not set Speed Dial for this button yet." +
-                                "\nPlease select a contact from Contact Screen.", Toast.LENGTH_LONG
+                        context, context.getString(R.string.no_speed_dial1) + "\n" +
+                                context.getString(R.string.no_speed_dial2), Toast.LENGTH_LONG
                     ).show()
             }
         }

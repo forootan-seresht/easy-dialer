@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -106,7 +107,7 @@ private fun DialPadUI(onClick: (String) -> Unit, onBack: () -> Unit) {
                 tint = Color.White
             )
             Text(
-                text = "Return to call",
+                text = stringResource(R.string.return_to_call),
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 fontSize = 18.sp
@@ -158,7 +159,7 @@ private fun TalkingUI(number: String, contact: Contact?, isMute: Boolean, isSpea
 
         Row() {
             BigCallButton(
-                text = "Mute", if (isMute) R.drawable.mic_on
+                text = stringResource(R.string.mute), if (isMute) R.drawable.mic_on
                 else R.drawable.mic_off, Modifier
                     .padding(10.dp)
                     .weight(1f)
@@ -168,7 +169,7 @@ private fun TalkingUI(number: String, contact: Contact?, isMute: Boolean, isSpea
             )
 
             BigCallButton(
-                text = "Mute", if (isSpeaker) R.drawable.speaker_off
+                text = stringResource(R.string.speaker), if (isSpeaker) R.drawable.speaker_off
                 else R.drawable.speaker_on, Modifier
                     .padding(10.dp)
                     .weight(1f)
@@ -180,7 +181,7 @@ private fun TalkingUI(number: String, contact: Contact?, isMute: Boolean, isSpea
 
         Row() {
             BigCallButton(
-                text = "Mute", R.drawable.call_end,
+                text = stringResource(R.string.end), R.drawable.call_end,
                 Modifier
                     .padding(10.dp)
                     .weight(1f)
@@ -190,8 +191,7 @@ private fun TalkingUI(number: String, contact: Contact?, isMute: Boolean, isSpea
             )
 
             BigCallButton(
-                text = "Mute", if (isSpeaker) R.drawable.speaker_off
-                else R.drawable.speaker_on, Modifier
+                text = stringResource(R.string.dial), R.drawable.dial, Modifier
                     .padding(10.dp)
                     .weight(1f)
                     .height(100.dp)
@@ -266,7 +266,7 @@ private fun IncomingCallUI(number: String, contact: Contact?) {
                 horizontalArrangement = Arrangement.spacedBy(32.dp)
             ) {
                 BigCallButton(
-                    "Answer", R.drawable.call,
+                    stringResource(R.string.answer), R.drawable.call,
                     Modifier
                         .padding(10.dp)
                         .weight(1f)
@@ -276,7 +276,7 @@ private fun IncomingCallUI(number: String, contact: Contact?) {
                 )
 
                 BigCallButton(
-                    "Reject", R.drawable.call_end,
+                    stringResource(R.string.reject), R.drawable.call_end,
                     Modifier
                         .padding(10.dp)
                         .weight(1f)

@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -83,7 +84,7 @@ private fun BottomTabs(selectedTab: BottomTab) {
                 .weight(1f)
                 .noRippleClickable({ mainVM.setPage(BottomTab.Contact) }),
             painter = painterResource(R.drawable.contacts),
-            contentDescription = "Contact",
+            contentDescription = stringResource(R.string.contacts),
             tint = if (selectedTab == BottomTab.Contact)
                 MaterialTheme.colorScheme.primary
             else AppColor.Gray1.resolve()
@@ -94,7 +95,7 @@ private fun BottomTabs(selectedTab: BottomTab) {
                 .weight(1f)
                 .noRippleClickable({ mainVM.setPage(BottomTab.Dial) }),
             painter = painterResource(R.drawable.dial),
-            contentDescription = "Dial",
+            contentDescription = stringResource(R.string.dial),
             tint = if (selectedTab == BottomTab.Dial)
                 MaterialTheme.colorScheme.primary
             else AppColor.Gray1.resolve()
@@ -105,7 +106,7 @@ private fun BottomTabs(selectedTab: BottomTab) {
                 .weight(1f)
                 .noRippleClickable({ mainVM.setPage(BottomTab.CallLog) }),
             painter = painterResource(R.drawable.call_log),
-            contentDescription = "Call log",
+            contentDescription = stringResource(R.string.call_logs),
             tint = if (selectedTab == BottomTab.CallLog)
                 MaterialTheme.colorScheme.primary
             else AppColor.Gray1.resolve()

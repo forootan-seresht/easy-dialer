@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import android.telecom.Call
 import android.telecom.InCallService
+import app.arteh.easydialer.R
 import app.arteh.easydialer.calling.CallActivity
 import app.arteh.easydialer.calling.models.CallInfo
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -63,7 +64,7 @@ class MyInCallService : InCallService() {
         _callState.value = if (call != null)
             CallInfo(
                 call,
-                number = call.details.handle?.schemeSpecificPart ?: "Unknown",
+                number = call.details.handle?.schemeSpecificPart ?: getString(R.string.unknown),
                 state = call.state
             )
         else null

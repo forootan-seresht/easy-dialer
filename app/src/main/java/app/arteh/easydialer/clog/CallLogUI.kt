@@ -244,7 +244,7 @@ private fun ItemCallLog(index: Int, log: Clog, onAction: (CLogAction) -> Unit) {
             Column {
                 Image(
                     painter = painterResource(log.status.icon),
-                    contentDescription = log.status.fullName
+                    contentDescription = stringResource(log.status.fullName)
                 )
                 Text(
                     modifier = Modifier.padding(top = 5.dp),
