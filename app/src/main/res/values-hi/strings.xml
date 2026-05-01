@@ -83,4 +83,14 @@
     <string name="note">Note</string>
     <string name="no_app_found_to_send_email">No app found to send Email</string>
     <string name="email_address">Email Address</string>
+    <string name="share_as_file">Share as file</string>
+    <string name="info_copied_to_the_clipboard">Info copied to the clipboard</string>
+    <string name="copy_as_text">Copy as Text</string>
+    <string name="company_title">"Company/Title: "</string>
+    <string name="include_name">Include Name</string>
+    <string name="include_number_s">Include Number(s)</string>
+    <string name="include_email">Include Email</string>
+    <string name="include_job_company">Include Job/Company</string>
+    <string name="include_note">Include Note</string>
+    <string name="name">"Name: "</string>
 </resources>

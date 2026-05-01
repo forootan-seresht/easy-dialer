@@ -307,7 +307,7 @@ private fun NumberSection(editableContact: EditableContact, onAction: (EditConta
         IconButton(onClick = { onAction(EditContactAction.ShowAddPhone) }) {
             Icon(
                 painterResource(R.drawable.add),
-                contentDescription = "Add Phone",
+                contentDescription = stringResource(R.string.add_phone),
                 tint = AppColor.Icons.resolve()
             )
         }

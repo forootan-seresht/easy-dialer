@@ -114,7 +114,7 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
         val contact = uiState.value.contact!!
 
         if (asFile) {
-            val message = makeText(uiState.value.contact!!, shareChecks)
+            val message = makeText(uiState.value.contact!!, shareChecks, context)
             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("Text from Easy Dialer ", message)
             clipboard.setPrimaryClip(clip)
@@ -280,25 +280,28 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
         _uiState.update { it.copy(contact = it.contact!!.copy(isStarred = !isStarred)) }
     }
 
-    fun makeText(contact: EditableContact, shareChecks: ShareChecks): String {
+    fun makeText(contact: EditableContact, shareChecks: ShareChecks, context: Context): String {
         val builder = StringBuilder()
         if (shareChecks.name)
-            builder.append("Name: ").append(contact.fullName).append("\n")
+            builder.append(context.getString(R.string.name)).append(contact.fullName).append("\n")
 
         if (shareChecks.phones)
             contact.phones.forEachIndexed { index, phone ->
-                builder.append("Phone $index: ").append(phone.number).append("\n")
+                builder.append("${context.getString(R.string.phone)} $index: ").append(phone.number)
+                    .append("(${context.getString(phone.type.fullName)})").append("\n")
             }
 
         if (shareChecks.email)
-            builder.append("Name: ").append(contact.email).append("\n")
+            builder.append("Email: ").append(contact.email).append("\n")
 
         if (shareChecks.jobCompany)
-            builder.append("Company/Title: ").append("${contact.company} - ${contact.job}")
+            builder.append(context.getString(R.string.company_title))
+                .append("${contact.company} - ${contact.job}")
                 .append("\n")
 
         if (shareChecks.note)
-            builder.append("Note: ").append(contact.note).append("\n")
+            builder.append("${context.getString(R.string.note)}: ").append(contact.note)
+                .append("\n")
 
         return builder.toString()
     }

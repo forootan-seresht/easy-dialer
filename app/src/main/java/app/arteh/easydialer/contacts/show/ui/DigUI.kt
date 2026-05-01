@@ -173,7 +173,7 @@ internal fun DigShareContact(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(shareChecks.name, {}, enabled = false)
-                Text("Include Name")
+                Text(stringResource(R.string.include_name))
             }
             Text(
                 modifier = Modifier.alpha(if (shareChecks.name) 1f else 0.5f),
@@ -185,7 +185,7 @@ internal fun DigShareContact(
             if (contact.phones.isNotEmpty()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(shareChecks.name, { shareChecks = shareChecks.copy(phones = it) })
-                    Text("Include Number(s)")
+                    Text(stringResource(R.string.include_number_s))
                 }
 
                 for (phone in contact.phones) {
@@ -201,7 +201,7 @@ internal fun DigShareContact(
             if (contact.email.isNotEmpty()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(shareChecks.name, { shareChecks = shareChecks.copy(email = it) })
-                    Text("Include Email")
+                    Text(stringResource(R.string.include_email))
                 }
 
                 Text(
@@ -217,7 +217,7 @@ internal fun DigShareContact(
                     Checkbox(
                         shareChecks.jobCompany,
                         { shareChecks = shareChecks.copy(jobCompany = it) })
-                    Text("Include Job/Company")
+                    Text(stringResource(R.string.include_job_company))
                 }
 
                 Text(
@@ -231,7 +231,7 @@ internal fun DigShareContact(
             if (contact.note.isNotEmpty()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(shareChecks.note, { shareChecks = shareChecks.copy(note = it) })
-                    Text("Include Note")
+                    Text(stringResource(R.string.include_note))
                 }
 
                 Text(
@@ -253,7 +253,7 @@ internal fun DigShareContact(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(painterResource(R.drawable.paste), contentDescription = null)
-                    Text("Copy as Text")
+                    Text(stringResource(R.string.copy_as_text))
                 }
                 Row(
                     Modifier
