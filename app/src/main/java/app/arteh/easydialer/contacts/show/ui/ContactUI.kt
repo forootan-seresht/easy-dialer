@@ -53,6 +53,7 @@ import app.arteh.easydialer.contacts.edit.models.EditableContact
 import app.arteh.easydialer.contacts.edit.models.PhoneType
 import app.arteh.easydialer.contacts.show.ContactUIAction
 import app.arteh.easydialer.contacts.show.ContactVM
+import app.arteh.easydialer.contacts.show.ShareChecks
 import app.arteh.easydialer.dialer.DigContactNumbers
 import app.arteh.easydialer.dialer.DigMySimCards
 import app.arteh.easydialer.ui.PaddingSides
@@ -110,7 +111,7 @@ fun ShowScreen(contactVM: ContactVM = viewModel(), padding: PaddingSides) {
             contactVM.dialerHR::selectNumber
         )
     else if (showState.showBlock)
-        DigBlockNumbers(dismissPopup, uiState.contact!!.phones)
+        DigBlockNumbers(uiState.contact!!.phones, dismissPopup)
         { contactVM.onAction(ContactUIAction.BlockNumbers) }
     else if (showState.showDelete)
         DigDelete(dismissPopup) { contactVM.onAction(ContactUIAction.DeleteContact(context)) }
@@ -118,6 +119,12 @@ fun ShowScreen(contactVM: ContactVM = viewModel(), padding: PaddingSides) {
         DigSpeedDial(
             uiState.speedSlot, uiState.speedDialMap, dismissPopup
         ) { contactVM.onAction(ContactUIAction.UpdateSpeedSlot(it)) }
+    else if (showState.showShare)
+        DigShareContact(
+            uiState.contact!!, dismissPopup
+        ) { shareChecks: ShareChecks, asFile: Boolean ->
+            contactVM.onAction(ContactUIAction.ShareContact(shareChecks, asFile))
+        }
 }
 
 @Composable
@@ -289,7 +296,7 @@ private fun OptionsButtons(onAction: (ContactUIAction) -> Unit) {
             R.drawable.edit,
             AppColor.Icons.resolve(),
             stringResource(R.string.share_contact),
-            { onAction(ContactUIAction.ShareContact) })
+            { onAction(ContactUIAction.ShowShareContact) })
 
         ItemOption(
             R.drawable.edit,

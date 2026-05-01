@@ -2,17 +2,22 @@ package app.arteh.easydialer.contacts.show
 
 import android.app.Activity
 import android.app.Application
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.ContactsContract
 import android.widget.Toast
+import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import app.arteh.easydialer.R
+import app.arteh.easydialer.contacts.edit.models.EditableContact
+import app.arteh.easydialer.contacts.edit.models.PhoneType
 import app.arteh.easydialer.contacts.speed.SpeedDialEntry
 import app.arteh.easydialer.dialer.DialerHR
 import app.arteh.easydialer.utility.Holder
@@ -22,6 +27,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 
 class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
     AndroidViewModel(application) {
@@ -79,7 +86,6 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
                 )
             }
 
-            ContactUIAction.ShareContact -> shareContact()
             ContactUIAction.ShowDelete -> _showState.update { it.copy(showDelete = true) }
             ContactUIAction.ShowMakeCall -> {
                 val state = uiState.value.contact!!
@@ -98,7 +104,50 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
             ContactUIAction.BlockNumbers -> blockNumbers()
             ContactUIAction.OpenEmail -> sendEmail()
             ContactUIAction.ReloadData -> reloadContact()
+            is ContactUIAction.ShareContact -> shareContact(action.shareChecks, action.asFile)
+            ContactUIAction.ShowShareContact -> _showState.update { it.copy(showShare = true) }
         }
+    }
+
+    fun shareContact(shareChecks: ShareChecks, asFile: Boolean) {
+        val context = getApplication<Application>()
+        val contact = uiState.value.contact!!
+
+        if (asFile) {
+            val message = makeText(uiState.value.contact!!, shareChecks)
+            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clip = ClipData.newPlainText("Text from Easy Dialer ", message)
+            clipboard.setPrimaryClip(clip)
+
+            Toast.makeText(
+                context,
+                context.getString(R.string.info_copied_to_the_clipboard), Toast.LENGTH_SHORT
+            ).show()
+        }
+        else viewModelScope.launch(Dispatchers.IO) {
+            val text = createVCard(contact, shareChecks)
+            val uri = saveVCardToFile(context, contact.fullName.replace(" ", "_"), text)
+            withContext(Dispatchers.Main) { shareVCard(context, uri) }
+        }
+    }
+
+    fun shareVCard(context: Context, uri: Uri) {
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/x-vcard"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        context.startActivity(Intent.createChooser(intent, "Share Contact"))
+    }
+
+    fun saveVCardToFile(context: Context, fileName: String, vcard: String): Uri {
+        val file = File(context.filesDir, "$fileName.vcf")
+        file.writeText(vcard)
+        return FileProvider.getUriForFile(
+            context,
+            context.packageName + ".provider",
+            file
+        )
     }
 
     fun sendEmail() {
@@ -176,10 +225,6 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
         }
     }
 
-    fun shareContact() {
-
-    }
-
     fun showSpeedDial(phoneIDX: Int) {
         selectedPhoneIDX = phoneIDX
 
@@ -223,7 +268,9 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
     }
 
     fun dismissPopup() {
-        _showState.update { it.copy(showDelete = false, showSpeedList = false, showBlock = false) }
+        _showState.update {
+            it.copy(showDelete = false, showSpeedList = false, showBlock = false, showShare = false)
+        }
     }
 
     fun addToFavorite() {
@@ -231,5 +278,64 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
         Holder.contactRP.setFavorite(getApplication(), contactID, !isStarred)
 
         _uiState.update { it.copy(contact = it.contact!!.copy(isStarred = !isStarred)) }
+    }
+
+    fun makeText(contact: EditableContact, shareChecks: ShareChecks): String {
+        val builder = StringBuilder()
+        if (shareChecks.name)
+            builder.append("Name: ").append(contact.fullName).append("\n")
+
+        if (shareChecks.phones)
+            contact.phones.forEachIndexed { index, phone ->
+                builder.append("Phone $index: ").append(phone.number).append("\n")
+            }
+
+        if (shareChecks.email)
+            builder.append("Name: ").append(contact.email).append("\n")
+
+        if (shareChecks.jobCompany)
+            builder.append("Company/Title: ").append("${contact.company} - ${contact.job}")
+                .append("\n")
+
+        if (shareChecks.note)
+            builder.append("Note: ").append(contact.note).append("\n")
+
+        return builder.toString()
+    }
+
+    fun createVCard(contact: EditableContact, shareChecks: ShareChecks): String {
+        val sb = StringBuilder()
+        sb.append("BEGIN:VCARD\n")
+        sb.append("VERSION:3.0\n")
+        sb.append("FN:${contact.fullName}\n")
+
+        // Organization (company)
+        if (shareChecks.jobCompany) {
+            sb.append("ORG:${contact.company}\n")
+            sb.append("TITLE:${contact.job}\n")
+        }
+
+        // Phones
+        if (shareChecks.phones)
+            contact.phones.forEach { phone ->
+                val type = when (phone.type) {
+                    PhoneType.Mobile -> "CELL"
+                    PhoneType.Home -> "HOME"
+                    PhoneType.Work -> "WORK"
+                    PhoneType.Other -> "OTHER"
+                }
+                sb.append("TEL;TYPE=$type:${phone.number}\n")
+            }
+
+        // Emails (multiple allowed)
+        if (shareChecks.email)
+            sb.append("EMAIL:${contact.email}\n")
+
+        // Note
+        if (shareChecks.note)
+            sb.append("NOTE:${contact.note}\n")
+
+        sb.append("END:VCARD\n")
+        return sb.toString()
     }
 }

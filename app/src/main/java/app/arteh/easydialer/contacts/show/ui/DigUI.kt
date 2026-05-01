@@ -7,15 +7,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -25,21 +25,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.arteh.easydialer.Holder
 import app.arteh.easydialer.R
-import app.arteh.easydialer.clog.models.SimCard
 import app.arteh.easydialer.contacts.edit.models.ContactPhone
+import app.arteh.easydialer.contacts.edit.models.EditableContact
+import app.arteh.easydialer.contacts.show.ShareChecks
 import app.arteh.easydialer.contacts.speed.SpeedDialEntry
 import app.arteh.easydialer.ui.CustomDialogue
 import app.arteh.easydialer.ui.CustomDigButtons
 import app.arteh.easydialer.ui.CustomPopup
-import app.arteh.easydialer.ui.Divider2
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
 
@@ -51,15 +51,18 @@ internal fun DigDelete(dismissPopup: () -> Unit, deleteClicked: () -> Unit) {
             .fillMaxWidth(), dismissPopup
     ) {
         Text(stringResource(R.string.sure_delete))
-        CustomDigButtons(stringResource(R.string.delete), AppColor.GradRed.resolve(), deleteClicked, dismissPopup)
+        CustomDigButtons(
+            stringResource(R.string.delete),
+            AppColor.GradRed.resolve(),
+            deleteClicked,
+            dismissPopup
+        )
     }
 }
 
 @Composable
 internal fun DigBlockNumbers(
-    dismissPopup: () -> Unit,
-    phones: List<ContactPhone>,
-    onBlock: () -> Unit
+    phones: List<ContactPhone>, dismissPopup: () -> Unit, onBlock: () -> Unit
 ) {
     CustomPopup(dismissPopup) {
 
@@ -75,7 +78,12 @@ internal fun DigBlockNumbers(
             )
         }
 
-        CustomDigButtons(stringResource(R.string.block), AppColor.GradRed.resolve(), onBlock, dismissPopup)
+        CustomDigButtons(
+            stringResource(R.string.block),
+            AppColor.GradRed.resolve(),
+            onBlock,
+            dismissPopup
+        )
     }
 }
 
@@ -107,7 +115,10 @@ internal fun DigSpeedDial(
                         contentDescription = stringResource(R.string.save_changes),
                         tint = AppColor.GradGreen.resolve()
                     )
-                Text(modifier = Modifier.padding(horizontal = 10.dp), text = stringResource(R.string.none))
+                Text(
+                    modifier = Modifier.padding(horizontal = 10.dp),
+                    text = stringResource(R.string.none)
+                )
             }
 
             for (i in 0 until 10)
@@ -137,6 +148,125 @@ internal fun DigSpeedDial(
                         }
                     }
                 }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun DigShareContact(
+    contact: EditableContact,
+    dismissPopup: () -> Unit,
+    onShare: (shareChecks: ShareChecks, asFile: Boolean) -> Unit
+) {
+    var shareChecks by remember { mutableStateOf(ShareChecks()) }
+
+    ModalBottomSheet(
+        onDismissRequest = dismissPopup,
+        containerColor = MaterialTheme.colorScheme.surface,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ) {
+        Column(
+            Modifier
+                .padding(15.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(shareChecks.name, {}, enabled = false)
+                Text("Include Name")
+            }
+            Text(
+                modifier = Modifier.alpha(if (shareChecks.name) 1f else 0.5f),
+                text = contact.fullName
+            )
+
+            Spacer(Modifier.height(10.dp))
+
+            if (contact.phones.isNotEmpty()) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(shareChecks.name, { shareChecks = shareChecks.copy(phones = it) })
+                    Text("Include Number(s)")
+                }
+
+                for (phone in contact.phones) {
+                    Text(
+                        modifier = Modifier.alpha(if (shareChecks.phones) 1f else 0.5f),
+                        text = phone.number
+                    )
+                }
+
+                Spacer(Modifier.height(10.dp))
+            }
+
+            if (contact.email.isNotEmpty()) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(shareChecks.name, { shareChecks = shareChecks.copy(email = it) })
+                    Text("Include Email")
+                }
+
+                Text(
+                    modifier = Modifier.alpha(if (shareChecks.email) 1f else 0.5f),
+                    text = contact.email
+                )
+
+                Spacer(Modifier.height(10.dp))
+            }
+
+            if (contact.job.isNotEmpty() || contact.company.isNotEmpty()) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        shareChecks.jobCompany,
+                        { shareChecks = shareChecks.copy(jobCompany = it) })
+                    Text("Include Job/Company")
+                }
+
+                Text(
+                    modifier = Modifier.alpha(if (shareChecks.jobCompany) 1f else 0.5f),
+                    text = "${contact.company} - ${contact.job}"
+                )
+
+                Spacer(Modifier.height(10.dp))
+            }
+
+            if (contact.note.isNotEmpty()) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(shareChecks.note, { shareChecks = shareChecks.copy(note = it) })
+                    Text("Include Note")
+                }
+
+                Text(
+                    modifier = Modifier.alpha(if (shareChecks.note) 1f else 0.5f),
+                    text = contact.note
+                )
+
+                Spacer(Modifier.height(10.dp))
+            }
+
+            //save buttons
+            Row {
+                Row(
+                    Modifier
+                        .weight(1f)
+                        .background(AppColor.GradBlue.resolve(), RoundedCornerShape(5.dp))
+                        .padding(5.dp)
+                        .noRippleClickable { onShare(shareChecks, false) },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(painterResource(R.drawable.paste), contentDescription = null)
+                    Text("Copy as Text")
+                }
+                Row(
+                    Modifier
+                        .weight(1f)
+                        .background(AppColor.GradBlue.resolve(), RoundedCornerShape(5.dp))
+                        .padding(5.dp)
+                        .noRippleClickable { onShare(shareChecks, true) },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(painterResource(R.drawable.file_share), contentDescription = null)
+                    Text(stringResource(R.string.share_as_file))
+                }
+            }
         }
     }
 }
