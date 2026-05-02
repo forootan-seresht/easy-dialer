@@ -23,7 +23,6 @@ import app.arteh.easydialer.utility.PreferencesManager
 import kotlinx.coroutines.flow.Flow
 import java.text.SimpleDateFormat
 import java.util.Date
-import kotlin.math.min
 
 class ContactRP {
     private lateinit var prefs: PreferencesManager
@@ -425,7 +424,7 @@ class ContactRP {
     }
 
     @SuppressLint("Range")
-    fun searchCallLogs(number: String, context: Context): List<Clog> {
+    fun searchCallLogs(number: String, context: Context): MutableList<Clog> {
         val logMList = mutableListOf<Clog>()
 
         try {
@@ -445,9 +444,8 @@ class ContactRP {
 
             cursor?.use {
                 val count = cursor.count
-                val min = min(count, 10)
 
-                for (i in 0..<min) {
+                for (i in 0..<count) {
                     cursor.moveToPosition(i)
 
                     val dateTime =
@@ -455,22 +453,28 @@ class ContactRP {
 
                     val number = cursor.getString(cursor.getColumnIndex(CallLog.Calls.NUMBER))
 
-                    logMList.add(
-                        Clog(
-                            null, number, LogStatus.Other, dateTime.first,
-                            dateTime.second, 0, lazyKey++
+                    val repeatIndex = logMList.firstOrNull { it.number == number }
+                    if (repeatIndex != null)
+                        logMList.add(
+                            Clog(
+                                null, number, LogStatus.Other, dateTime.first,
+                                dateTime.second, 0, lazyKey++
+                            )
                         )
-                    )
+
+                    if (logMList.size == 10) {
+                        cursor.close()
+                        return@use
+                    }
                 }
 
                 cursor.close()
             }
-
         } catch (e: Exception) {
             e.printStackTrace()
         }
 
-        return logMList.toList()
+        return logMList
     }
 
     @SuppressLint("SimpleDateFormat")
@@ -487,7 +491,13 @@ class ContactRP {
     fun searchByNumber(number: String, context: Context): Pair<List<Contact>, List<Clog>> {
         if (contactList.isNotEmpty()) {
             val filteredContacts = contactList.filter { it.phone.contains(number) }.take(10)
-            val filteredLogs = searchCallLogs(number, context)
+            val allLogs = searchCallLogs(number, context)
+
+            val contactNumbers = filteredContacts.map { it.phone }.toSet()
+
+            val filteredLogs = allLogs.filterNot { log ->
+                contactNumbers.contains(log.number)
+            }
 
             return filteredContacts to filteredLogs
         }

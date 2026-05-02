@@ -96,9 +96,11 @@ private fun NormalDialer(uiState: UIState, onAction: (DialAction) -> Unit) {
 private fun SearchedNumbers(
     contactList: List<Contact>, dialedList: List<Clog>, onAction: (DialAction) -> Unit
 ) {
-    Column(Modifier
-        .fillMaxSize()
-        .verticalScroll(rememberScrollState())) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
         if (contactList.isNotEmpty()) {
             Text("All Contact")
             contactList.forEachIndexed { index, contact ->
@@ -248,7 +250,7 @@ private fun ItemContact(contact: Contact, onAction: (DialAction) -> Unit) {
                 RoundedCornerShape(10.dp)
             )
             .padding(10.dp)
-            .noRippleClickable { onAction(DialAction.ShowMakeCall(contact.phone)) },
+            .noRippleClickable { onAction(DialAction.ShowMakeCallContact(contact)) },
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (bitmap != null)
@@ -297,7 +299,7 @@ private fun ItemContact(contact: Contact, onAction: (DialAction) -> Unit) {
                 .size(45.dp)
                 .background(AppColor.GradPurple.resolve().copy(alpha = 0.1f), CircleShape)
                 .padding(10.dp)
-                .noRippleClickable({ onAction(DialAction.ShowSendSMS(contact.phone)) }),
+                .noRippleClickable({ onAction(DialAction.ShowSendSMSContact(contact)) }),
             painter = painterResource(R.drawable.sms),
             contentDescription = null,
             tint = AppColor.GradPurple.resolve()

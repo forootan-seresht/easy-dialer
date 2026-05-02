@@ -1,12 +1,8 @@
 package app.arteh.easydialer.dial
 
-import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
-import android.os.Bundle
-import android.telecom.TelecomManager
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -50,8 +46,19 @@ class DialPadVM(application: Application) : AndroidViewModel(application) {
             }
 
             is DialAction.ShowContact -> showContact(action.contactID)
-            is DialAction.ShowMakeCall -> makeCall(action.number)
-            is DialAction.ShowSendSMS -> showSendSMS(action.number)
+            is DialAction.ShowMakeCall -> dialerHR.makeAction(ContactAction.Call, -1, action.number)
+            is DialAction.ShowSendSMS -> dialerHR.makeAction(ContactAction.SMS, -1, action.number)
+            is DialAction.ShowMakeCallContact -> dialerHR.makeAction(
+                ContactAction.Call,
+                action.contact.defaultSimID,
+                action.contact.phone
+            )
+
+            is DialAction.ShowSendSMSContact -> dialerHR.makeAction(
+                ContactAction.SMS,
+                action.contact.defaultSimID,
+                action.contact.phone
+            )
         }
     }
 
@@ -65,15 +72,16 @@ class DialPadVM(application: Application) : AndroidViewModel(application) {
         context.startActivity(intent)
     }
 
-    fun showSendSMS(number: String) {
-        dialerHR.makeAction(ContactAction.SMS, -1, number)
-    }
-
     fun numberClicked(digit: String) {
         val newNumber = uiState.value.number + digit
-        val context = getApplication<Application>()
 
         _uiState.update { it.copy(number = newNumber) }
+
+        searchPhone(newNumber)
+    }
+
+    fun searchPhone(newNumber: String) {
+        val context = getApplication<Application>()
 
         viewModelScope.launch(Dispatchers.IO) {
             val (contactList, dialedList) = Holder.contactRP.searchByNumber(newNumber, context)
@@ -82,8 +90,7 @@ class DialPadVM(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    @SuppressLint("MissingPermission")
-    fun makeCall(number: String) {
+    fun makeCall(number: String){
         dialerHR.makeAction(ContactAction.Call, -1, number)
     }
 

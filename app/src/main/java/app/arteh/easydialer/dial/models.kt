@@ -14,7 +14,9 @@ sealed interface DialAction {
     data class NumberCLicked(val digit: String) : DialAction
     data class NumberLongCLicked(val digit: String) : DialAction
     data class ShowMakeCall(val number: String) : DialAction
+    data class ShowMakeCallContact(val contact: Contact) : DialAction
     data class ShowSendSMS(val number: String) : DialAction
+    data class ShowSendSMSContact(val contact: Contact) : DialAction
     data class ShowContact(val contactID: Long) : DialAction
 
     data object BackSpace : DialAction
