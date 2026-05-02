@@ -95,4 +95,5 @@
     <string name="include_job_company">Include Job/Company</string>
     <string name="include_note">Include Note</string>
     <string name="name">"Name: "</string>
+    <string name="share_as_text">Share as TEXT</string>
 </resources>
