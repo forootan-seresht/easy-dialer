@@ -90,7 +90,7 @@ class DialPadVM(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun makeCall(number: String){
+    fun makeCall(number: String) {
         dialerHR.makeAction(ContactAction.Call, -1, number)
     }
 
