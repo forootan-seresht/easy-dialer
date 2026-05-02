@@ -31,15 +31,7 @@ class DialPadVM(application: Application) : AndroidViewModel(application) {
         when (action) {
             is DialAction.NumberCLicked -> numberClicked(action.digit)
             is DialAction.NumberLongCLicked -> onNumberLongPress(action.digit)
-            DialAction.BackSpace -> {
-                _uiState.update { it.copy(number = it.number.dropLast(1)) }
-
-                if (uiState.value.number.isEmpty()) {
-                    _uiState.update {
-                        it.copy(contactList = emptyList(), dialedList = emptyList())
-                    }
-                }
-            }
+            DialAction.BackSpace -> backspaceClicked()
 
             DialAction.LongBackSpace -> _uiState.update {
                 it.copy(number = "", contactList = emptyList(), dialedList = emptyList())
@@ -60,6 +52,15 @@ class DialPadVM(application: Application) : AndroidViewModel(application) {
                 action.contact.phone
             )
         }
+    }
+
+    fun backspaceClicked() {
+        val newNumber = uiState.value.number.dropLast(1)
+        _uiState.update { it.copy(number = newNumber) }
+
+        if (uiState.value.number.isEmpty())
+            _uiState.update { it.copy(contactList = emptyList(), dialedList = emptyList()) }
+        else searchPhone(newNumber)
     }
 
     fun showContact(contactID: Long) {

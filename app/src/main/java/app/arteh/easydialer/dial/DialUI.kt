@@ -67,14 +67,21 @@ fun DialPadScreen(viewModel: DialPadVM) {
 
 @Composable
 private fun NormalDialer(uiState: UIState, onAction: (DialAction) -> Unit) {
-    Box(Modifier.fillMaxSize()) {
-        SearchedNumbers(uiState.contactList, uiState.dialedList, onAction)
+    Column(Modifier.fillMaxSize()) {
+        SearchedNumbers(
+            Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
+            uiState.contactList,
+            uiState.dialedList,
+            onAction
+        )
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(AppColor.BackTrans.resolve())
-                .padding(10.dp)
-                .align(Alignment.BottomCenter),
+                .padding(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             DialedNumberDisplay(
@@ -94,22 +101,21 @@ private fun NormalDialer(uiState: UIState, onAction: (DialAction) -> Unit) {
 
 @Composable
 private fun SearchedNumbers(
-    contactList: List<Contact>, dialedList: List<Clog>, onAction: (DialAction) -> Unit
+    modifier: Modifier,
+    contactList: List<Contact>,
+    dialedList: List<Clog>,
+    onAction: (DialAction) -> Unit
 ) {
-    Column(
-        Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-    ) {
+    Column(modifier) {
         if (contactList.isNotEmpty()) {
-            Text("All Contact")
+            Text(modifier = Modifier.padding(horizontal = 10.dp), text = "All Contact")
             contactList.forEachIndexed { index, contact ->
                 ItemContact(contact, onAction)
             }
         }
 
         if (dialedList.isNotEmpty()) {
-            Text("Not in your contacts")
+            Text(modifier = Modifier.padding(horizontal = 10.dp), text = "Not in your contacts")
             dialedList.forEachIndexed { index, callLog ->
                 ItemNonContact(callLog, onAction)
             }
@@ -119,9 +125,7 @@ private fun SearchedNumbers(
 
 @Composable
 private fun DialedNumberDisplay(
-    number: String,
-    onBackspace: () -> Unit,
-    onLongBackspace: () -> Unit
+    number: String, onBackspace: () -> Unit, onLongBackspace: () -> Unit
 ) {
     Row(
         modifier = Modifier
