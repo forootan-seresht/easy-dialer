@@ -23,23 +23,19 @@ import app.arteh.easydialer.contacts.list.ContactScreen
 import app.arteh.easydialer.contacts.list.ContactsVM
 import app.arteh.easydialer.dial.DialPadScreen
 import app.arteh.easydialer.dial.DialPadVM
-import app.arteh.easydialer.ui.Divider2
 import app.arteh.easydialer.ui.PaddingSides
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
 
-private lateinit var mainVM: MainVM
-
 @Composable
 fun MainScreen(
-    vm: MainVM = viewModel(),
+    mainVM: MainVM = viewModel(),
     contactsVM: ContactsVM,
     callLogVM: CallLogVM,
     dialPadVM: DialPadVM,
     padding: PaddingSides
 ) {
-    mainVM = vm
-    val uiState = vm.uiState.collectAsStateWithLifecycle().value
+    val uiState = mainVM.uiState.collectAsStateWithLifecycle().value
 
     Column(
         Modifier
@@ -70,19 +66,19 @@ fun MainScreen(
                 }
             }
         }
-        Divider2()
-        BottomTabs(uiState.selectedTab)
+        BottomTabs(uiState.selectedTab) { mainVM.setPage(it) }
     }
 }
 
 @Composable
-private fun BottomTabs(selectedTab: BottomTab) {
+private fun BottomTabs(selectedTab: BottomTab, onClick: (BottomTab) -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
             modifier = Modifier
-                .height(35.dp)
+                .height(40.dp)
+                .padding(5.dp)
                 .weight(1f)
-                .noRippleClickable({ mainVM.setPage(BottomTab.Contact) }),
+                .noRippleClickable { onClick(BottomTab.Contact) },
             painter = painterResource(R.drawable.contacts),
             contentDescription = stringResource(R.string.contacts),
             tint = if (selectedTab == BottomTab.Contact)
@@ -91,9 +87,10 @@ private fun BottomTabs(selectedTab: BottomTab) {
         )
         Icon(
             modifier = Modifier
-                .height(35.dp)
+                .height(40.dp)
+                .padding(5.dp)
                 .weight(1f)
-                .noRippleClickable({ mainVM.setPage(BottomTab.Dial) }),
+                .noRippleClickable { onClick(BottomTab.Dial) },
             painter = painterResource(R.drawable.dial),
             contentDescription = stringResource(R.string.dial),
             tint = if (selectedTab == BottomTab.Dial)
@@ -102,9 +99,10 @@ private fun BottomTabs(selectedTab: BottomTab) {
         )
         Icon(
             modifier = Modifier
-                .height(35.dp)
+                .height(40.dp)
+                .padding(5.dp)
                 .weight(1f)
-                .noRippleClickable({ mainVM.setPage(BottomTab.CallLog) }),
+                .noRippleClickable { onClick(BottomTab.CallLog) },
             painter = painterResource(R.drawable.call_log),
             contentDescription = stringResource(R.string.call_logs),
             tint = if (selectedTab == BottomTab.CallLog)

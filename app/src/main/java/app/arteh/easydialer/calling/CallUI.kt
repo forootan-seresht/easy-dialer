@@ -45,7 +45,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import app.arteh.easydialer.R
 import app.arteh.easydialer.calling.models.CallState
 import app.arteh.easydialer.contacts.Contact
-import app.arteh.easydialer.dial.DialPadGrid
+import app.arteh.easydialer.dial.BigDialPadGrid
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
 
@@ -88,7 +88,7 @@ fun CallContent() {
 @Composable
 private fun DialPadUI(onClick: (String) -> Unit, onBack: () -> Unit) {
     Column {
-        DialPadGrid(onClick, {})
+        BigDialPadGrid(onClick, {})
 
         Row(
             modifier = Modifier

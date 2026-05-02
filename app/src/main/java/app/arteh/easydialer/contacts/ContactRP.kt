@@ -1,13 +1,17 @@
 package app.arteh.easydialer.contacts
 
+import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import android.provider.BlockedNumberContract
+import android.provider.CallLog
 import android.provider.ContactsContract
 import androidx.core.net.toUri
+import app.arteh.easydialer.clog.models.Clog
+import app.arteh.easydialer.clog.models.LogStatus
 import app.arteh.easydialer.contacts.edit.models.ContactPhone
 import app.arteh.easydialer.contacts.edit.models.EditableContact
 import app.arteh.easydialer.contacts.edit.models.PhoneType
@@ -17,6 +21,9 @@ import app.arteh.easydialer.db.ContactDefaults
 import app.arteh.easydialer.utility.Holder
 import app.arteh.easydialer.utility.PreferencesManager
 import kotlinx.coroutines.flow.Flow
+import java.text.SimpleDateFormat
+import java.util.Date
+import kotlin.math.min
 
 class ContactRP {
     private lateinit var prefs: PreferencesManager
@@ -415,5 +422,75 @@ class ContactRP {
     suspend fun saveDefaultNumber(contactID: Long, numberID: Long) {
         if (db.contactDefaultsDao().updateNumber(contactID, numberID) == 0)
             db.contactDefaultsDao().insert(ContactDefaults(contactID, 0, numberID))
+    }
+
+    @SuppressLint("Range")
+    fun searchCallLogs(number: String, context: Context): List<Clog> {
+        val logMList = mutableListOf<Clog>()
+
+        try {
+            val projection = arrayOf(
+                CallLog.Calls.NUMBER,
+                CallLog.Calls.DATE,
+                CallLog.Calls.CACHED_NAME
+            )
+
+            val sort = CallLog.Calls.DATE + " Desc"
+            val allCalls = "content://call_log/calls".toUri()
+
+            val cursor = context.contentResolver.query(
+                allCalls, projection,
+                CallLog.Calls.NUMBER + " like ?", arrayOf("%$number%"), sort
+            )
+
+            cursor?.use {
+                val count = cursor.count
+                val min = min(count, 10)
+
+                for (i in 0..<min) {
+                    cursor.moveToPosition(i)
+
+                    val dateTime =
+                        getDateTime(cursor.getLong(cursor.getColumnIndex(CallLog.Calls.DATE)))
+
+                    val number = cursor.getString(cursor.getColumnIndex(CallLog.Calls.NUMBER))
+
+                    logMList.add(
+                        Clog(
+                            null, number, LogStatus.Other, dateTime.first,
+                            dateTime.second, 0, lazyKey++
+                        )
+                    )
+                }
+
+                cursor.close()
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        return logMList.toList()
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    fun getDateTime(millis: Long): Pair<String, String> {
+        val date = Date()
+        date.time = millis
+
+        val fDate = SimpleDateFormat("yyyy-MMM-d HH:MM").format(date).split(" ")
+        val splitDate = fDate[0].split("-")
+
+        return "${splitDate[1]} ${splitDate[2]}, ${splitDate[0]}" to fDate[1]
+    }
+
+    fun searchByNumber(number: String, context: Context): Pair<List<Contact>, List<Clog>> {
+        if (contactList.isNotEmpty()) {
+            val filteredContacts = contactList.filter { it.phone.contains(number) }.take(10)
+            val filteredLogs = searchCallLogs(number, context)
+
+            return filteredContacts to filteredLogs
+        }
+        return emptyList<Contact>() to emptyList<Clog>()
     }
 }

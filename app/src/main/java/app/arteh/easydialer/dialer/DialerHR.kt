@@ -1,8 +1,11 @@
 package app.arteh.easydialer.dialer
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
+import android.telecom.TelecomManager
 import androidx.core.net.toUri
 import app.arteh.easydialer.contacts.edit.models.ContactPhone
 import app.arteh.easydialer.contacts.show.ContactAction
@@ -64,8 +67,15 @@ class DialerHR(
         else openSmsDefault(phoneNumber)
     }
 
+    @SuppressLint("MissingPermission")
     fun dialNumber(phoneNumber: String) {
+        if (phoneNumber.isNotEmpty()) {
+            val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
 
+            val uri = Uri.fromParts("tel", phoneNumber, null)
+
+            telecomManager.placeCall(uri, Bundle())
+        }
     }
 
     fun openSmsDefault(phoneNumber: String) {

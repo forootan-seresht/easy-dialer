@@ -88,7 +88,7 @@ class CallLogRP(val context: Context) {
                         CallLog.Calls.INCOMING_TYPE -> LogStatus.Incoming
                         CallLog.Calls.OUTGOING_TYPE -> LogStatus.Outgoing
                         CallLog.Calls.MISSED_TYPE -> LogStatus.Missed
-                        CallLog.Calls.REJECTED_TYPE,CallLog.Calls.BLOCKED_TYPE -> LogStatus.Rejected
+                        CallLog.Calls.REJECTED_TYPE, CallLog.Calls.BLOCKED_TYPE -> LogStatus.Rejected
                         else -> LogStatus.Other
                     }
 

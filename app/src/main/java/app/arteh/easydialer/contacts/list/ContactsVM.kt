@@ -36,7 +36,7 @@ class ContactsVM(application: Application) : AndroidViewModel(application) {
     fun load() {
         if (!loaded) {
             loaded = true
-            reloadContacts()
+            searchContact(uiState.value.searchText)
         }
     }
 
@@ -56,8 +56,6 @@ class ContactsVM(application: Application) : AndroidViewModel(application) {
             )
         }
     }
-
-    fun reloadContacts() = searchContact(uiState.value.searchText)
 
     private fun searchContact(name: String) {
         viewModelScope.launch(Dispatchers.IO) {
