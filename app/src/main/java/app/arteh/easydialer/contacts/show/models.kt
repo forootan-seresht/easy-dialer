@@ -34,7 +34,11 @@ sealed interface ContactUIAction {
     data class SendSMS(val index: Int) : ContactUIAction
     data class UpdateSpeedSlot(val slot: Int) : ContactUIAction
     data class DeleteContact(val context: Context) : ContactUIAction
-    data class ShareContact(val shareChecks: ShareChecks, val asFile: Boolean) : ContactUIAction
+    data class ShareContact(
+        val shareChecks: ShareChecks,
+        val asFile: Boolean,
+        val context: Context
+    ) : ContactUIAction
 
     data object AddFavorite : ContactUIAction
     data object OpenEmail : ContactUIAction

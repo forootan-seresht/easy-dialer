@@ -2,8 +2,6 @@ package app.arteh.easydialer.contacts.show
 
 import android.app.Activity
 import android.app.Application
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
@@ -104,25 +102,26 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
             ContactUIAction.BlockNumbers -> blockNumbers()
             ContactUIAction.OpenEmail -> sendEmail()
             ContactUIAction.ReloadData -> reloadContact()
-            is ContactUIAction.ShareContact -> shareContact(action.shareChecks, action.asFile)
+            is ContactUIAction.ShareContact -> shareContact(
+                action.shareChecks,
+                action.asFile,
+                action.context
+            )
+
             ContactUIAction.ShowShareContact -> _showState.update { it.copy(showShare = true) }
         }
     }
 
-    fun shareContact(shareChecks: ShareChecks, asFile: Boolean) {
-        val context = getApplication<Application>()
+    fun shareContact(shareChecks: ShareChecks, asFile: Boolean, context: Context) {
         val contact = uiState.value.contact!!
 
-        if (asFile) {
+        if (!asFile) {
             val message = makeText(uiState.value.contact!!, shareChecks, context)
-            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            val clip = ClipData.newPlainText("Text from Easy Dialer ", message)
-            clipboard.setPrimaryClip(clip)
-
-            Toast.makeText(
-                context,
-                context.getString(R.string.info_copied_to_the_clipboard), Toast.LENGTH_SHORT
-            ).show()
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/*"
+                putExtra(Intent.EXTRA_TEXT, message)
+            }
+            context.startActivity(Intent.createChooser(intent, "Share Contact"))
         }
         else viewModelScope.launch(Dispatchers.IO) {
             val text = createVCard(contact, shareChecks)
@@ -287,8 +286,9 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
 
         if (shareChecks.phones)
             contact.phones.forEachIndexed { index, phone ->
-                builder.append("${context.getString(R.string.phone)} $index: ").append(phone.number)
-                    .append("(${context.getString(phone.type.fullName)})").append("\n")
+                builder.append("${context.getString(R.string.phone)} ${index + 1}: ")
+                    .append(phone.number)
+                    .append(" (${context.getString(phone.type.fullName)})").append("\n")
             }
 
         if (shareChecks.email)

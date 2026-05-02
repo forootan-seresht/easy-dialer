@@ -123,7 +123,7 @@ fun ShowScreen(contactVM: ContactVM = viewModel(), padding: PaddingSides) {
         DigShareContact(
             uiState.contact!!, dismissPopup
         ) { shareChecks: ShareChecks, asFile: Boolean ->
-            contactVM.onAction(ContactUIAction.ShareContact(shareChecks, asFile))
+            contactVM.onAction(ContactUIAction.ShareContact(shareChecks, asFile, context))
         }
 }
 
@@ -235,52 +235,53 @@ private fun ContactInfo(contact: EditableContact, onAction: (ContactUIAction) ->
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(5.dp))
-            .padding(10.dp)
-    ) {
-        if (contact.email.isNotEmpty())
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp)
-                    .noRippleClickable({ onAction(ContactUIAction.OpenEmail) }),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-
-                Icon(
+    if (contact.email.isNotEmpty() || contact.note.isNotEmpty())
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(5.dp))
+                .padding(10.dp)
+        ) {
+            if (contact.email.isNotEmpty())
+                Row(
                     modifier = Modifier
-                        .padding(horizontal = 5.dp)
-                        .size(25.dp),
-                    painter = painterResource(R.drawable.email),
-                    contentDescription = stringResource(R.string.email),
-                    tint = AppColor.Icons.resolve()
-                )
+                        .fillMaxWidth()
+                        .padding(vertical = 5.dp)
+                        .noRippleClickable({ onAction(ContactUIAction.OpenEmail) }),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
 
-                Text(contact.email)
-            }
+                    Icon(
+                        modifier = Modifier
+                            .padding(horizontal = 5.dp)
+                            .size(25.dp),
+                        painter = painterResource(R.drawable.email),
+                        contentDescription = stringResource(R.string.email),
+                        tint = AppColor.Icons.resolve()
+                    )
 
-        if (contact.note.isNotEmpty())
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp),
-            ) {
+                    Text(contact.email)
+                }
 
-                Icon(
+            if (contact.note.isNotEmpty())
+                Row(
                     modifier = Modifier
-                        .padding(horizontal = 5.dp)
-                        .size(25.dp),
-                    painter = painterResource(R.drawable.notes),
-                    contentDescription = stringResource(R.string.note),
-                    tint = AppColor.Icons.resolve()
-                )
+                        .fillMaxWidth()
+                        .padding(vertical = 5.dp),
+                ) {
 
-                Text(contact.note)
-            }
-    }
+                    Icon(
+                        modifier = Modifier
+                            .padding(horizontal = 5.dp)
+                            .size(25.dp),
+                        painter = painterResource(R.drawable.notes),
+                        contentDescription = stringResource(R.string.note),
+                        tint = AppColor.Icons.resolve()
+                    )
+
+                    Text(contact.note)
+                }
+        }
 }
 
 @Composable
@@ -317,13 +318,12 @@ private fun ItemOption(icon: Int, color: Color, text: String, onClick: () -> Uni
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 10.dp),
+            .padding(vertical = 10.dp)
+            .noRippleClickable(onClick),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            modifier = Modifier
-                .size(25.dp)
-                .noRippleClickable(onClick),
+            modifier = Modifier.size(25.dp),
             painter = painterResource(icon),
             contentDescription = null,
             tint = color

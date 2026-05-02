@@ -1,6 +1,7 @@
 package app.arteh.easydialer.contacts.show.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -176,7 +178,9 @@ internal fun DigShareContact(
                 Text(stringResource(R.string.include_name))
             }
             Text(
-                modifier = Modifier.alpha(if (shareChecks.name) 1f else 0.5f),
+                modifier = Modifier
+                    .padding(start = 50.dp)
+                    .alpha(if (shareChecks.name) 1f else 0.5f),
                 text = contact.fullName
             )
 
@@ -184,15 +188,25 @@ internal fun DigShareContact(
 
             if (contact.phones.isNotEmpty()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(shareChecks.name, { shareChecks = shareChecks.copy(phones = it) })
+                    Checkbox(shareChecks.phones, { shareChecks = shareChecks.copy(phones = it) })
                     Text(stringResource(R.string.include_number_s))
                 }
 
                 for (phone in contact.phones) {
-                    Text(
-                        modifier = Modifier.alpha(if (shareChecks.phones) 1f else 0.5f),
-                        text = phone.number
-                    )
+                    Row(
+                        modifier = Modifier.padding(top = 5.dp, start = 40.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            modifier = Modifier.padding(horizontal = 5.dp),
+                            painter = painterResource(phone.type.icon),
+                            contentDescription = stringResource(phone.type.fullName)
+                        )
+                        Text(
+                            modifier = Modifier.alpha(if (shareChecks.phones) 1f else 0.5f),
+                            text = phone.number
+                        )
+                    }
                 }
 
                 Spacer(Modifier.height(10.dp))
@@ -200,12 +214,14 @@ internal fun DigShareContact(
 
             if (contact.email.isNotEmpty()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(shareChecks.name, { shareChecks = shareChecks.copy(email = it) })
+                    Checkbox(shareChecks.email, { shareChecks = shareChecks.copy(email = it) })
                     Text(stringResource(R.string.include_email))
                 }
 
                 Text(
-                    modifier = Modifier.alpha(if (shareChecks.email) 1f else 0.5f),
+                    modifier = Modifier
+                        .padding(start = 50.dp)
+                        .alpha(if (shareChecks.email) 1f else 0.5f),
                     text = contact.email
                 )
 
@@ -221,7 +237,9 @@ internal fun DigShareContact(
                 }
 
                 Text(
-                    modifier = Modifier.alpha(if (shareChecks.jobCompany) 1f else 0.5f),
+                    modifier = Modifier
+                        .padding(start = 50.dp)
+                        .alpha(if (shareChecks.jobCompany) 1f else 0.5f),
                     text = "${contact.company} - ${contact.job}"
                 )
 
@@ -235,7 +253,9 @@ internal fun DigShareContact(
                 }
 
                 Text(
-                    modifier = Modifier.alpha(if (shareChecks.note) 1f else 0.5f),
+                    modifier = Modifier
+                        .padding(start = 50.dp)
+                        .alpha(if (shareChecks.note) 1f else 0.5f),
                     text = contact.note
                 )
 
@@ -246,25 +266,38 @@ internal fun DigShareContact(
             Row {
                 Row(
                     Modifier
+                        .padding(horizontal = 10.dp)
                         .weight(1f)
-                        .background(AppColor.GradBlue.resolve(), RoundedCornerShape(5.dp))
-                        .padding(5.dp)
+                        .background(AppColor.GradBlue.resolve(), RoundedCornerShape(10.dp))
+                        .padding(10.dp)
                         .noRippleClickable { onShare(shareChecks, false) },
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    Icon(painterResource(R.drawable.paste), contentDescription = null)
-                    Text(stringResource(R.string.copy_as_text))
+                    Icon(
+                        painterResource(R.drawable.paste),
+                        contentDescription = null,
+                        tint = Color.White
+                    )
+                    Text(stringResource(R.string.share_as_text), color = Color.White)
                 }
+
                 Row(
                     Modifier
+                        .padding(horizontal = 10.dp)
                         .weight(1f)
-                        .background(AppColor.GradBlue.resolve(), RoundedCornerShape(5.dp))
-                        .padding(5.dp)
+                        .background(AppColor.GradBlue.resolve(), RoundedCornerShape(10.dp))
+                        .padding(10.dp)
                         .noRippleClickable { onShare(shareChecks, true) },
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    Icon(painterResource(R.drawable.file_share), contentDescription = null)
-                    Text(stringResource(R.string.share_as_file))
+                    Icon(
+                        painterResource(R.drawable.file_share),
+                        contentDescription = null,
+                        tint = Color.White
+                    )
+                    Text(stringResource(R.string.share_as_file), color = Color.White)
                 }
             }
         }
