@@ -191,10 +191,7 @@ private fun GeneralPermissionItem(row: PermissionRow) {
 }
 
 @Composable
-private fun PermissionItem(
-    row: PermissionRow,
-    action: () -> Unit,
-) {
+private fun PermissionItem(row: PermissionRow, action: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
