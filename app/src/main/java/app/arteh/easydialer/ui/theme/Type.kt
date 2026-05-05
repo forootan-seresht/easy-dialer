@@ -48,7 +48,7 @@ val LightAppTypography = AppTypography(
     ),
     h4 = TextStyle(
         fontSize = 16.sp,
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.SemiBold,
         color = TitleLight,
         fontFamily = fontFamily
     ),
