@@ -139,7 +139,7 @@ private fun ContactList(contactsVM: ContactsVM, modifier: Modifier) {
     LazyColumn(modifier) {
         contacts.forEach { (header, data) ->
             stickyHeader {
-                itemHeader(header.char)
+                ItemHeader(header.char)
             }
 
             items(data, key = { it.key }) {
@@ -150,7 +150,7 @@ private fun ContactList(contactsVM: ContactsVM, modifier: Modifier) {
 }
 
 @Composable
-private fun itemHeader(char: Char) {
+private fun ItemHeader(char: Char) {
     Text(
         modifier = Modifier
             .fillMaxWidth()

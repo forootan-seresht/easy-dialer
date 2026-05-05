@@ -402,7 +402,7 @@ private fun DigAddNumber(dismissPopup: () -> Unit, onAddClicked: (String, PhoneT
             OutlinedTextField(
                 modifier = Modifier
                     .padding(vertical = 10.dp)
-                    .fillMaxWidth(),
+                    .weight(1f),
                 value = phoneNumber,
                 onValueChange = { phoneNumber = it },
                 label = { Text(stringResource(R.string.phone_number)) },
