@@ -76,6 +76,7 @@ private fun NormalDialer(uiState: DialUIState, onAction: (DialAction) -> Unit) {
                 .verticalScroll(rememberScrollState()),
             uiState.contactList,
             uiState.dialedList,
+            uiState.number.isEmpty(),
             onAction
         )
 
@@ -109,6 +110,7 @@ private fun SearchedNumbers(
     modifier: Modifier,
     contactList: List<Contact>,
     dialedList: List<Clog>,
+    numberEmpty: Boolean,
     onAction: (DialAction) -> Unit
 ) {
     Column(modifier) {
@@ -125,6 +127,73 @@ private fun SearchedNumbers(
                 ItemNonContact(callLog, onAction)
             }
         }
+
+        if (!numberEmpty)
+            NumberOptions(onAction)
+    }
+}
+
+@Composable
+private fun NumberOptions(onAction: (DialAction) -> Unit) {
+    Triple(R.drawable.sms, AppColor.GradGreen, R.string.send_message)
+
+    val padding = 10.dp
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(padding)
+            .noRippleClickable { onAction(DialAction.AddNewContact) },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            modifier = Modifier
+                .padding(end = 5.dp)
+                .size(35.dp)
+                .padding(5.dp), painter = painterResource(R.drawable.add_contact),
+            contentDescription = null,
+            tint = AppColor.GradBlue.resolve()
+        )
+
+        Text(text = stringResource(R.string.create_new_contact))
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(padding)
+            .noRippleClickable { onAction(DialAction.AddToContact) },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            modifier = Modifier
+                .padding(end = 5.dp)
+                .size(35.dp)
+                .padding(5.dp), painter = painterResource(R.drawable.add_contact),
+            contentDescription = null,
+            tint = AppColor.GradPurple.resolve()
+        )
+
+        Text(text = stringResource(R.string.add_to_contact))
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(padding)
+            .noRippleClickable { onAction(DialAction.GoSendMessage) },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            modifier = Modifier
+                .padding(end = 5.dp)
+                .size(35.dp)
+                .padding(5.dp), painter = painterResource(R.drawable.sms),
+            contentDescription = null,
+            tint = AppColor.GradGreen.resolve()
+        )
+
+        Text(text = stringResource(R.string.send_message))
     }
 }
 

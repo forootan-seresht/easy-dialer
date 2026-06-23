@@ -1,5 +1,6 @@
 package app.arteh.easydialer.dial
 
+import android.content.Context
 import app.arteh.easydialer.clog.models.Clog
 import app.arteh.easydialer.contacts.Contact
 
@@ -19,6 +20,10 @@ sealed interface DialAction {
     data class ShowSendSMS(val number: String) : DialAction
     data class ShowSendSMSContact(val contact: Contact) : DialAction
     data class ShowContact(val contactID: Long) : DialAction
+
+    data class AddNewContact(val context: Context) : DialAction
+    data class AddToContact(val context: Context) : DialAction
+    data class GoSendMessage(val context: Context) : DialAction
 
     data object BackSpace : DialAction
     data object LongBackSpace : DialAction

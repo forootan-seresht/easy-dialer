@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.arteh.easydialer.R
+import app.arteh.easydialer.contacts.edit.EditContactActivity
 import app.arteh.easydialer.contacts.show.ContactAction
 import app.arteh.easydialer.contacts.show.ContactActivity
 import app.arteh.easydialer.dialer.DialerHR
@@ -53,7 +54,20 @@ class DialPadVM(application: Application) : AndroidViewModel(application) {
             )
 
             DialAction.ChangeFold -> _uiState.update { it.copy(showDial = !it.showDial) }
+            is DialAction.AddNewContact -> goAddNew(action.context)
+            is DialAction.AddToContact -> TODO()
+            is DialAction.GoSendMessage -> dialerHR.makeAction(
+                app.arteh.easydialer.contacts.show.ContactAction.SMS,
+                -1, uiState.value.number
+            )
         }
+    }
+
+    fun goAddNew(context: Context) {
+        val intent = Intent(context, EditContactActivity::class.java)
+        intent.putExtra("number", uiState.value.number)
+
+        context.startActivity(intent)
     }
 
     fun backspaceClicked() {
