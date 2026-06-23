@@ -8,7 +8,7 @@ sealed interface EditContactAction {
     data class UpdateFirstName(val name: String) : EditContactAction
     data class UpdateLastName(val lastName: String) : EditContactAction
     data class UpdateJob(val job: String) : EditContactAction
-    data class UpdateCompany(val company: String) : EditContactAction
+    data class UpdateBusiness(val company: String) : EditContactAction
     data class UpdateEmail(val email: String) : EditContactAction
     data class UpdateNote(val note: String) : EditContactAction
     data class UpdatePhone(val index: Int, val phone: String) : EditContactAction

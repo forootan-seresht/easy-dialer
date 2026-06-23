@@ -145,8 +145,9 @@ private fun ContactInfo(
         textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
         leadingIcon = {
             Icon(
-                painter = painterResource(R.drawable.edit),
-                contentDescription = null
+                painter = painterResource(R.drawable.person),
+                contentDescription = null,
+                tint = AppColor.Icons.resolve()
             )
         },
         colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = AppColor.Gray1.resolve()),
@@ -160,8 +161,9 @@ private fun ContactInfo(
         textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
         leadingIcon = {
             Icon(
-                painter = painterResource(R.drawable.edit),
-                contentDescription = null
+                painter = painterResource(R.drawable.person),
+                contentDescription = null,
+                tint = AppColor.Icons.resolve()
             )
         },
         colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = AppColor.Gray1.resolve()),
@@ -240,23 +242,25 @@ private fun DetailsSection(
         textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
         leadingIcon = {
             Icon(
-                painter = painterResource(R.drawable.edit),
-                contentDescription = null
+                painter = painterResource(R.drawable.job),
+                contentDescription = null,
+                tint = AppColor.Icons.resolve()
             )
         },
         colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = AppColor.Gray1.resolve()),
     )
 
     OutlinedTextField(
-        value = editableContact.company,
-        onValueChange = { onAction(EditContactAction.UpdateCompany(it)) },
-        label = { Text(stringResource(R.string.company)) },
+        value = editableContact.business,
+        onValueChange = { onAction(EditContactAction.UpdateBusiness(it)) },
+        label = { Text(stringResource(R.string.business)) },
         modifier = Modifier.fillMaxWidth(),
         textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
         leadingIcon = {
             Icon(
-                painter = painterResource(R.drawable.edit),
-                contentDescription = null
+                painter = painterResource(R.drawable.business),
+                contentDescription = null,
+                tint = AppColor.Icons.resolve()
             )
         },
         colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = AppColor.Gray1.resolve()),
@@ -271,7 +275,8 @@ private fun DetailsSection(
         leadingIcon = {
             Icon(
                 painter = painterResource(R.drawable.email),
-                contentDescription = null
+                contentDescription = null,
+                tint = AppColor.Icons.resolve()
             )
         },
         colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = AppColor.Gray1.resolve()),
@@ -286,7 +291,8 @@ private fun DetailsSection(
         leadingIcon = {
             Icon(
                 painter = painterResource(R.drawable.notes),
-                contentDescription = null
+                contentDescription = null,
+                tint = AppColor.Icons.resolve()
             )
         },
         colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = AppColor.Gray1.resolve()),

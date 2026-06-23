@@ -56,7 +56,7 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
             is EditContactAction.UpdateLastName -> _contact.update { it.copy(lastName = action.lastName) }
             is EditContactAction.RemovePhone -> removePhone(action.index)
             is EditContactAction.UpdatePhone -> updatePhone(action.index, action.phone)
-            is EditContactAction.UpdateCompany -> _contact.update { it.copy(company = action.company) }
+            is EditContactAction.UpdateBusiness -> _contact.update { it.copy(business = action.company) }
             is EditContactAction.UpdateJob -> _contact.update { it.copy(job = action.job) }
             is EditContactAction.ChangeType -> updatePhoneType(action.index, action.type)
             EditContactAction.ShowAddPhone -> _uiState.update { it.copy(showAdd = true) }
@@ -145,7 +145,7 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
             )
 
             //Job
-            if (initialContact.job.isNotEmpty() && initialContact.company.isNotEmpty())
+            if (initialContact.job.isNotEmpty() && initialContact.business.isNotEmpty())
                 ops.add(
                     ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
                         .withSelection(
@@ -161,7 +161,7 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
                         )
                         .withValue(
                             ContactsContract.CommonDataKinds.Organization.COMPANY,
-                            contact.value.company
+                            contact.value.business
                         )
                         .build()
                 )
@@ -179,7 +179,7 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
                         )
                         .withValue(
                             ContactsContract.CommonDataKinds.Organization.COMPANY,
-                            contact.value.company
+                            contact.value.business
                         )
                         .build()
                 )
@@ -374,7 +374,7 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
                     )
                     .withValue(
                         ContactsContract.CommonDataKinds.Organization.COMPANY,
-                        contact.value.company
+                        contact.value.business
                     )
                     .build()
             )
@@ -392,7 +392,7 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
                     )
                     .withValue(
                         ContactsContract.CommonDataKinds.Organization.COMPANY,
-                        contact.value.company
+                        contact.value.business
                     )
                     .build()
             )
@@ -410,7 +410,7 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
                     )
                     .withValue(
                         ContactsContract.CommonDataKinds.Note.NOTE,
-                        contact.value.company
+                        contact.value.business
                     )
                     .build()
             )
