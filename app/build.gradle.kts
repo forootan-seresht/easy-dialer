@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
 }
@@ -8,13 +7,13 @@ plugins {
 android {
     namespace = "app.arteh.easydialer"
     compileSdk {
-        version = release(36)
+        version = release(37)
     }
 
     defaultConfig {
         applicationId = "app.arteh.easydialer"
         minSdk = 29
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
     }
@@ -40,7 +39,7 @@ android {
     buildFeatures {
         compose = true
     }
-    buildToolsVersion = "36.1.0"
+    buildToolsVersion = "37.0.0"
 }
 
 dependencies {

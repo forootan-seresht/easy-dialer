@@ -62,6 +62,7 @@ class CallLogVM(application: Application) : AndroidViewModel(application) {
 
     fun changeLogType(type: LogStatus) {
         _uiState.update { it.copy(selectedStatus = type) }
+
         loadCallLog("")
     }
 

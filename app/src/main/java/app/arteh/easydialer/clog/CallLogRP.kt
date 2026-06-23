@@ -27,10 +27,13 @@ class CallLogRP(val context: Context) {
                 LogStatus.Incoming -> "${CallLog.Calls.TYPE} = ${CallLog.Calls.INCOMING_TYPE}"
                 LogStatus.Outgoing -> "${CallLog.Calls.TYPE} = ${CallLog.Calls.OUTGOING_TYPE}"
                 LogStatus.Missed -> "${CallLog.Calls.TYPE} = ${CallLog.Calls.MISSED_TYPE}"
-                LogStatus.Rejected -> "${CallLog.Calls.TYPE} = ${CallLog.Calls.REJECTED_TYPE}"
+                LogStatus.Rejected -> "${CallLog.Calls.TYPE} = ${CallLog.Calls.REJECTED_TYPE} OR " +
+                        "${CallLog.Calls.TYPE} = ${CallLog.Calls.BLOCKED_TYPE}"
+
                 else -> " ${CallLog.Calls.TYPE} != ${CallLog.Calls.INCOMING_TYPE} AND " +
                         " ${CallLog.Calls.TYPE} != ${CallLog.Calls.OUTGOING_TYPE} AND " +
                         " ${CallLog.Calls.TYPE} != ${CallLog.Calls.MISSED_TYPE} AND " +
+                        " ${CallLog.Calls.TYPE} != ${CallLog.Calls.BLOCKED_TYPE} AND " +
                         " ${CallLog.Calls.TYPE} != ${CallLog.Calls.REJECTED_TYPE}"
             }
 
@@ -92,12 +95,10 @@ class CallLogRP(val context: Context) {
                         else -> LogStatus.Other
                     }
 
-
                     logMList.add(
                         Clog(
-                            contact,
-                            number, status, dateTime.first, dateTime.second, simdID,
-                            lazyKey++
+                            contact, number, status, dateTime.first, dateTime.second,
+                            simdID, lazyKey++
                         )
                     )
                 }
