@@ -5,6 +5,7 @@ import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
+import android.database.Cursor
 import android.net.Uri
 import android.provider.BlockedNumberContract
 import android.provider.CallLog
@@ -53,8 +54,6 @@ class ContactRP {
     }
 
     suspend fun queryContacts(name: String, context: Context): List<Contact> {
-        val contactMList = mutableListOf<Contact>()
-
         val cr = context.contentResolver
 
         val columns: Array<String> = arrayOf(
@@ -75,6 +74,27 @@ class ContactRP {
             null,
             ContactsContract.CommonDataKinds.Phone.CONTACT_ID
         )
+
+        val contactMList = processContacts(cursor)
+
+        //find and delete repeated phone
+        var count = contactMList.size
+        var j = 0
+        while (j < count) {
+            if (j + 1 < count)
+                if (contactMList[j].phone == contactMList[j + 1].phone) {
+                    contactMList.removeAt(j + 1)
+                    j--
+                    count--
+                }
+            j++
+        }
+
+        return contactMList
+    }
+
+    private suspend fun processContacts(cursor: Cursor?): MutableList<Contact> {
+        val contactMList = mutableListOf<Contact>()
 
         cursor?.use { cursor ->
             val IDIndex =
@@ -108,19 +128,6 @@ class ContactRP {
                 )
                 contactMList.add(contact)
             }
-        }
-
-        //find and delete repeated phone
-        var count = contactMList.size
-        var j = 0
-        while (j < count) {
-            if (j + 1 < count)
-                if (contactMList[j].phone == contactMList[j + 1].phone) {
-                    contactMList.removeAt(j + 1)
-                    j--
-                    count--
-                }
-            j++
         }
 
         return contactMList
@@ -383,34 +390,26 @@ class ContactRP {
         context.contentResolver.update(uri, values, null, null)
     }
 
-    fun getFavoriteContacts(context: Context): List<Contact> {
-        val favorites = mutableListOf<Contact>()
-
-        val projection = arrayOf(
-            ContactsContract.Contacts._ID,
+    suspend fun getFavoriteContacts(context: Context): List<Contact> {
+        val projection: Array<String> = arrayOf(
+            ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
             ContactsContract.Contacts.DISPLAY_NAME,
-            ContactsContract.Contacts.PHOTO_URI
+
+            ContactsContract.RawContacts.ACCOUNT_NAME,
+            ContactsContract.CommonDataKinds.Phone.NUMBER,
+
+            ContactsContract.PhoneLookup.PHOTO_THUMBNAIL_URI,
+            ContactsContract.PhoneLookup.PHOTO_URI,
         )
 
         val cursor = context.contentResolver.query(
-            ContactsContract.Contacts.CONTENT_URI,
+            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
             projection,
             "${ContactsContract.Contacts.STARRED} = 1",
             null,
             ContactsContract.Contacts.DISPLAY_NAME + " ASC"
         )
-
-        cursor?.use {
-            while (it.moveToNext()) {
-                val id = it.getLong(0)
-                val name = it.getString(1)
-                val photo = it.getString(2)
-
-//                favorites.add(Contact(id, name, photo))
-            }
-        }
-
-        return favorites
+        return processContacts(cursor)
     }
 
     suspend fun saveDefaultSim(contactID: Long, simID: Int) {

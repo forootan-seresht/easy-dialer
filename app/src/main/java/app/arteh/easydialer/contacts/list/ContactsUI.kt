@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.arteh.easydialer.R
 import app.arteh.easydialer.contacts.Contact
+import app.arteh.easydialer.contacts.ContactHeader
 import app.arteh.easydialer.contacts.list.models.ContactAction
 import app.arteh.easydialer.dialer.DigMySimCards
 import app.arteh.easydialer.ui.noRippleClickable
@@ -50,13 +52,19 @@ import app.arteh.easydialer.ui.theme.appTypography
 
 @Composable
 fun ContactScreen(contactsVM: ContactsVM) {
+    val uiState by contactsVM.uiState.collectAsStateWithLifecycle()
+
     Column(
         Modifier
             .fillMaxSize()
             .background(AppColor.BackTrans.resolve())
     ) {
-        SearchBar(contactsVM)
+        SearchBar(uiState.searchText, contactsVM)
+
+        FavoriteList(uiState.favorites, contactsVM::onAction)
+
         ContactList(
+            uiState.contactList,
             contactsVM, Modifier
                 .fillMaxWidth()
                 .weight(1f)
@@ -65,10 +73,8 @@ fun ContactScreen(contactsVM: ContactsVM) {
 }
 
 @Composable
-private fun SearchBar(contactsVM: ContactsVM) {
-    val uiState by contactsVM.uiState.collectAsStateWithLifecycle()
+private fun SearchBar(searchText: String, contactsVM: ContactsVM) {
     val dialerShowState by contactsVM.dialerHR.showState.collectAsStateWithLifecycle()
-
 
     Row(
         modifier = Modifier
@@ -79,7 +85,7 @@ private fun SearchBar(contactsVM: ContactsVM) {
             .noRippleClickable({}),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (uiState.searchText.isEmpty())
+        if (searchText.isEmpty())
             Icon(
                 modifier = Modifier
                     .size(35.dp)
@@ -100,7 +106,7 @@ private fun SearchBar(contactsVM: ContactsVM) {
             )
         TextField(
             modifier = Modifier.weight(1f),
-            value = uiState.searchText,
+            value = searchText,
             onValueChange = { contactsVM.updateSearchText(it) },
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
@@ -112,7 +118,7 @@ private fun SearchBar(contactsVM: ContactsVM) {
                 Text(text = stringResource(R.string.search_contacts))
             })
 
-        if (uiState.searchText.isEmpty())
+        if (searchText.isEmpty())
             Icon(
                 modifier = Modifier
                     .size(35.dp)
@@ -133,9 +139,81 @@ private fun SearchBar(contactsVM: ContactsVM) {
 }
 
 @Composable
-private fun ContactList(contactsVM: ContactsVM, modifier: Modifier) {
-    val contacts = contactsVM.items.collectAsStateWithLifecycle().value
+private fun FavoriteList(favorites: List<Contact>, onAction: (ContactAction) -> Unit) {
+    if (favorites.isEmpty()) return
 
+    Text(
+        modifier = Modifier.padding(15.dp),
+        text = "Favorites",
+        style = MaterialTheme.appTypography.h4
+    )
+    LazyRow(modifier = Modifier.padding(horizontal = 15.dp)) {
+        items(favorites) { contact ->
+            ItemFavContact(contact) { onAction(ContactAction.ShowContact(contact.id)) }
+        }
+    }
+}
+
+@Composable
+private fun ItemFavContact(contact: Contact, onClicked: () -> Unit) {
+    val grayColor = AppColor.UnContactBack.resolve()
+
+    val context = LocalContext.current
+    var bitmap by remember(contact) { mutableStateOf<ImageBitmap?>(null) }
+
+    LaunchedEffect(contact) {
+        try {
+            bitmap =
+                contact.thumbUri?.let {
+                    MediaStore.Images.Media.getBitmap(
+                        context.contentResolver,
+                        it
+                    ).asImageBitmap()
+                }
+        } catch (e: Exception) {
+        }
+    }
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        if (bitmap != null)
+            Image(
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(CircleShape)
+                    .noRippleClickable(onClicked),
+                bitmap = bitmap!!,
+                contentDescription = null
+            )
+        else
+            Box(
+                modifier = Modifier
+                    .size(60.dp)
+                    .background(grayColor, CircleShape)
+                    .noRippleClickable(onClicked),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = contact.name[0].toString(),
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    fontSize = 18.sp
+                )
+            }
+
+        Text(
+            modifier = Modifier.padding(top = 5.dp),
+            text = contact.name,
+            style = MaterialTheme.appTypography.h4
+        )
+    }
+}
+
+@Composable
+private fun ContactList(
+    contacts: Map<ContactHeader, List<Contact>>,
+    contactsVM: ContactsVM,
+    modifier: Modifier
+) {
     LazyColumn(modifier) {
         contacts.forEach { (header, data) ->
             stickyHeader {
@@ -157,6 +235,7 @@ private fun ItemHeader(char: Char) {
             .background(AppColor.BackTrans.resolve())
             .padding(horizontal = 16.dp, vertical = 8.dp),
         text = char.toString(),
+        style = MaterialTheme.appTypography.h4
     )
 }
 
@@ -235,7 +314,7 @@ private fun ItemContact(
         Icon(
             modifier = Modifier
                 .padding(end = 10.dp)
-                .size(45.dp)
+                .size(40.dp)
                 .background(AppColor.GradPurple.resolve().copy(alpha = 0.1f), CircleShape)
                 .padding(10.dp)
                 .noRippleClickable({ onAction(ContactAction.ShowSendSMS(contact)) }),
