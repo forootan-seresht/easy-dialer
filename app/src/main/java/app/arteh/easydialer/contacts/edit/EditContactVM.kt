@@ -27,7 +27,8 @@ import kotlinx.coroutines.launch
 class EditContactVM(application: Application, savedStateHandle: SavedStateHandle) :
     AndroidViewModel(application) {
 
-    val contactID: Long = savedStateHandle.get<Long>("id") ?: error("Contact ID is required")
+    val contactID: Long = savedStateHandle.get<Long>("id") ?: 0L
+    val phoneNumber: String = savedStateHandle.get<String>("number") ?: ""
 
     private var _uiState = MutableStateFlow(UIState())
     val uiState = _uiState.asStateFlow()

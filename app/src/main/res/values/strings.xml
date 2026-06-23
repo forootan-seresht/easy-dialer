@@ -96,4 +96,6 @@
     <string name="include_note">Include Note</string>
     <string name="name">"Name: "</string>
     <string name="share_as_text">Share as TEXT</string>
+    <string name="create_new_contact">Create new contact</string>
+    <string name="add_to_contact">Add to contact</string>
 </resources>

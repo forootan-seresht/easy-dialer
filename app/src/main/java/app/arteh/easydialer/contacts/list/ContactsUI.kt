@@ -317,7 +317,7 @@ private fun ItemContact(
                 .size(40.dp)
                 .background(AppColor.GradPurple.resolve().copy(alpha = 0.1f), CircleShape)
                 .padding(10.dp)
-                .noRippleClickable({ onAction(ContactAction.ShowSendSMS(contact)) }),
+                .noRippleClickable { onAction(ContactAction.ShowSendSMS(contact)) },
             painter = painterResource(R.drawable.sms),
             contentDescription = null,
             tint = AppColor.GradPurple.resolve()
