@@ -1,6 +1,7 @@
 package app.arteh.easydialer.dial
 
 import android.provider.MediaStore
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -46,13 +47,13 @@ import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import app.arteh.easydialer.Holder
 import app.arteh.easydialer.R
 import app.arteh.easydialer.clog.models.Clog
 import app.arteh.easydialer.contacts.Contact
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
 import app.arteh.easydialer.ui.theme.appTypography
+import app.arteh.easydialer.utility.Holder
 import kotlin.random.Random
 
 @Composable
@@ -60,13 +61,13 @@ fun DialPadScreen(viewModel: DialPadVM) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     if (uiState.isBigDial)
-        BigDialer(uiState.number, viewModel::onAction)
+        BigDialer(uiState, viewModel::onAction)
     else
         NormalDialer(uiState, viewModel::onAction)
 }
 
 @Composable
-private fun NormalDialer(uiState: UIState, onAction: (DialAction) -> Unit) {
+private fun NormalDialer(uiState: DialUIState, onAction: (DialAction) -> Unit) {
     Column(Modifier.fillMaxSize()) {
         SearchedNumbers(
             Modifier
@@ -77,24 +78,28 @@ private fun NormalDialer(uiState: UIState, onAction: (DialAction) -> Unit) {
             uiState.dialedList,
             onAction
         )
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(AppColor.BackTrans.resolve())
                 .padding(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            DialedNumberDisplay(
-                uiState.number,
-                { onAction(DialAction.BackSpace) },
-                { onAction(DialAction.LongBackSpace) })
+            DialedNumberDisplay(uiState.number, uiState.showDial, onAction)
 
-            NormalDialPadGrid(
-                onNumberClick = { onAction(DialAction.NumberCLicked(it)) },
-                onNumberLongPress = { onAction(DialAction.NumberLongCLicked(it)) }
-            )
+            AnimatedVisibility(uiState.showDial) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    NormalDialPadGrid(
+                        onNumberClick = { onAction(DialAction.NumberCLicked(it)) },
+                        onNumberLongPress = { onAction(DialAction.NumberLongCLicked(it)) }
+                    )
 
-            CallControls(onCall = { onAction(DialAction.ShowMakeCall(uiState.number)) })
+                    CallControls(onCall = { onAction(DialAction.ShowMakeCall(uiState.number)) })
+                }
+            }
         }
     }
 }
@@ -125,14 +130,24 @@ private fun SearchedNumbers(
 
 @Composable
 private fun DialedNumberDisplay(
-    number: String, onBackspace: () -> Unit, onLongBackspace: () -> Unit
+    number: String, showDial: Boolean, onAction: (DialAction) -> Unit
 ) {
+    val foldIcon = if (showDial) R.drawable.arrow_down else R.drawable.arrow_up
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        Icon(
+            modifier = Modifier
+                .size(35.dp)
+                .padding(5.dp)
+                .noRippleClickable { onAction(DialAction.ChangeFold) },
+            painter = painterResource(foldIcon),
+            contentDescription = stringResource(R.string.clear),
+            tint = AppColor.Icons.resolve()
+        )
         Text(
             modifier = Modifier.weight(1f),
             text = number,
@@ -144,8 +159,9 @@ private fun DialedNumberDisplay(
             modifier = Modifier
                 .size(35.dp)
                 .padding(5.dp)
-                .combinedClickable(onClick = onBackspace, onLongClick = onLongBackspace)
-                .noRippleClickable(onBackspace),
+                .combinedClickable(
+                    onClick = { onAction(DialAction.BackSpace) },
+                    onLongClick = { onAction(DialAction.LongBackSpace) }),
             painter = painterResource(R.drawable.backspace),
             contentDescription = stringResource(R.string.clear),
             tint = AppColor.Icons.resolve()

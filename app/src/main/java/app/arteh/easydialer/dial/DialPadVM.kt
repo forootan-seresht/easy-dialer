@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 
 class DialPadVM(application: Application) : AndroidViewModel(application) {
 
-    private val _uiState = MutableStateFlow(UIState())
+    private val _uiState = MutableStateFlow(DialUIState())
     val uiState = _uiState.asStateFlow()
 
     val simCardHR = SimCardHR(application)
@@ -51,6 +51,8 @@ class DialPadVM(application: Application) : AndroidViewModel(application) {
                 action.contact.defaultSimID,
                 action.contact.phone
             )
+
+            DialAction.ChangeFold -> _uiState.update { it.copy(showDial = !it.showDial) }
         }
     }
 

@@ -35,7 +35,7 @@ import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
 
 @Composable
-internal fun BigDialer(number: String, onAction: (DialAction) -> Unit) {
+internal fun BigDialer(uiState: DialUIState, onAction: (DialAction) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -43,19 +43,19 @@ internal fun BigDialer(number: String, onAction: (DialAction) -> Unit) {
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        DialedNumberDisplay(number) { onAction(DialAction.BackSpace) }
+        DialedNumberDisplay(uiState.number, uiState.showDial) { onAction(DialAction.BackSpace) }
 
         BigDialPadGrid(
             onNumberClick = { onAction(DialAction.NumberCLicked(it)) },
             onNumberLongPress = { onAction(DialAction.NumberLongCLicked(it)) }
         )
 
-        CallControls(onCall = { onAction(DialAction.ShowMakeCall(number)) })
+        CallControls(onCall = { onAction(DialAction.ShowMakeCall(uiState.number)) })
     }
 }
 
 @Composable
-private fun DialedNumberDisplay(number: String, onBackspace: () -> Unit) {
+private fun DialedNumberDisplay(number: String, showDial: Boolean, onBackspace: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth(),

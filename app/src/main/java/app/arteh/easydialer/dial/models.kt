@@ -3,11 +3,12 @@ package app.arteh.easydialer.dial
 import app.arteh.easydialer.clog.models.Clog
 import app.arteh.easydialer.contacts.Contact
 
-data class UIState(
+data class DialUIState(
     val number: String = "",
     val isBigDial: Boolean = false,
     val contactList: List<Contact> = emptyList(),
     val dialedList: List<Clog> = emptyList(),
+    val showDial: Boolean = true
 )
 
 sealed interface DialAction {
@@ -21,4 +22,5 @@ sealed interface DialAction {
 
     data object BackSpace : DialAction
     data object LongBackSpace : DialAction
+    data object ChangeFold : DialAction
 }
