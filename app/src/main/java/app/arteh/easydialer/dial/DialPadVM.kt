@@ -35,7 +35,7 @@ class DialPadVM(application: Application) : AndroidViewModel(application) {
             DialAction.BackSpace -> backspaceClicked()
 
             DialAction.LongBackSpace -> _uiState.update {
-                it.copy(number = "", contactList = emptyList(), dialedList = emptyList())
+                it.copy(dialedNumber = "", contactList = emptyList(), dialedList = emptyList())
             }
 
             is DialAction.ShowContact -> showContact(action.contactID)
@@ -54,27 +54,40 @@ class DialPadVM(application: Application) : AndroidViewModel(application) {
             )
 
             DialAction.ChangeFold -> _uiState.update { it.copy(showDial = !it.showDial) }
-            is DialAction.AddNewContact -> goAddNew(action.context)
-            is DialAction.AddToContact -> TODO()
+            is DialAction.AddNewContact -> goAddNew(action.context, uiState.value.dialedNumber)
+            is DialAction.AddToContact -> _uiState.update { it.copy(showContactList = true) }
+            is DialAction.SelectContact -> {
+                goAddToContact(action.context, uiState.value.dialedNumber, action.contactID)
+                _uiState.update { it.copy(showContactList = false) }
+            }
+            DialAction.DismissContactList -> _uiState.update { it.copy(showContactList = false) }
             is DialAction.GoSendMessage -> dialerHR.makeAction(
                 app.arteh.easydialer.contacts.show.ContactAction.SMS,
-                -1, uiState.value.number
+                -1, uiState.value.dialedNumber
             )
         }
     }
 
-    fun goAddNew(context: Context) {
+    fun goAddNew(context: Context, dialedNumber: String) {
         val intent = Intent(context, EditContactActivity::class.java)
-        intent.putExtra("number", uiState.value.number)
+        intent.putExtra("number", dialedNumber)
+
+        context.startActivity(intent)
+    }
+
+    fun goAddToContact(context: Context, dialedNumber: String, contactID: Long) {
+        val intent = Intent(context, EditContactActivity::class.java)
+        intent.putExtra("number", dialedNumber)
+        intent.putExtra("id", contactID)
 
         context.startActivity(intent)
     }
 
     fun backspaceClicked() {
-        val newNumber = uiState.value.number.dropLast(1)
-        _uiState.update { it.copy(number = newNumber) }
+        val newNumber = uiState.value.dialedNumber.dropLast(1)
+        _uiState.update { it.copy(dialedNumber = newNumber) }
 
-        if (uiState.value.number.isEmpty())
+        if (uiState.value.dialedNumber.isEmpty())
             _uiState.update { it.copy(contactList = emptyList(), dialedList = emptyList()) }
         else searchPhone(newNumber)
     }
@@ -90,9 +103,9 @@ class DialPadVM(application: Application) : AndroidViewModel(application) {
     }
 
     fun numberClicked(digit: String) {
-        val newNumber = uiState.value.number + digit
+        val newNumber = uiState.value.dialedNumber + digit
 
-        _uiState.update { it.copy(number = newNumber) }
+        _uiState.update { it.copy(dialedNumber = newNumber) }
 
         searchPhone(newNumber)
     }
@@ -115,14 +128,14 @@ class DialPadVM(application: Application) : AndroidViewModel(application) {
         val context = getApplication() as Context
 
         if (digit == "0")
-            _uiState.update { it.copy(number = it.number + "0") }
+            _uiState.update { it.copy(dialedNumber = it.dialedNumber + "0") }
         else
             viewModelScope.launch {
                 val map = Holder.contactRP.speedDialMap.firstOrNull()
                 if (map != null) {
                     val phoneNumber = map[digit.toInt()]?.phoneNumber
                     if (phoneNumber != null) {
-                        _uiState.update { it.copy(number = phoneNumber) }
+                        _uiState.update { it.copy(dialedNumber = phoneNumber) }
                         makeCall(phoneNumber)
                     }
                     else Toast.makeText(
