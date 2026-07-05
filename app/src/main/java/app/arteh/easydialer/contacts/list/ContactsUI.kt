@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -37,7 +38,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -49,10 +52,13 @@ import app.arteh.easydialer.dialer.DigMySimCards
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
 import app.arteh.easydialer.ui.theme.appTypography
+import app.arteh.easydialer.utility.Holder
+import kotlin.random.Random
 
 @Composable
 fun ContactScreen(contactsVM: ContactsVM) {
     val uiState by contactsVM.uiState.collectAsStateWithLifecycle()
+    val dialerShowState by contactsVM.dialerHR.showState.collectAsStateWithLifecycle()
 
     Column(
         Modifier
@@ -61,21 +67,24 @@ fun ContactScreen(contactsVM: ContactsVM) {
     ) {
         SearchBar(uiState.searchText, contactsVM)
 
-        FavoriteList(uiState.favorites, contactsVM::onAction)
-
         ContactList(
-            uiState.contactList,
-            contactsVM, Modifier
+            uiState.contactList, uiState.favorites,
+            contactsVM::onAction, Modifier
                 .fillMaxWidth()
                 .weight(1f)
         )
     }
+
+    if (dialerShowState. showMyNumbers)
+        DigMySimCards(
+            contactsVM.dialerHR::dismissPopup,
+            contactsVM.simCardHR.simCardList,
+            contactsVM.dialerHR::selectSim
+        )
 }
 
 @Composable
 private fun SearchBar(searchText: String, contactsVM: ContactsVM) {
-    val dialerShowState by contactsVM.dialerHR.showState.collectAsStateWithLifecycle()
-
     Row(
         modifier = Modifier
             .padding(vertical = 5.dp, horizontal = 10.dp)
@@ -129,13 +138,6 @@ private fun SearchBar(searchText: String, contactsVM: ContactsVM) {
                 tint = AppColor.Icons.resolve()
             )
     }
-
-    if (dialerShowState.showMyNumbers)
-        DigMySimCards(
-            contactsVM.dialerHR::dismissPopup,
-            contactsVM.simCardHR.simCardList,
-            contactsVM.dialerHR::selectSim
-        )
 }
 
 @Composable
@@ -147,6 +149,7 @@ private fun FavoriteList(favorites: List<Contact>, onAction: (ContactAction) -> 
         text = "Favorites",
         style = MaterialTheme.appTypography.h4
     )
+
     LazyRow(modifier = Modifier.padding(horizontal = 15.dp)) {
         items(favorites) { contact ->
             ItemFavContact(contact) { onAction(ContactAction.ShowContact(contact.id)) }
@@ -156,7 +159,7 @@ private fun FavoriteList(favorites: List<Contact>, onAction: (ContactAction) -> 
 
 @Composable
 private fun ItemFavContact(contact: Contact, onClicked: () -> Unit) {
-    val grayColor = AppColor.UnContactBack.resolve()
+    val grayColor = Holder.colors[Random.nextInt(0, 7)]
 
     val context = LocalContext.current
     var bitmap by remember(contact) { mutableStateOf<ImageBitmap?>(null) }
@@ -174,7 +177,7 @@ private fun ItemFavContact(contact: Contact, onClicked: () -> Unit) {
         }
     }
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = Modifier.width(70.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         if (bitmap != null)
             Image(
                 modifier = Modifier
@@ -201,9 +204,13 @@ private fun ItemFavContact(contact: Contact, onClicked: () -> Unit) {
             }
 
         Text(
-            modifier = Modifier.padding(top = 5.dp),
+            modifier = Modifier
+                .padding(top = 5.dp)
+                .width(60.dp),
             text = contact.name,
-            style = MaterialTheme.appTypography.h4
+            style = MaterialTheme.appTypography.h4,
+            textAlign = TextAlign.Center,
+            maxLines = 2, overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -211,17 +218,20 @@ private fun ItemFavContact(contact: Contact, onClicked: () -> Unit) {
 @Composable
 private fun ContactList(
     contacts: Map<ContactHeader, List<Contact>>,
-    contactsVM: ContactsVM,
+    favorites: List<Contact>,
+    onAction: (ContactAction) -> Unit,
     modifier: Modifier
 ) {
     LazyColumn(modifier) {
+        item { FavoriteList(favorites, onAction) }
+
         contacts.forEach { (header, data) ->
             stickyHeader {
                 ItemHeader(header.char)
             }
 
             items(data, key = { it.key }) {
-                ItemContact(it, header.color, header.char, contactsVM::onAction)
+                ItemContact(it, header.color, header.char, onAction)
             }
         }
     }
@@ -314,7 +324,7 @@ private fun ItemContact(
         Icon(
             modifier = Modifier
                 .padding(end = 10.dp)
-                .size(40.dp)
+                .size(45.dp)
                 .background(AppColor.GradPurple.resolve().copy(alpha = 0.1f), CircleShape)
                 .padding(10.dp)
                 .noRippleClickable { onAction(ContactAction.ShowSendSMS(contact)) },

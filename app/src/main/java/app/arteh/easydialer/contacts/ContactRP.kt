@@ -24,6 +24,8 @@ import app.arteh.easydialer.utility.PreferencesManager
 import kotlinx.coroutines.flow.Flow
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
+import java.util.Locale.getDefault
 
 class ContactRP {
     private lateinit var prefs: PreferencesManager
@@ -43,7 +45,7 @@ class ContactRP {
     suspend fun loadContacts(name: String, context: Context): Map<ContactHeader, List<Contact>> {
         val contactMList = queryContacts(name, context)
 
-        return contactMList.sortedBy { it.name }.groupBy { contact ->
+        return contactMList.groupBy { contact ->
             val firstChar = contact.name.firstOrNull()?.uppercaseChar() ?: '#'
 
             // Logic to pick a color based on the character
@@ -72,7 +74,7 @@ class ContactRP {
             columns,
             ContactsContract.Contacts.DISPLAY_NAME + " Like '%$name%'",
             null,
-            ContactsContract.CommonDataKinds.Phone.CONTACT_ID
+            ContactsContract.Contacts.DISPLAY_NAME
         )
 
         val contactMList = processContacts(cursor)

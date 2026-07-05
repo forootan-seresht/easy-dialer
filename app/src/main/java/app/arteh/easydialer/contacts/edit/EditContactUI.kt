@@ -92,7 +92,7 @@ fun EditScreen(editContactVM: EditContactVM = viewModel(), padding: PaddingSides
     }
 
     if (uiState.showAdd)
-        DigAddNumber(editContactVM::dismissPopup, editContactVM::addPhoneNumber)
+        DigAddNumber(uiState.phoneNumber, editContactVM::onAction)
 }
 
 @Composable
@@ -399,9 +399,9 @@ fun PhoneTypeDropdown(currentType: PhoneType, changeType: (PhoneType) -> Unit) {
 }
 
 @Composable
-private fun DigAddNumber(dismissPopup: () -> Unit, onAddClicked: (String, PhoneType) -> Unit) {
+private fun DigAddNumber(phoneNumber: String, onAction: (EditContactAction) -> Unit) {
     var type by remember { mutableStateOf(PhoneType.Mobile) }
-    var phoneNumber by remember { mutableStateOf("") }
+    val dismissPopup = { onAction(EditContactAction.DismissPopup) }
 
     CustomPopup(dismissPopup) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -410,7 +410,7 @@ private fun DigAddNumber(dismissPopup: () -> Unit, onAddClicked: (String, PhoneT
                     .padding(vertical = 10.dp)
                     .weight(1f),
                 value = phoneNumber,
-                onValueChange = { phoneNumber = it },
+                onValueChange = { onAction(EditContactAction.UpdatePhoneNumber(it)) },
                 label = { Text(stringResource(R.string.phone_number)) },
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Phone
@@ -422,7 +422,7 @@ private fun DigAddNumber(dismissPopup: () -> Unit, onAddClicked: (String, PhoneT
 
         CustomDigButtons(
             stringResource(R.string.add), AppColor.GradGreen.resolve(),
-            { onAddClicked(phoneNumber, type) }, dismissPopup
+            { onAction(EditContactAction.AddNumber(type)) }, dismissPopup
         )
     }
 }

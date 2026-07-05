@@ -38,17 +38,24 @@ class ContactsVM(application: Application) : AndroidViewModel(application) {
     fun onAction(action: ContactAction) {
         when (action) {
             is ContactAction.ShowContact -> goShowContact(action.contactID)
-            is ContactAction.ShowMakeCall -> dialerHR.makeAction(
-                app.arteh.easydialer.contacts.show.ContactAction.Call,
-                action.contact.defaultSimID,
-                action.contact.phone
-            )
+            is ContactAction.ShowMakeCall -> {
+                dialerHR.reset()
 
-            is ContactAction.ShowSendSMS -> dialerHR.makeAction(
-                app.arteh.easydialer.contacts.show.ContactAction.SMS,
-                action.contact.defaultSimID,
-                action.contact.phone
-            )
+                dialerHR.makeAction(
+                    app.arteh.easydialer.contacts.show.ContactAction.Call,
+                    action.contact.defaultSimID,
+                    action.contact.phone
+                )
+            }
+
+            is ContactAction.ShowSendSMS -> {
+                dialerHR.reset()
+                dialerHR.makeAction(
+                    app.arteh.easydialer.contacts.show.ContactAction.SMS,
+                    action.contact.defaultSimID,
+                    action.contact.phone
+                )
+            }
         }
     }
 

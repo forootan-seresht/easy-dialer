@@ -15,8 +15,8 @@ import androidx.lifecycle.viewModelScope
 import app.arteh.easydialer.contacts.edit.models.ContactPhone
 import app.arteh.easydialer.contacts.edit.models.EditContactAction
 import app.arteh.easydialer.contacts.edit.models.EditableContact
+import app.arteh.easydialer.contacts.edit.models.EdtContUIState
 import app.arteh.easydialer.contacts.edit.models.PhoneType
-import app.arteh.easydialer.contacts.edit.models.UIState
 import app.arteh.easydialer.utility.Holder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +30,7 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
     val contactID: Long = savedStateHandle.get<Long>("id") ?: 0L
     val phoneNumber: String = savedStateHandle.get<String>("number") ?: ""
 
-    private var _uiState = MutableStateFlow(UIState())
+    private var _uiState = MutableStateFlow(EdtContUIState())
     val uiState = _uiState.asStateFlow()
 
     private val _contact = MutableStateFlow(EditableContact())
@@ -48,6 +48,10 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
                 _contact.update { contact }
             }
         }
+
+        if (phoneNumber.isNotEmpty())
+            _uiState.update { it.copy(showAdd = true, phoneNumber = phoneNumber) }
+
     }
 
     fun onAction(action: EditContactAction) {
@@ -63,6 +67,11 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
             EditContactAction.ShowAddPhone -> _uiState.update { it.copy(showAdd = true) }
             is EditContactAction.UpdateEmail -> _contact.update { it.copy(email = action.email) }
             is EditContactAction.UpdateNote -> _contact.update { it.copy(note = action.note) }
+
+            //Number
+            EditContactAction.DismissPopup -> dismissPopup()
+            is EditContactAction.UpdatePhoneNumber -> _uiState.update { it.copy(phoneNumber = action.number) }
+            is EditContactAction.AddNumber -> addPhoneNumber(action.type)
         }
     }
 
@@ -82,12 +91,14 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
         _contact.value = _contact.value.copy(phones = phones)
     }
 
-    fun addPhoneNumber(number: String, type: PhoneType) {
+    fun addPhoneNumber(type: PhoneType) {
+        val phoneNumber = uiState.value.phoneNumber
         val phones = _contact.value.phones.toMutableList()
-        phones.add(ContactPhone(0, number, type))
+        phones.add(ContactPhone(0, phoneNumber, type))
         _contact.value = _contact.value.copy(phones = phones)
 
         dismissPopup()
+        _uiState.update { it.copy(phoneNumber = "") }
     }
 
     fun removePhone(index: Int) {
