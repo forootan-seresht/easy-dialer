@@ -151,7 +151,7 @@ class DialerHR(
         _showState.update { it.copy(showMyNumbers = false, showContactNumbers = false) }
     }
 
-    fun reset(){
+    fun reset() {
         currentNumber = ""
         currentNumbers = emptyList()
         currentAction = ContactAction.None

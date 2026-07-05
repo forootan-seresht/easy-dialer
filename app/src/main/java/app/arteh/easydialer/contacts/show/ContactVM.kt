@@ -321,6 +321,7 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
         // Phones
         if (shareChecks.phones)
             contact.phones.forEach { phone ->
+                //System default, should not  change or translate
                 val type = when (phone.type) {
                     PhoneType.Mobile -> "CELL"
                     PhoneType.Home -> "HOME"

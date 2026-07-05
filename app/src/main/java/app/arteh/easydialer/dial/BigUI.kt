@@ -43,7 +43,10 @@ internal fun BigDialer(uiState: DialUIState, onAction: (DialAction) -> Unit) {
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        DialedNumberDisplay(uiState.dialedNumber, uiState.showDial) { onAction(DialAction.BackSpace) }
+        DialedNumberDisplay(
+            uiState.dialedNumber,
+            uiState.showDial
+        ) { onAction(DialAction.BackSpace) }
 
         BigDialPadGrid(
             onNumberClick = { onAction(DialAction.NumberCLicked(it)) },

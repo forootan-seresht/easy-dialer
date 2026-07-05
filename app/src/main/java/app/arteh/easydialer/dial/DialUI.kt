@@ -130,14 +130,20 @@ private fun SearchedNumbers(
 ) {
     Column(modifier) {
         if (contactList.isNotEmpty()) {
-            Text(modifier = Modifier.padding(horizontal = 10.dp), text = "All Contact")
+            Text(
+                modifier = Modifier.padding(horizontal = 10.dp),
+                text = stringResource(R.string.all_contact)
+            )
             contactList.forEachIndexed { index, contact ->
                 ItemContact(contact, onAction)
             }
         }
 
         if (dialedList.isNotEmpty()) {
-            Text(modifier = Modifier.padding(horizontal = 10.dp), text = "Not in your contacts")
+            Text(
+                modifier = Modifier.padding(horizontal = 10.dp),
+                text = stringResource(R.string.not_contacts)
+            )
             dialedList.forEachIndexed { index, callLog ->
                 ItemNonContact(callLog, onAction)
             }
@@ -323,7 +329,7 @@ private fun CallControls(onCall: () -> Unit) {
             tint = Color.White
         )
 
-        Text("Call", color = Color.White, fontSize = 18.sp)
+        Text(stringResource(R.string.make_call), color = Color.White, fontSize = 18.sp)
     }
 }
 

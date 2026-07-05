@@ -18,5 +18,5 @@ sealed interface EditContactAction {
     data class UpdatePhoneNumber(val number: String) : EditContactAction
     data class AddNumber(val type: PhoneType) : EditContactAction
 
-    data object DismissPopup: EditContactAction
+    data object DismissPopup : EditContactAction
 }

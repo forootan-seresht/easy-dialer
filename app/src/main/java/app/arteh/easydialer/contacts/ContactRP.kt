@@ -24,8 +24,6 @@ import app.arteh.easydialer.utility.PreferencesManager
 import kotlinx.coroutines.flow.Flow
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
-import java.util.Locale.getDefault
 
 class ContactRP {
     private lateinit var prefs: PreferencesManager

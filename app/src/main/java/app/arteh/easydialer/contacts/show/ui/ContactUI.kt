@@ -195,7 +195,7 @@ private fun TopRow(contactID: Long, isStarred: Boolean, onAction: (ContactUIActi
                     editLauncher.launch(intent)
                 }),
             painter = painterResource(R.drawable.edit),
-            contentDescription = "Edit",
+            contentDescription = stringResource(R.string.edit),
             tint = AppColor.Icons.resolve()
         )
     }
@@ -308,7 +308,7 @@ private fun OptionsButtons(onAction: (ContactUIAction) -> Unit) {
         ItemOption(
             R.drawable.delete,
             AppColor.GradRed.resolve(),
-            "Delete"
+            stringResource(R.string.delete)
         ) { onAction(ContactUIAction.ShowDelete) }
     }
 }

@@ -20,6 +20,7 @@ import app.arteh.easydialer.R
 import app.arteh.easydialer.clog.CLogScreen
 import app.arteh.easydialer.clog.CallLogVM
 import app.arteh.easydialer.contacts.list.ContactScreen
+import app.arteh.easydialer.contacts.list.MainContent
 import app.arteh.easydialer.contacts.list.ContactsVM
 import app.arteh.easydialer.dial.DialPadScreen
 import app.arteh.easydialer.dial.DialPadVM

@@ -60,6 +60,7 @@ class DialPadVM(application: Application) : AndroidViewModel(application) {
                 goAddToContact(action.context, uiState.value.dialedNumber, action.contactID)
                 _uiState.update { it.copy(showContactList = false) }
             }
+
             DialAction.DismissContactList -> _uiState.update { it.copy(showContactList = false) }
             is DialAction.GoSendMessage -> dialerHR.makeAction(
                 app.arteh.easydialer.contacts.show.ContactAction.SMS,

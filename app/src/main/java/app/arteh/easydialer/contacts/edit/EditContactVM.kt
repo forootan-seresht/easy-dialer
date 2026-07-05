@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import app.arteh.easydialer.R
 import app.arteh.easydialer.contacts.edit.models.ContactPhone
 import app.arteh.easydialer.contacts.edit.models.EditContactAction
 import app.arteh.easydialer.contacts.edit.models.EditableContact
@@ -119,12 +120,15 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
     fun saveContact(context: Context) {
         val state = contact.value
         if (state.phones.isEmpty()) {
-            Toast.makeText(context, "Please Add at least one phone number", Toast.LENGTH_LONG)
+            Toast.makeText(context, context.getString(R.string.add_number), Toast.LENGTH_LONG)
                 .show()
             return
         }
         if (state.firstName.trim().isEmpty() && state.lastName.trim().isEmpty()) {
-            Toast.makeText(context, "Please do not leave Name/Family both empty", Toast.LENGTH_LONG)
+            Toast.makeText(
+                context,
+                context.getString(R.string.name_family_field_empty), Toast.LENGTH_LONG
+            )
                 .show()
             return
         }

@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name" translatable="false">Easy Dialer</string>
-
     <string name="next">Next Step</string>
     <string name="channel_name">notification</string>
     <string name="channel_description">To keep connection in the background</string>
@@ -98,4 +97,12 @@
     <string name="share_as_text">Share as TEXT</string>
     <string name="create_new_contact">Create new contact</string>
     <string name="add_to_contact">Add to contact</string>
+    <string name="all_contact">All Contact</string>
+    <string name="not_contacts">Not in your contacts</string>
+    <string name="make_call">Call</string>
+    <string name="edit">Edit</string>
+    <string name="favorites">Favorites</string>
+    <string name="add_number">Please add at least one phone number</string>
+    <string name="name_family_field_empty">Please do not leave both Name/Family field empty</string>
+    <string name="settings">Settings</string>
 </resources>
