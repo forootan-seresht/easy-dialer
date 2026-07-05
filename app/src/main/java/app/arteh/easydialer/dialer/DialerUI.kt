@@ -25,13 +25,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
-import app.arteh.easydialer.Holder
 import app.arteh.easydialer.R
 import app.arteh.easydialer.clog.models.SimCard
 import app.arteh.easydialer.contacts.edit.models.ContactPhone
 import app.arteh.easydialer.ui.CustomPopup
 import app.arteh.easydialer.ui.Divider2
 import app.arteh.easydialer.ui.noRippleClickable
+import app.arteh.easydialer.utility.Holder
 
 @Composable
 fun DigMySimCards(
@@ -50,11 +50,10 @@ fun DigMySimCards(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(10.dp)
+                    .padding(15.dp)
                     .noRippleClickable { onClick(index, remember) },
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
                 Icon(
                     modifier = Modifier.size(25.dp),
                     painter = painterResource(R.drawable.sim_card),
@@ -106,11 +105,11 @@ fun DigContactNumbers(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(10.dp)
-                    .noRippleClickable { radioIndex.value = index },
+                    .noRippleClickable { radioIndex.intValue = index },
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val selected = radioIndex.value == index
-                RadioButton(selected, { radioIndex.value = index })
+                val selected = radioIndex.intValue == index
+                RadioButton(selected, { radioIndex.intValue = index })
 
                 Text(
                     modifier = Modifier.padding(horizontal = 10.dp),
@@ -127,14 +126,14 @@ fun DigContactNumbers(
                 modifier = Modifier
                     .wrapContentSize()
                     .padding(horizontal = 15.dp)
-                    .noRippleClickable { onClick(radioIndex.value, false) },
+                    .noRippleClickable { onClick(radioIndex.intValue, false) },
                 text = stringResource(R.string.just_once)
             )
             Text(
                 modifier = Modifier
                     .wrapContentSize()
                     .padding(horizontal = 15.dp)
-                    .noRippleClickable { onClick(radioIndex.value, true) },
+                    .noRippleClickable { onClick(radioIndex.intValue, true) },
                 text = stringResource(R.string.always)
             )
         }

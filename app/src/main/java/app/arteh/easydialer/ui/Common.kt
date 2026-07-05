@@ -23,13 +23,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -138,13 +144,39 @@ fun CustomPopup(
             Modifier
                 .padding(20.dp)
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(5.dp))
+                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(10.dp))
                 .padding(15.dp),
             horizontalAlignment = if (centerH) Alignment.CenterHorizontally else Alignment.Start
         ) {
             content()
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CustomBottomDialogue(
+    onBack: () -> Unit, centerH: Boolean = false, content: @Composable () -> Unit
+) {
+    ModalBottomSheet(
+        sheetState = rememberModalBottomSheetState(true),
+        containerColor = MaterialTheme.colorScheme.surface,
+        onDismissRequest = onBack,
+        content = {
+            Column(
+                Modifier
+                    .padding(20.dp)
+                    .wrapContentWidth()
+                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(5.dp))
+                    .padding(15.dp)
+                    .verticalScroll(rememberScrollState())
+                    .noRippleClickable {},
+                horizontalAlignment = if (centerH) Alignment.CenterHorizontally else Alignment.Start
+            ) {
+                content()
+            }
+        }
+    )
 }
 
 @Composable

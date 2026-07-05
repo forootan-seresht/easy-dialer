@@ -5,11 +5,9 @@ import android.content.Context
 import android.content.Intent
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import app.arteh.easydialer.contacts.Contact
-import app.arteh.easydialer.contacts.ContactHeader
 import app.arteh.easydialer.contacts.edit.EditContactActivity
 import app.arteh.easydialer.contacts.list.models.ContactAction
-import app.arteh.easydialer.contacts.list.models.UIState
+import app.arteh.easydialer.contacts.list.models.ContactsUIState
 import app.arteh.easydialer.contacts.show.ContactActivity
 import app.arteh.easydialer.dialer.DialerHR
 import app.arteh.easydialer.utility.Holder
@@ -22,10 +20,7 @@ import kotlinx.coroutines.launch
 
 class ContactsVM(application: Application) : AndroidViewModel(application) {
 
-    private val _items = MutableStateFlow<Map<ContactHeader, List<Contact>>>(emptyMap())
-    val items = _items.asStateFlow()
-
-    private val _uiState = MutableStateFlow(UIState())
+    private val _uiState = MutableStateFlow(ContactsUIState())
     val uiState = _uiState.asStateFlow()
 
     var loaded = false
@@ -43,24 +38,33 @@ class ContactsVM(application: Application) : AndroidViewModel(application) {
     fun onAction(action: ContactAction) {
         when (action) {
             is ContactAction.ShowContact -> goShowContact(action.contactID)
-            is ContactAction.ShowMakeCall -> dialerHR.makeAction(
-                app.arteh.easydialer.contacts.show.ContactAction.Call,
-                action.contact.defaultSimID,
-                action.contact.phone
-            )
+            is ContactAction.ShowMakeCall -> {
+                dialerHR.reset()
 
-            is ContactAction.ShowSendSMS -> dialerHR.makeAction(
-                app.arteh.easydialer.contacts.show.ContactAction.SMS,
-                action.contact.defaultSimID,
-                action.contact.phone
-            )
+                dialerHR.makeAction(
+                    app.arteh.easydialer.contacts.show.ContactAction.Call,
+                    action.contact.defaultSimID,
+                    action.contact.phone
+                )
+            }
+
+            is ContactAction.ShowSendSMS -> {
+                dialerHR.reset()
+                dialerHR.makeAction(
+                    app.arteh.easydialer.contacts.show.ContactAction.SMS,
+                    action.contact.defaultSimID,
+                    action.contact.phone
+                )
+            }
         }
     }
 
     private fun searchContact(name: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val map = Holder.contactRP.loadContacts(name, getApplication())
-            _items.emit(map)
+            val favorites = Holder.contactRP.getFavoriteContacts(getApplication())
+
+            _uiState.update { it.copy(contactList = map, favorites = favorites) }
         }
     }
 

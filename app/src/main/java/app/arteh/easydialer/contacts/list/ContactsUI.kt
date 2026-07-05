@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,40 +38,53 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.arteh.easydialer.R
 import app.arteh.easydialer.contacts.Contact
+import app.arteh.easydialer.contacts.ContactHeader
 import app.arteh.easydialer.contacts.list.models.ContactAction
 import app.arteh.easydialer.dialer.DigMySimCards
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
 import app.arteh.easydialer.ui.theme.appTypography
+import app.arteh.easydialer.utility.Holder
+import kotlin.random.Random
 
 @Composable
 fun ContactScreen(contactsVM: ContactsVM) {
+    val uiState by contactsVM.uiState.collectAsStateWithLifecycle()
+    val dialerShowState by contactsVM.dialerHR.showState.collectAsStateWithLifecycle()
+
     Column(
         Modifier
             .fillMaxSize()
             .background(AppColor.BackTrans.resolve())
     ) {
-        SearchBar(contactsVM)
+        SearchBar(uiState.searchText, contactsVM)
+
         ContactList(
-            contactsVM, Modifier
+            uiState.contactList, uiState.favorites,
+            contactsVM::onAction, Modifier
                 .fillMaxWidth()
                 .weight(1f)
         )
     }
+
+    if (dialerShowState. showMyNumbers)
+        DigMySimCards(
+            contactsVM.dialerHR::dismissPopup,
+            contactsVM.simCardHR.simCardList,
+            contactsVM.dialerHR::selectSim
+        )
 }
 
 @Composable
-private fun SearchBar(contactsVM: ContactsVM) {
-    val uiState by contactsVM.uiState.collectAsStateWithLifecycle()
-    val dialerShowState by contactsVM.dialerHR.showState.collectAsStateWithLifecycle()
-
-
+private fun SearchBar(searchText: String, contactsVM: ContactsVM) {
     Row(
         modifier = Modifier
             .padding(vertical = 5.dp, horizontal = 10.dp)
@@ -79,7 +94,7 @@ private fun SearchBar(contactsVM: ContactsVM) {
             .noRippleClickable({}),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (uiState.searchText.isEmpty())
+        if (searchText.isEmpty())
             Icon(
                 modifier = Modifier
                     .size(35.dp)
@@ -100,7 +115,7 @@ private fun SearchBar(contactsVM: ContactsVM) {
             )
         TextField(
             modifier = Modifier.weight(1f),
-            value = uiState.searchText,
+            value = searchText,
             onValueChange = { contactsVM.updateSearchText(it) },
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
@@ -112,7 +127,7 @@ private fun SearchBar(contactsVM: ContactsVM) {
                 Text(text = stringResource(R.string.search_contacts))
             })
 
-        if (uiState.searchText.isEmpty())
+        if (searchText.isEmpty())
             Icon(
                 modifier = Modifier
                     .size(35.dp)
@@ -123,40 +138,114 @@ private fun SearchBar(contactsVM: ContactsVM) {
                 tint = AppColor.Icons.resolve()
             )
     }
-
-    if (dialerShowState.showMyNumbers)
-        DigMySimCards(
-            contactsVM.dialerHR::dismissPopup,
-            contactsVM.simCardHR.simCardList,
-            contactsVM.dialerHR::selectSim
-        )
 }
 
 @Composable
-private fun ContactList(contactsVM: ContactsVM, modifier: Modifier) {
-    val contacts = contactsVM.items.collectAsStateWithLifecycle().value
+private fun FavoriteList(favorites: List<Contact>, onAction: (ContactAction) -> Unit) {
+    if (favorites.isEmpty()) return
 
+    Text(
+        modifier = Modifier.padding(15.dp),
+        text = "Favorites",
+        style = MaterialTheme.appTypography.h4
+    )
+
+    LazyRow(modifier = Modifier.padding(horizontal = 15.dp)) {
+        items(favorites) { contact ->
+            ItemFavContact(contact) { onAction(ContactAction.ShowContact(contact.id)) }
+        }
+    }
+}
+
+@Composable
+private fun ItemFavContact(contact: Contact, onClicked: () -> Unit) {
+    val grayColor = Holder.colors[Random.nextInt(0, 7)]
+
+    val context = LocalContext.current
+    var bitmap by remember(contact) { mutableStateOf<ImageBitmap?>(null) }
+
+    LaunchedEffect(contact) {
+        try {
+            bitmap =
+                contact.thumbUri?.let {
+                    MediaStore.Images.Media.getBitmap(
+                        context.contentResolver,
+                        it
+                    ).asImageBitmap()
+                }
+        } catch (e: Exception) {
+        }
+    }
+
+    Column(modifier = Modifier.width(70.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        if (bitmap != null)
+            Image(
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(CircleShape)
+                    .noRippleClickable(onClicked),
+                bitmap = bitmap!!,
+                contentDescription = null
+            )
+        else
+            Box(
+                modifier = Modifier
+                    .size(60.dp)
+                    .background(grayColor, CircleShape)
+                    .noRippleClickable(onClicked),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = contact.name[0].toString(),
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    fontSize = 18.sp
+                )
+            }
+
+        Text(
+            modifier = Modifier
+                .padding(top = 5.dp)
+                .width(60.dp),
+            text = contact.name,
+            style = MaterialTheme.appTypography.h4,
+            textAlign = TextAlign.Center,
+            maxLines = 2, overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun ContactList(
+    contacts: Map<ContactHeader, List<Contact>>,
+    favorites: List<Contact>,
+    onAction: (ContactAction) -> Unit,
+    modifier: Modifier
+) {
     LazyColumn(modifier) {
+        item { FavoriteList(favorites, onAction) }
+
         contacts.forEach { (header, data) ->
             stickyHeader {
-                itemHeader(header.char)
+                ItemHeader(header.char)
             }
 
             items(data, key = { it.key }) {
-                ItemContact(it, header.color, header.char, contactsVM::onAction)
+                ItemContact(it, header.color, header.char, onAction)
             }
         }
     }
 }
 
 @Composable
-private fun itemHeader(char: Char) {
+private fun ItemHeader(char: Char) {
     Text(
         modifier = Modifier
             .fillMaxWidth()
             .background(AppColor.BackTrans.resolve())
             .padding(horizontal = 16.dp, vertical = 8.dp),
         text = char.toString(),
+        style = MaterialTheme.appTypography.h4
     )
 }
 
@@ -238,7 +327,7 @@ private fun ItemContact(
                 .size(45.dp)
                 .background(AppColor.GradPurple.resolve().copy(alpha = 0.1f), CircleShape)
                 .padding(10.dp)
-                .noRippleClickable({ onAction(ContactAction.ShowSendSMS(contact)) }),
+                .noRippleClickable { onAction(ContactAction.ShowSendSMS(contact)) },
             painter = painterResource(R.drawable.sms),
             contentDescription = null,
             tint = AppColor.GradPurple.resolve()

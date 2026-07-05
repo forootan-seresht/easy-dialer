@@ -1,18 +1,18 @@
 [versions]
-agp = "9.0.1"
+agp = "9.2.1"
 accompanistPermissions = "0.37.3"
 constraintlayoutCompose = "1.1.1"
 coreSplashscreen = "1.2.0"
-datastorePreferences = "1.2.0"
-imagecropview = "3.1.1"
-kotlin = "2.3.10"
-coreKtx = "1.17.0"
-lifecycleRuntimeKtx = "2.10.0"
-activityCompose = "1.12.4"
-composeBom = "2026.02.00"
-runtime = "1.10.3"
+datastorePreferences = "1.2.1"
+imagecropview = "4.1.0"
+kotlin = "2.4.0"
+coreKtx = "1.19.0"
+lifecycleRuntimeKtx = "2.11.0"
+activityCompose = "1.13.0"
+composeBom = "2026.06.01"
+runtime = "1.11.4"
 appcompat = "1.7.1"
-navigationAndroid = "2.9.7"
+navigationAndroid = "2.9.8"
 roomRuntime = "2.8.4"
 
 [libraries]
@@ -47,5 +47,4 @@ androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

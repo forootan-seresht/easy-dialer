@@ -65,7 +65,7 @@ fun CLogScreen(callLogVM: CallLogVM) {
         LazyColumn {
             uiState.logs.forEach { (date, clogs) ->
                 stickyHeader {
-                    itemHeader(date)
+                    ItemHeader(date)
                 }
 
                 itemsIndexed(clogs) { index, log ->
@@ -91,7 +91,7 @@ private fun TopCategory(selectedType: LogStatus, onChangeType: (LogStatus) -> Un
             .horizontalScroll(rememberScrollState())
     ) {
         LogStatus.entries.forEach {
-            ItemCategory(it.icon, it.name, selectedType == it, { onChangeType(it) })
+            ItemCategory(it.icon, it.name, selectedType == it) { onChangeType(it) }
         }
     }
 }
@@ -126,7 +126,7 @@ private fun ItemCategory(icon: Int, title: String, isSelected: Boolean, onClick:
 }
 
 @Composable
-private fun itemHeader(date: String) {
+private fun ItemHeader(date: String) {
     Text(
         modifier = Modifier
             .fillMaxWidth()
@@ -241,7 +241,7 @@ private fun ItemCallLog(index: Int, log: Clog, onAction: (CLogAction) -> Unit) {
                 }
             }
 
-            Column {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Image(
                     painter = painterResource(log.status.icon),
                     contentDescription = stringResource(log.status.fullName)

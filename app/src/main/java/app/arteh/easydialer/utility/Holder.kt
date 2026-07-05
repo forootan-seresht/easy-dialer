@@ -13,6 +13,5 @@ object Holder {
         Color(0xFF00B7B5),
         Color(0xFF5CB855)
     )
-
     val contactRP = ContactRP()
 }

@@ -207,16 +207,16 @@ private fun ContactInfo(contact: EditableContact, onAction: (ContactUIAction) ->
 
     Text(contact.fullName, style = MaterialTheme.appTypography.h3)
 
-    if (contact.job.isNotEmpty() || contact.company.isNotEmpty())
+    if (contact.job.isNotEmpty() || contact.business.isNotEmpty())
         Row {
             if (contact.job.isNotEmpty())
                 Text(contact.job)
 
-            if (contact.job.isNotEmpty() && contact.company.isNotEmpty())
+            if (contact.job.isNotEmpty() && contact.business.isNotEmpty())
                 Text(" - ")
 
-            if (contact.company.isNotEmpty())
-                Text(contact.company)
+            if (contact.business.isNotEmpty())
+                Text(contact.business)
         }
 
     QuickButtons(onAction)

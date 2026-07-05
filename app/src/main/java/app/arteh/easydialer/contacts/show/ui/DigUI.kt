@@ -228,7 +228,7 @@ internal fun DigShareContact(
                 Spacer(Modifier.height(10.dp))
             }
 
-            if (contact.job.isNotEmpty() || contact.company.isNotEmpty()) {
+            if (contact.job.isNotEmpty() || contact.business.isNotEmpty()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(
                         shareChecks.jobCompany,
@@ -240,7 +240,7 @@ internal fun DigShareContact(
                     modifier = Modifier
                         .padding(start = 50.dp)
                         .alpha(if (shareChecks.jobCompany) 1f else 0.5f),
-                    text = "${contact.company} - ${contact.job}"
+                    text = "${contact.business} - ${contact.job}"
                 )
 
                 Spacer(Modifier.height(10.dp))

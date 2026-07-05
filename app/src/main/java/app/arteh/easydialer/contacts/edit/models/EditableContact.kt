@@ -8,7 +8,7 @@ data class EditableContact(
     val firstName: String = "",
     val lastName: String = "",
     val job: String = "",
-    val company: String = "",
+    val business: String = "",
     val email: String = "",
     val note: String = "",
     val fullName: String = "",

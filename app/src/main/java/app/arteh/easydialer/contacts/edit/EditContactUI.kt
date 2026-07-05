@@ -92,7 +92,7 @@ fun EditScreen(editContactVM: EditContactVM = viewModel(), padding: PaddingSides
     }
 
     if (uiState.showAdd)
-        DigAddNumber(editContactVM::dismissPopup, editContactVM::addPhoneNumber)
+        DigAddNumber(uiState.phoneNumber, editContactVM::onAction)
 }
 
 @Composable
@@ -145,8 +145,9 @@ private fun ContactInfo(
         textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
         leadingIcon = {
             Icon(
-                painter = painterResource(R.drawable.edit),
-                contentDescription = null
+                painter = painterResource(R.drawable.person),
+                contentDescription = null,
+                tint = AppColor.Icons.resolve()
             )
         },
         colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = AppColor.Gray1.resolve()),
@@ -160,8 +161,9 @@ private fun ContactInfo(
         textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
         leadingIcon = {
             Icon(
-                painter = painterResource(R.drawable.edit),
-                contentDescription = null
+                painter = painterResource(R.drawable.person),
+                contentDescription = null,
+                tint = AppColor.Icons.resolve()
             )
         },
         colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = AppColor.Gray1.resolve()),
@@ -240,23 +242,25 @@ private fun DetailsSection(
         textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
         leadingIcon = {
             Icon(
-                painter = painterResource(R.drawable.edit),
-                contentDescription = null
+                painter = painterResource(R.drawable.job),
+                contentDescription = null,
+                tint = AppColor.Icons.resolve()
             )
         },
         colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = AppColor.Gray1.resolve()),
     )
 
     OutlinedTextField(
-        value = editableContact.company,
-        onValueChange = { onAction(EditContactAction.UpdateCompany(it)) },
-        label = { Text(stringResource(R.string.company)) },
+        value = editableContact.business,
+        onValueChange = { onAction(EditContactAction.UpdateBusiness(it)) },
+        label = { Text(stringResource(R.string.business)) },
         modifier = Modifier.fillMaxWidth(),
         textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
         leadingIcon = {
             Icon(
-                painter = painterResource(R.drawable.edit),
-                contentDescription = null
+                painter = painterResource(R.drawable.business),
+                contentDescription = null,
+                tint = AppColor.Icons.resolve()
             )
         },
         colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = AppColor.Gray1.resolve()),
@@ -271,7 +275,8 @@ private fun DetailsSection(
         leadingIcon = {
             Icon(
                 painter = painterResource(R.drawable.email),
-                contentDescription = null
+                contentDescription = null,
+                tint = AppColor.Icons.resolve()
             )
         },
         colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = AppColor.Gray1.resolve()),
@@ -286,7 +291,8 @@ private fun DetailsSection(
         leadingIcon = {
             Icon(
                 painter = painterResource(R.drawable.notes),
-                contentDescription = null
+                contentDescription = null,
+                tint = AppColor.Icons.resolve()
             )
         },
         colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = AppColor.Gray1.resolve()),
@@ -393,18 +399,18 @@ fun PhoneTypeDropdown(currentType: PhoneType, changeType: (PhoneType) -> Unit) {
 }
 
 @Composable
-private fun DigAddNumber(dismissPopup: () -> Unit, onAddClicked: (String, PhoneType) -> Unit) {
+private fun DigAddNumber(phoneNumber: String, onAction: (EditContactAction) -> Unit) {
     var type by remember { mutableStateOf(PhoneType.Mobile) }
-    var phoneNumber by remember { mutableStateOf("") }
+    val dismissPopup = { onAction(EditContactAction.DismissPopup) }
 
     CustomPopup(dismissPopup) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(
                 modifier = Modifier
                     .padding(vertical = 10.dp)
-                    .fillMaxWidth(),
+                    .weight(1f),
                 value = phoneNumber,
-                onValueChange = { phoneNumber = it },
+                onValueChange = { onAction(EditContactAction.UpdatePhoneNumber(it)) },
                 label = { Text(stringResource(R.string.phone_number)) },
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Phone
@@ -416,7 +422,7 @@ private fun DigAddNumber(dismissPopup: () -> Unit, onAddClicked: (String, PhoneT
 
         CustomDigButtons(
             stringResource(R.string.add), AppColor.GradGreen.resolve(),
-            { onAddClicked(phoneNumber, type) }, dismissPopup
+            { onAction(EditContactAction.AddNumber(type)) }, dismissPopup
         )
     }
 }

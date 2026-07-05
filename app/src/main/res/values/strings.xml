@@ -45,7 +45,7 @@
     <string name="unlock">Unlock</string>
     <string name="block">Block</string>
     <string name="block_numbers">Block numbers</string>
-    <string name="company">Company</string>
+    <string name="business">Business</string>
     <string name="contact_image">Contact image</string>
     <string name="clear">Clear</string>
     <string name="choose_phone_number">Choose phone number</string>
@@ -96,4 +96,6 @@
     <string name="include_note">Include Note</string>
     <string name="name">"Name: "</string>
     <string name="share_as_text">Share as TEXT</string>
+    <string name="create_new_contact">Create new contact</string>
+    <string name="add_to_contact">Add to contact</string>
 </resources>

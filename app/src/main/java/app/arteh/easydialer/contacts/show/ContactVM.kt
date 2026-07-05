@@ -296,7 +296,7 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
 
         if (shareChecks.jobCompany)
             builder.append(context.getString(R.string.company_title))
-                .append("${contact.company} - ${contact.job}")
+                .append("${contact.business} - ${contact.job}")
                 .append("\n")
 
         if (shareChecks.note)
@@ -314,7 +314,7 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
 
         // Organization (company)
         if (shareChecks.jobCompany) {
-            sb.append("ORG:${contact.company}\n")
+            sb.append("ORG:${contact.business}\n")
             sb.append("TITLE:${contact.job}\n")
         }
 
