@@ -50,11 +50,10 @@ fun DigMySimCards(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(10.dp)
+                    .padding(15.dp)
                     .noRippleClickable { onClick(index, remember) },
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
                 Icon(
                     modifier = Modifier.size(25.dp),
                     painter = painterResource(R.drawable.sim_card),
