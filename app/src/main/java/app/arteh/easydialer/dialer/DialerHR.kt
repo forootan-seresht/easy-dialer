@@ -25,9 +25,11 @@ class DialerHR(
 
     var currentAction = ContactAction.None
     var currentNumbers = emptyList<ContactPhone>()
+    var currentNumber = ""
     var activeSim = 0
 
 
+    //if contact has more than 1 phone number
     fun makeAction(
         action: ContactAction,
         defaultSimID: Int,
@@ -56,8 +58,11 @@ class DialerHR(
         else openSmsDefault(defaultNumber)
     }
 
+    //if contact has only 1 number
     fun makeAction(action: ContactAction, defaultSimID: Int, phoneNumber: String) {
         activeSim = defaultSimID
+        currentAction = action
+        currentNumber = phoneNumber
 
         if (defaultSimID == -1)
             if (has2Sims(defaultSimID)) return
@@ -87,10 +92,8 @@ class DialerHR(
         context.startActivity(intent)
     }
 
-
     fun has2Sims(defaultSimID: Int): Boolean {
         if (simCardHR.simCardList.size > 1) {
-
             if (defaultSimID != -1)
                 simCardHR.simCardList.forEachIndexed { index, simCard ->
                     if (simCard.id == defaultSimID) {
@@ -124,6 +127,13 @@ class DialerHR(
         dismissPopup()
 
         if (remember) saveDefaultSim(index)
+
+        if (currentAction != ContactAction.None) {
+            if (currentNumber != "")
+                makeAction(currentAction, activeSim, currentNumber)
+            else
+                makeAction(currentAction, activeSim, currentNumbers)
+        }
     }
 
     fun selectNumber(index: Int, remember: Boolean) {
@@ -139,5 +149,11 @@ class DialerHR(
 
     fun dismissPopup() {
         _showState.update { it.copy(showMyNumbers = false, showContactNumbers = false) }
+    }
+
+    fun reset(){
+        currentNumber = ""
+        currentNumbers = emptyList()
+        currentAction = ContactAction.None
     }
 }
