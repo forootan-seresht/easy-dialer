@@ -56,6 +56,10 @@ class ContactsVM(application: Application) : AndroidViewModel(application) {
                     action.contact.phone
                 )
             }
+
+            ContactAction.GoAddContact -> goAddContact()
+            is ContactAction.UpdateSearchText -> updateSearchText(action.text)
+            is ContactAction.GoSettings -> TODO()
         }
     }
 

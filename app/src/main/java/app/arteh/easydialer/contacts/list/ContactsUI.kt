@@ -3,9 +3,11 @@ package app.arteh.easydialer.contacts.list
 import android.provider.MediaStore
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -16,17 +18,22 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,10 +60,102 @@ import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
 import app.arteh.easydialer.ui.theme.appTypography
 import app.arteh.easydialer.utility.Holder
+import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 @Composable
 fun ContactScreen(contactsVM: ContactsVM) {
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            DrawerContent(contactsVM::onAction)
+            { scope.launch { drawerState.close() } }
+        },
+        content = {
+            MainContent(
+                contactsVM, openDrawer = { scope.launch { drawerState.open() } })
+        }
+    )
+}
+
+@Composable
+private fun DrawerContent(onAction: (ContactAction) -> Unit, closeDrawer: () -> Unit) {
+    val context = LocalContext.current
+
+    Column(
+        modifier = Modifier
+            .fillMaxHeight()
+            .width(230.dp)
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(vertical = 16.dp)
+    ) {
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .clickable {
+                    onAction(ContactAction.GoSettings(context))
+                    closeDrawer()
+                }, verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                modifier = Modifier.padding(15.dp),
+                painter = painterResource(R.drawable.settings),
+                contentDescription = "",
+                tint = AppColor.Icons.resolve()
+            )
+            Text(stringResource(R.string.settings))
+        }
+
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 10.dp),
+            color = AppColor.Divider.resolve()
+        )
+
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(horizontal = 16.dp)
+//                .clickable {
+//                    onAction(MainAction.ShowInvite(context))
+//                    closeDrawer()
+//                }, verticalAlignment = Alignment.CenterVertically
+//        ) {
+//            Icon(
+//                painter = painterResource(R.drawable.invite),
+//                contentDescription = "",
+//                modifier = Modifier.padding(15.dp),
+//                tint = AppColor.Icons.resolve()
+//            )
+//            Text(stringResource(R.string.invite_friends))
+//        }
+//
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(horizontal = 16.dp)
+//                .clickable {
+//                    onAction(MainAction.GoSupport(context))
+//                    closeDrawer()
+//                }, verticalAlignment = Alignment.CenterVertically
+//        ) {
+//            Icon(
+//                painter = painterResource(R.drawable.support),
+//                contentDescription = "",
+//                modifier = Modifier.padding(15.dp),
+//                tint = AppColor.Icons.resolve()
+//            )
+//            Text(stringResource(R.string.support))
+//        }
+    }
+}
+
+@Composable
+fun MainContent(contactsVM: ContactsVM, openDrawer: () -> Unit) {
     val uiState by contactsVM.uiState.collectAsStateWithLifecycle()
     val dialerShowState by contactsVM.dialerHR.showState.collectAsStateWithLifecycle()
 
@@ -65,7 +164,7 @@ fun ContactScreen(contactsVM: ContactsVM) {
             .fillMaxSize()
             .background(AppColor.BackTrans.resolve())
     ) {
-        SearchBar(uiState.searchText, contactsVM)
+        SearchBar(uiState.searchText, openDrawer, contactsVM::onAction)
 
         ContactList(
             uiState.contactList, uiState.favorites,
@@ -75,7 +174,7 @@ fun ContactScreen(contactsVM: ContactsVM) {
         )
     }
 
-    if (dialerShowState. showMyNumbers)
+    if (dialerShowState.showMyNumbers)
         DigMySimCards(
             contactsVM.dialerHR::dismissPopup,
             contactsVM.simCardHR.simCardList,
@@ -84,7 +183,9 @@ fun ContactScreen(contactsVM: ContactsVM) {
 }
 
 @Composable
-private fun SearchBar(searchText: String, contactsVM: ContactsVM) {
+private fun SearchBar(
+    searchText: String, openDrawer: () -> Unit, onAction: (ContactAction) -> Unit
+) {
     Row(
         modifier = Modifier
             .padding(vertical = 5.dp, horizontal = 10.dp)
@@ -94,29 +195,20 @@ private fun SearchBar(searchText: String, contactsVM: ContactsVM) {
             .noRippleClickable({}),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (searchText.isEmpty())
-            Icon(
-                modifier = Modifier
-                    .size(35.dp)
-                    .padding(5.dp),
-                painter = painterResource(R.drawable.search),
-                contentDescription = null,
-                tint = AppColor.Icons.resolve()
-            )
-        else
-            Icon(
-                modifier = Modifier
-                    .size(35.dp)
-                    .padding(5.dp)
-                    .noRippleClickable { contactsVM.updateSearchText("") },
-                painter = painterResource(R.drawable.close),
-                contentDescription = null,
-                tint = AppColor.Icons.resolve()
-            )
+        Icon(
+            modifier = Modifier
+                .size(40.dp)
+                .padding(5.dp)
+                .noRippleClickable(openDrawer),
+            painter = painterResource(R.drawable.menu),
+            contentDescription = null,
+            tint = AppColor.Icons.resolve()
+        )
+
         TextField(
             modifier = Modifier.weight(1f),
             value = searchText,
-            onValueChange = { contactsVM.updateSearchText(it) },
+            onValueChange = { onAction(ContactAction.UpdateSearchText(it)) },
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
@@ -132,7 +224,7 @@ private fun SearchBar(searchText: String, contactsVM: ContactsVM) {
                 modifier = Modifier
                     .size(35.dp)
                     .padding(5.dp)
-                    .noRippleClickable(contactsVM::goAddContact),
+                    .noRippleClickable { onAction(ContactAction.GoAddContact) },
                 painter = painterResource(R.drawable.add_contact),
                 contentDescription = stringResource(R.string.add_contact),
                 tint = AppColor.Icons.resolve()
@@ -146,7 +238,7 @@ private fun FavoriteList(favorites: List<Contact>, onAction: (ContactAction) -> 
 
     Text(
         modifier = Modifier.padding(15.dp),
-        text = "Favorites",
+        text = stringResource(R.string.favorites),
         style = MaterialTheme.appTypography.h4
     )
 
@@ -208,7 +300,6 @@ private fun ItemFavContact(contact: Contact, onClicked: () -> Unit) {
                 .padding(top = 5.dp)
                 .width(60.dp),
             text = contact.name,
-            style = MaterialTheme.appTypography.h4,
             textAlign = TextAlign.Center,
             maxLines = 2, overflow = TextOverflow.Ellipsis
         )
@@ -311,7 +402,7 @@ private fun ItemContact(
                 .padding(horizontal = 10.dp)
                 .weight(1f)
         ) {
-            Text(text = contact.name, style = MaterialTheme.appTypography.h4)
+            Text(text = contact.name)
             Text(
                 text = contact.phone,
                 style = LocalTextStyle.current.copy(
