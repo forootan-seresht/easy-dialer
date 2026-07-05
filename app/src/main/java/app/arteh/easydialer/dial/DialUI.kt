@@ -136,6 +136,7 @@ private fun SearchedNumbers(
 @Composable
 private fun NumberOptions(onAction: (DialAction) -> Unit) {
     Triple(R.drawable.sms, AppColor.GradGreen, R.string.send_message)
+    val context = LocalContext.current
 
     val padding = 10.dp
 
@@ -143,7 +144,7 @@ private fun NumberOptions(onAction: (DialAction) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(padding)
-            .noRippleClickable { onAction(DialAction.AddNewContact) },
+            .noRippleClickable { onAction(DialAction.AddNewContact(context)) },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -162,7 +163,7 @@ private fun NumberOptions(onAction: (DialAction) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(padding)
-            .noRippleClickable { onAction(DialAction.AddToContact) },
+            .noRippleClickable { onAction(DialAction.AddToContact(context)) },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -181,7 +182,7 @@ private fun NumberOptions(onAction: (DialAction) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(padding)
-            .noRippleClickable { onAction(DialAction.GoSendMessage) },
+            .noRippleClickable { onAction(DialAction.GoSendMessage(context)) },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
