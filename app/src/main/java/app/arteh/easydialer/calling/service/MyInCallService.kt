@@ -7,7 +7,7 @@ import android.telecom.Call
 import android.telecom.InCallService
 import app.arteh.easydialer.R
 import app.arteh.easydialer.calling.CallActivity
-import app.arteh.easydialer.calling.models.CallInfo
+import app.arteh.easydialer.calling.CallInfo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 

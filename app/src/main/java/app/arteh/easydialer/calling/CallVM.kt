@@ -8,8 +8,6 @@ import android.telecom.CallAudioState
 import android.telecom.VideoProfile
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import app.arteh.easydialer.calling.models.CallState
-import app.arteh.easydialer.calling.models.UIState
 import app.arteh.easydialer.calling.service.MyInCallService
 import app.arteh.easydialer.db.AppDatabase
 import app.arteh.easydialer.utility.Holder
@@ -20,7 +18,7 @@ import kotlinx.coroutines.launch
 
 class CallVM(application: Application) : AndroidViewModel(application) {
 
-    private var _uiState = MutableStateFlow(UIState())
+    private var _uiState = MutableStateFlow(CallUiState())
     val uiState = _uiState.asStateFlow()
 
     private var ringtone: Ringtone? = null
@@ -37,7 +35,7 @@ class CallVM(application: Application) : AndroidViewModel(application) {
                 if (info != null) {
                     if (isFirstTime) {
                         call = info.call
-
+                        isFirstTime = false
                         _uiState.update { it.copy(phoneNumber = info.number) }
 
                         getContact(info.number.takeLast(9))
@@ -64,7 +62,20 @@ class CallVM(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun getContact(normalizedNumber: String) {
+    fun onAction(action: CallAction) {
+        when (action) {
+            CallAction.Answer -> answer()
+            CallAction.Reject -> reject()
+            CallAction.HangUp -> hangUp()
+            CallAction.ToggleMute -> toggleMute()
+            CallAction.ToggleSpeaker -> toggleSpeaker()
+            CallAction.ShowDialPad -> showDialPad()
+            CallAction.HideDialPad -> hideDialPad()
+            is CallAction.SendDtmf -> sendDtmf(action.digit)
+        }
+    }
+
+    private fun getContact(normalizedNumber: String) {
         val contact = Holder.contactRP.getContactByNumber(normalizedNumber)
         _uiState.update { it.copy(contact = contact) }
     }
@@ -83,26 +94,32 @@ class CallVM(application: Application) : AndroidViewModel(application) {
         ringtone = null
     }
 
-    fun answer() {
-        call.answer(VideoProfile.STATE_AUDIO_ONLY)
+    private fun answer() {
+        if (::call.isInitialized) {
+            call.answer(VideoProfile.STATE_AUDIO_ONLY)
+        }
     }
 
-    fun reject() {
-        call.disconnect()
+    private fun reject() {
+        if (::call.isInitialized) {
+            call.disconnect()
+        }
     }
 
-    fun hangUp() {
-        call.disconnect()
+    private fun hangUp() {
+        if (::call.isInitialized) {
+            call.disconnect()
+        }
     }
 
-    fun toggleMute() {
+    private fun toggleMute() {
         val enable = uiState.value.isMute
 
         MyInCallService.instance?.setMuted(!enable)
         _uiState.update { it.copy(isMute = !enable) }
     }
 
-    fun toggleSpeaker() {
+    private fun toggleSpeaker() {
         val enable = uiState.value.isSpeaker
 
         MyInCallService.instance?.setAudioRoute(
@@ -115,21 +132,32 @@ class CallVM(application: Application) : AndroidViewModel(application) {
         _uiState.update { it.copy(isSpeaker = !enable) }
     }
 
-    fun showDialPad() {
+    private fun showDialPad() {
         _uiState.update { it.copy(showDialPad = true) }
     }
 
-    fun hideDialPad() {
+    private fun hideDialPad() {
         _uiState.update { it.copy(showDialPad = false) }
 
         stopDtmf()
     }
 
-    fun sendDtmf(digit: String) {
-        call.playDtmfTone(digit.toCharArray()[0])
+    private fun sendDtmf(digit: String) {
+        if (::call.isInitialized) {
+            call.playDtmfTone(digit.toCharArray()[0])
+        }
     }
 
-    fun stopDtmf() {
-        call.stopDtmfTone()
+    private fun stopDtmf() {
+        if (::call.isInitialized) {
+            call.stopDtmfTone()
+        }
+    }
+
+    override fun onCleared() {
+        stopRingtone()
+        stopDtmf()
+
+        super.onCleared()
     }
 }

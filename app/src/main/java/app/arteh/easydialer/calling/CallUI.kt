@@ -2,7 +2,6 @@ package app.arteh.easydialer.calling
 
 import android.app.Activity
 import android.provider.MediaStore
-import android.telecom.Call
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -43,11 +43,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.arteh.easydialer.R
-import app.arteh.easydialer.calling.models.CallState
 import app.arteh.easydialer.contacts.Contact
 import app.arteh.easydialer.dial.BigDialPadGrid
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 private val LocalVM = staticCompositionLocalOf<CallVM> {
     error("CallVM not provided")
@@ -63,32 +64,41 @@ fun CallScreen(vm: CallVM = viewModel()) {
 @Composable
 fun CallContent() {
     val callVM = LocalVM.current
-    val uiState = callVM.uiState.collectAsStateWithLifecycle().value
+    val uiState by callVM.uiState.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
 
     Box {
         when (uiState.state) {
-            CallState.Incoming -> IncomingCallUI(uiState.phoneNumber, uiState.contact)
+            CallState.Incoming -> IncomingCallUI(
+                uiState.phoneNumber,
+                uiState.contact,
+                callVM::onAction
+            )
+
             CallState.Calling -> {}
             CallState.Rejected -> (context as Activity).finish()
             CallState.Talking -> TalkingUI(
                 uiState.phoneNumber,
                 uiState.contact,
                 uiState.isMute,
-                uiState.isSpeaker
+                uiState.isSpeaker,
+                callVM::onAction
             )
         }
 
         if (uiState.showDialPad)
-            DialPadUI(callVM::sendDtmf, callVM::hideDialPad)
+            DialPadUI(callVM::onAction)
     }
 }
 
 @Composable
-private fun DialPadUI(onClick: (String) -> Unit, onBack: () -> Unit) {
+private fun DialPadUI(onAction: (CallAction) -> Unit) {
     Column {
-        BigDialPadGrid(onClick, {})
+        BigDialPadGrid(
+            onNumberClick = { onAction(CallAction.SendDtmf(it)) },
+            onNumberLongPress = {}
+        )
 
         Row(
             modifier = Modifier
@@ -96,7 +106,7 @@ private fun DialPadUI(onClick: (String) -> Unit, onBack: () -> Unit) {
                 .height(70.dp)
                 .width(150.dp)
                 .background(AppColor.GradGreen.resolve(), RoundedCornerShape(5.dp))
-                .noRippleClickable(onBack),
+                .noRippleClickable { onAction(CallAction.HideDialPad) },
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -117,17 +127,23 @@ private fun DialPadUI(onClick: (String) -> Unit, onBack: () -> Unit) {
 }
 
 @Composable
-private fun TalkingUI(number: String, contact: Contact?, isMute: Boolean, isSpeaker: Boolean) {
-    val callVM = LocalVM.current
+private fun TalkingUI(
+    number: String,
+    contact: Contact?,
+    isMute: Boolean,
+    isSpeaker: Boolean,
+    onAction: (CallAction) -> Unit
+) {
     val context = LocalContext.current
 
     var contactPic by remember { mutableStateOf<ImageBitmap?>(null) }
 
-    if (contact != null && contact.thumbUri != null)
-        LaunchedEffect(Unit) {
+    if (contact?.photoUri != null)
+        LaunchedEffect(contact.photoUri) {
             try {
-                val bitmap =
+                val bitmap = withContext(Dispatchers.IO) {
                     MediaStore.Images.Media.getBitmap(context.contentResolver, contact.photoUri)
+                }
                 contactPic = bitmap.asImageBitmap()
             } catch (e: Exception) {
             }
@@ -159,61 +175,61 @@ private fun TalkingUI(number: String, contact: Contact?, isMute: Boolean, isSpea
 
         Row() {
             BigCallButton(
-                text = stringResource(R.string.mute), if (isMute) R.drawable.mic_on
+                if (isMute) R.drawable.mic_on
                 else R.drawable.mic_off, Modifier
                     .padding(10.dp)
                     .weight(1f)
                     .height(100.dp)
                     .background(Color(0xFFFFFF3F), RoundedCornerShape(5.dp))
-                    .noRippleClickable(callVM::toggleMute)
+                    .noRippleClickable { onAction(CallAction.ToggleMute) }
             )
 
             BigCallButton(
-                text = stringResource(R.string.speaker), if (isSpeaker) R.drawable.speaker_off
+                if (isSpeaker) R.drawable.speaker_off
                 else R.drawable.speaker_on, Modifier
                     .padding(10.dp)
                     .weight(1f)
                     .height(100.dp)
                     .background(Color(0xFF30A3FF), RoundedCornerShape(5.dp))
-                    .noRippleClickable(callVM::toggleSpeaker)
+                    .noRippleClickable { onAction(CallAction.ToggleSpeaker) }
             )
         }
 
         Row() {
             BigCallButton(
-                text = stringResource(R.string.end), R.drawable.call_end,
+                R.drawable.call_end,
                 Modifier
                     .padding(10.dp)
                     .weight(1f)
                     .height(100.dp)
                     .background(Color(0xFFFF2E2E), RoundedCornerShape(5.dp))
-                    .noRippleClickable(callVM::hangUp)
+                    .noRippleClickable { onAction(CallAction.HangUp) }
             )
 
             BigCallButton(
-                text = stringResource(R.string.dial), R.drawable.dial, Modifier
+                R.drawable.dial, Modifier
                     .padding(10.dp)
                     .weight(1f)
                     .height(100.dp)
                     .background(Color(0xFF9E67FF), RoundedCornerShape(5.dp))
-                    .noRippleClickable(callVM::showDialPad)
+                    .noRippleClickable { onAction(CallAction.ShowDialPad) }
             )
         }
     }
 }
 
 @Composable
-private fun IncomingCallUI(number: String, contact: Contact?) {
-    val callVM = LocalVM.current
+private fun IncomingCallUI(number: String, contact: Contact?, onAction: (CallAction) -> Unit) {
     val context = LocalContext.current
 
     var contactPic by remember { mutableStateOf<ImageBitmap?>(null) }
 
-    if (contact != null && contact.thumbUri != null)
-        LaunchedEffect(Unit) {
+    if (contact?.photoUri != null)
+        LaunchedEffect(contact.photoUri) {
             try {
-                val bitmap =
+                val bitmap = withContext(Dispatchers.IO) {
                     MediaStore.Images.Media.getBitmap(context.contentResolver, contact.photoUri)
+                }
                 contactPic = bitmap.asImageBitmap()
             } catch (e: Exception) {
             }
@@ -243,7 +259,8 @@ private fun IncomingCallUI(number: String, contact: Contact?) {
                             )
                         )
                     )
-                    .padding(top = 40.dp), horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(top = 40.dp, bottom = 10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = contact?.name ?: "-",
@@ -262,27 +279,27 @@ private fun IncomingCallUI(number: String, contact: Contact?) {
             Spacer(Modifier.weight(1f))
 
             Row(
-                modifier = Modifier.padding(horizontal = 32.dp, vertical = 100.dp),
-                horizontalArrangement = Arrangement.spacedBy(32.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp, vertical = 100.dp),
+                horizontalArrangement = Arrangement.SpaceAround
             ) {
                 BigCallButton(
-                    stringResource(R.string.answer), R.drawable.call,
+                    R.drawable.call,
                     Modifier
-                        .padding(10.dp)
-                        .weight(1f)
-                        .height(100.dp)
-                        .background(Color.Green, RoundedCornerShape(5.dp))
-                        .noRippleClickable(callVM::answer),
+                        .size(80.dp)
+                        .background(Color(0xFF33C385), CircleShape)
+                        .padding(15.dp)
+                        .noRippleClickable { onAction(CallAction.Answer) },
                 )
 
                 BigCallButton(
-                    stringResource(R.string.reject), R.drawable.call_end,
+                    R.drawable.call_end,
                     Modifier
-                        .padding(10.dp)
-                        .weight(1f)
-                        .height(100.dp)
-                        .background(Color.Red, RoundedCornerShape(5.dp))
-                        .noRippleClickable(callVM::reject)
+                        .size(80.dp)
+                        .background(Color(0xFFF53F5A), CircleShape)
+                        .padding(15.dp)
+                        .noRippleClickable { onAction(CallAction.Reject) }
                 )
             }
         }
@@ -290,29 +307,7 @@ private fun IncomingCallUI(number: String, contact: Contact?) {
 }
 
 @Composable
-fun OngoingCallUI(call: Call) {
-//    Column(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .padding(32.dp),
-//        verticalArrangement = Arrangement.SpaceEvenly,
-//        horizontalAlignment = Alignment.CenterHorizontally
-//    ) {
-//
-//        Text("Call in Progress", fontSize = 40.sp)
-//
-//        BigCallButton("HANG UP", Color.Red) {
-//            call.disconnect()
-//        }
-//    }
-}
-
-@Composable
-fun BigCallButton(
-    text: String,
-    icon: Int,
-    modifier: Modifier
-) {
+fun BigCallButton(icon: Int, modifier: Modifier) {
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -324,6 +319,5 @@ fun BigCallButton(
             contentDescription = null,
             tint = Color.White
         )
-        Text(text = text, color = Color.White)
     }
 }
