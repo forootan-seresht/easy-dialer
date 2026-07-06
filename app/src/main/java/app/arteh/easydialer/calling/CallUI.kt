@@ -173,47 +173,24 @@ private fun TalkingUI(
                 contentDescription = null
             )
 
-        Row() {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
             BigCallButton(
                 if (isMute) R.drawable.mic_on
-                else R.drawable.mic_off, Modifier
-                    .padding(10.dp)
-                    .weight(1f)
-                    .height(100.dp)
-                    .background(Color(0xFFFFFF3F), RoundedCornerShape(5.dp))
-                    .noRippleClickable { onAction(CallAction.ToggleMute) }
-            )
+                else R.drawable.mic_off, AppColor.GradYoda.resolve()
+            ) { onAction(CallAction.ToggleMute) }
 
             BigCallButton(
                 if (isSpeaker) R.drawable.speaker_off
-                else R.drawable.speaker_on, Modifier
-                    .padding(10.dp)
-                    .weight(1f)
-                    .height(100.dp)
-                    .background(Color(0xFF30A3FF), RoundedCornerShape(5.dp))
-                    .noRippleClickable { onAction(CallAction.ToggleSpeaker) }
-            )
+                else R.drawable.speaker_on, Color(0xFF30A3FF)
+            ) { onAction(CallAction.ToggleSpeaker) }
+
+            BigCallButton(R.drawable.dial, Color(0xFF9E67FF)) { onAction(CallAction.ShowDialPad) }
         }
 
-        Row() {
+        Row(modifier = Modifier.padding(top = 15.dp)) {
             BigCallButton(
-                R.drawable.call_end,
-                Modifier
-                    .padding(10.dp)
-                    .weight(1f)
-                    .height(100.dp)
-                    .background(Color(0xFFFF2E2E), RoundedCornerShape(5.dp))
-                    .noRippleClickable { onAction(CallAction.HangUp) }
-            )
-
-            BigCallButton(
-                R.drawable.dial, Modifier
-                    .padding(10.dp)
-                    .weight(1f)
-                    .height(100.dp)
-                    .background(Color(0xFF9E67FF), RoundedCornerShape(5.dp))
-                    .noRippleClickable { onAction(CallAction.ShowDialPad) }
-            )
+                R.drawable.call_end, Color(0xFFFF2E2E)
+            ) { onAction(CallAction.HangUp) }
         }
     }
 }
@@ -285,31 +262,25 @@ private fun IncomingCallUI(number: String, contact: Contact?, onAction: (CallAct
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
                 BigCallButton(
-                    R.drawable.call,
-                    Modifier
-                        .size(80.dp)
-                        .background(Color(0xFF33C385), CircleShape)
-                        .padding(15.dp)
-                        .noRippleClickable { onAction(CallAction.Answer) },
-                )
+                    R.drawable.call, Color(0xFF33C385),
+                ) { onAction(CallAction.Answer) }
 
                 BigCallButton(
-                    R.drawable.call_end,
-                    Modifier
-                        .size(80.dp)
-                        .background(Color(0xFFF53F5A), CircleShape)
-                        .padding(15.dp)
-                        .noRippleClickable { onAction(CallAction.Reject) }
-                )
+                    R.drawable.call_end, Color(0xFFF53F5A)
+                ) { onAction(CallAction.Reject) }
             }
         }
     }
 }
 
 @Composable
-fun BigCallButton(icon: Int, modifier: Modifier) {
+fun BigCallButton(icon: Int, color: Color, onClick: () -> Unit) {
     Column(
-        modifier = modifier,
+        modifier = Modifier
+            .size(80.dp)
+            .background(color, CircleShape)
+            .padding(20.dp)
+            .noRippleClickable(onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
