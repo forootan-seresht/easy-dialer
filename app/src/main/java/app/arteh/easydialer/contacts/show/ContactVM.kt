@@ -17,7 +17,7 @@ import app.arteh.easydialer.R
 import app.arteh.easydialer.contacts.edit.models.EditableContact
 import app.arteh.easydialer.contacts.edit.models.PhoneType
 import app.arteh.easydialer.contacts.speed.SpeedDialEntry
-import app.arteh.easydialer.dialer.DialerHR
+import app.arteh.easydialer.utility.dialer_hr.DialerHR
 import app.arteh.easydialer.utility.Holder
 import app.arteh.easydialer.utility.SimCardHR
 import kotlinx.coroutines.Dispatchers

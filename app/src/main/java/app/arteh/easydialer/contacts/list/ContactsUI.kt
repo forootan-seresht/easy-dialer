@@ -55,7 +55,7 @@ import app.arteh.easydialer.R
 import app.arteh.easydialer.contacts.Contact
 import app.arteh.easydialer.contacts.ContactHeader
 import app.arteh.easydialer.contacts.list.models.ContactAction
-import app.arteh.easydialer.dialer.DigMySimCards
+import app.arteh.easydialer.utility.dialer_hr.DigMySimCards
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
 import app.arteh.easydialer.ui.theme.appTypography

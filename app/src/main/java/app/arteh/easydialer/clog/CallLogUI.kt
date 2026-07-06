@@ -47,7 +47,7 @@ import app.arteh.easydialer.R
 import app.arteh.easydialer.clog.models.CLogAction
 import app.arteh.easydialer.clog.models.Clog
 import app.arteh.easydialer.clog.models.LogStatus
-import app.arteh.easydialer.dialer.DigMySimCards
+import app.arteh.easydialer.utility.dialer_hr.DigMySimCards
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
 import app.arteh.easydialer.ui.theme.appTypography

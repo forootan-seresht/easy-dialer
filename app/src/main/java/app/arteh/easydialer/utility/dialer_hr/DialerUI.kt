@@ -1,4 +1,4 @@
-package app.arteh.easydialer.dialer
+package app.arteh.easydialer.utility.dialer_hr
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer

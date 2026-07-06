@@ -1,4 +1,4 @@
-package app.arteh.easydialer.dialer
+package app.arteh.easydialer.utility.dialer_hr
 
 import android.annotation.SuppressLint
 import android.content.Context

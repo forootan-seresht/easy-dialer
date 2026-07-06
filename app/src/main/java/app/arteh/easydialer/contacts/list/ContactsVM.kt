@@ -9,7 +9,7 @@ import app.arteh.easydialer.contacts.edit.EditContactActivity
 import app.arteh.easydialer.contacts.list.models.ContactAction
 import app.arteh.easydialer.contacts.list.models.ContactsUIState
 import app.arteh.easydialer.contacts.show.ContactActivity
-import app.arteh.easydialer.dialer.DialerHR
+import app.arteh.easydialer.utility.dialer_hr.DialerHR
 import app.arteh.easydialer.utility.Holder
 import app.arteh.easydialer.utility.SimCardHR
 import kotlinx.coroutines.Dispatchers

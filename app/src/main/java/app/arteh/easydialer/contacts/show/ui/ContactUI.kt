@@ -54,8 +54,8 @@ import app.arteh.easydialer.contacts.edit.models.PhoneType
 import app.arteh.easydialer.contacts.show.ContactUIAction
 import app.arteh.easydialer.contacts.show.ContactVM
 import app.arteh.easydialer.contacts.show.ShareChecks
-import app.arteh.easydialer.dialer.DigContactNumbers
-import app.arteh.easydialer.dialer.DigMySimCards
+import app.arteh.easydialer.utility.dialer_hr.DigContactNumbers
+import app.arteh.easydialer.utility.dialer_hr.DigMySimCards
 import app.arteh.easydialer.ui.PaddingSides
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
