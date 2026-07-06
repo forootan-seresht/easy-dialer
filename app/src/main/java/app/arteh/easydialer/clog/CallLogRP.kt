@@ -7,15 +7,47 @@ import androidx.core.net.toUri
 import app.arteh.easydialer.clog.models.Clog
 import app.arteh.easydialer.clog.models.LogStatus
 import app.arteh.easydialer.utility.Holder
+import app.arteh.easydialer.utility.LocaleHelper
+import app.arteh.easydialer.utility.Roozh
 import app.arteh.easydialer.utility.SimCardHR
-import java.text.SimpleDateFormat
-import java.util.Date
+import java.time.Instant
+import java.time.ZoneId
 import kotlin.math.min
 
 class CallLogRP(val context: Context) {
 
     var lazyKey = 0
     val simCardRP = SimCardHR(context)
+    val roozh = Roozh()
+
+    val GSMonthName: List<String> = listOf(
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec"
+    )
+    val PSMonthName: List<String> = listOf(
+        "فرو",
+        "ارد",
+        "خرد",
+        "تیر",
+        "مرد",
+        "شهر",
+        "مهر",
+        "آبا",
+        "آذر",
+        "دی",
+        "بهم",
+        "اسف"
+    )
 
     @SuppressLint("Range")
     fun loadCallLog(phone: String, selectedStatus: LogStatus): Map<String, List<Clog>> {
@@ -115,12 +147,21 @@ class CallLogRP(val context: Context) {
 
     @SuppressLint("SimpleDateFormat")
     fun getDateTime(millis: Long): Pair<String, String> {
-        val date = Date()
-        date.time = millis
+        val localDateTime =
+            Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDateTime()
 
-        val fDate = SimpleDateFormat("yyyy-MMM-d HH:MM").format(date).split(" ")
-        val splitDate = fDate[0].split("-")
+        val time = "${localDateTime.hour}:${localDateTime.minute}"
 
-        return "${splitDate[1]} ${splitDate[2]}, ${splitDate[0]}" to fDate[1]
+        if (LocaleHelper.lang == "fa") {
+            roozh.gregorianToPersian(
+                localDateTime.year,
+                localDateTime.monthValue,
+                localDateTime.dayOfMonth
+            )
+
+            return "${roozh.year}/${PSMonthName[roozh.month]}/${roozh.day}" to time
+        }
+        else
+            return "${GSMonthName[localDateTime.monthValue]} ${localDateTime.dayOfMonth}, ${localDateTime.year}" to time
     }
 }
