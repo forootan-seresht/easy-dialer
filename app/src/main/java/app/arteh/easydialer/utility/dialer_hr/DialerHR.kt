@@ -7,7 +7,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.telecom.TelecomManager
 import androidx.core.net.toUri
-import app.arteh.easydialer.contacts.edit.models.ContactPhone
+import app.arteh.easydialer.contacts.edit.ContactPhone
 import app.arteh.easydialer.contacts.show.ContactAction
 import app.arteh.easydialer.utility.SimCardHR
 import kotlinx.coroutines.flow.MutableStateFlow

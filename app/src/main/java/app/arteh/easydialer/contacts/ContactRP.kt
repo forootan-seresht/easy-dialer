@@ -13,9 +13,9 @@ import android.provider.ContactsContract
 import androidx.core.net.toUri
 import app.arteh.easydialer.clog.models.Clog
 import app.arteh.easydialer.clog.models.LogStatus
-import app.arteh.easydialer.contacts.edit.models.ContactPhone
-import app.arteh.easydialer.contacts.edit.models.EditableContact
-import app.arteh.easydialer.contacts.edit.models.PhoneType
+import app.arteh.easydialer.contacts.edit.ContactPhone
+import app.arteh.easydialer.contacts.edit.EditableContact
+import app.arteh.easydialer.contacts.edit.PhoneType
 import app.arteh.easydialer.contacts.speed.SpeedDialEntry
 import app.arteh.easydialer.db.AppDatabase
 import app.arteh.easydialer.db.ContactDefaults

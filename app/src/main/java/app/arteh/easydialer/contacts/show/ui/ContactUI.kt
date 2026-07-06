@@ -47,20 +47,20 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.arteh.easydialer.R
+import app.arteh.easydialer.contacts.edit.ContactPhone
 import app.arteh.easydialer.contacts.edit.EditContactActivity
-import app.arteh.easydialer.contacts.edit.models.ContactPhone
-import app.arteh.easydialer.contacts.edit.models.EditableContact
-import app.arteh.easydialer.contacts.edit.models.PhoneType
+import app.arteh.easydialer.contacts.edit.EditableContact
+import app.arteh.easydialer.contacts.edit.PhoneType
 import app.arteh.easydialer.contacts.show.ContactUIAction
 import app.arteh.easydialer.contacts.show.ContactVM
 import app.arteh.easydialer.contacts.show.ShareChecks
-import app.arteh.easydialer.utility.dialer_hr.DigContactNumbers
-import app.arteh.easydialer.utility.dialer_hr.DigMySimCards
 import app.arteh.easydialer.ui.PaddingSides
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
 import app.arteh.easydialer.ui.theme.appTypography
 import app.arteh.easydialer.utility.Holder
+import app.arteh.easydialer.utility.dialer_hr.DigContactNumbers
+import app.arteh.easydialer.utility.dialer_hr.DigMySimCards
 import kotlin.random.Random
 
 //todo show list of recent log for this contact
@@ -294,13 +294,13 @@ private fun OptionsButtons(onAction: (ContactUIAction) -> Unit) {
     ) {
 
         ItemOption(
-            R.drawable.edit,
+            R.drawable.share,
             AppColor.Icons.resolve(),
             stringResource(R.string.share_contact),
             { onAction(ContactUIAction.ShowShareContact) })
 
         ItemOption(
-            R.drawable.edit,
+            R.drawable.block,
             AppColor.GradRed.resolve(),
             stringResource(R.string.block_numbers),
             { onAction(ContactUIAction.ShowBlocK) })

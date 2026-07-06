@@ -14,8 +14,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import app.arteh.easydialer.R
-import app.arteh.easydialer.contacts.edit.models.EditableContact
-import app.arteh.easydialer.contacts.edit.models.PhoneType
+import app.arteh.easydialer.contacts.edit.EditableContact
+import app.arteh.easydialer.contacts.edit.PhoneType
 import app.arteh.easydialer.contacts.speed.SpeedDialEntry
 import app.arteh.easydialer.utility.dialer_hr.DialerHR
 import app.arteh.easydialer.utility.Holder

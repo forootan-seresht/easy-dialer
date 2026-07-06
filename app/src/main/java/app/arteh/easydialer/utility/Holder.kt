@@ -1,5 +1,10 @@
 package app.arteh.easydialer.utility
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.net.Uri
+import android.provider.MediaStore
 import androidx.compose.ui.graphics.Color
 import app.arteh.easydialer.contacts.ContactRP
 
@@ -14,4 +19,13 @@ object Holder {
         Color(0xFF5CB855)
     )
     val contactRP = ContactRP()
+
+    fun loadBitmapUri(context: Context, uri: Uri): Bitmap? {
+        return try {
+            val source = ImageDecoder.createSource(context.contentResolver, uri)
+            ImageDecoder.decodeBitmap(source)
+        } catch (e: Exception) {
+            null
+        }
+    }
 }

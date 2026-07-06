@@ -27,7 +27,7 @@ import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import app.arteh.easydialer.R
 import app.arteh.easydialer.clog.models.SimCard
-import app.arteh.easydialer.contacts.edit.models.ContactPhone
+import app.arteh.easydialer.contacts.edit.ContactPhone
 import app.arteh.easydialer.ui.CustomPopup
 import app.arteh.easydialer.ui.Divider2
 import app.arteh.easydialer.ui.noRippleClickable

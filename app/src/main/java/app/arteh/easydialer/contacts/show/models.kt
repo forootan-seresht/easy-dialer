@@ -1,7 +1,7 @@
 package app.arteh.easydialer.contacts.show
 
 import android.content.Context
-import app.arteh.easydialer.contacts.edit.models.EditableContact
+import app.arteh.easydialer.contacts.edit.EditableContact
 import app.arteh.easydialer.contacts.speed.SpeedDialEntry
 
 data class ShowState(
