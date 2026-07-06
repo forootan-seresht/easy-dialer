@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import app.arteh.easydialer.contacts.speed.SpeedDialEntry
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import org.json.JSONObject
 
@@ -16,6 +17,7 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "us
 class PreferencesManager(private val context: Context) {
 
     val SPEED_DIAL_KEY = stringPreferencesKey("speed_dial_map")
+    val LangKEY = stringPreferencesKey("lang")
 
     suspend fun saveSpeedDial(newSlot: Int, oldSlot: Int, entry: SpeedDialEntry) {
         context.dataStore.edit { prefs ->
@@ -72,5 +74,16 @@ class PreferencesManager(private val context: Context) {
         }
 
         return map
+    }
+
+    suspend fun setLang(lang: String) {
+        context.dataStore.edit { prefs ->
+            prefs[LangKEY] = lang
+        }
+    }
+
+    suspend fun getLang(): String {
+        val preferences = context.dataStore.data.first()
+        return preferences[LangKEY] ?: ""
     }
 }
