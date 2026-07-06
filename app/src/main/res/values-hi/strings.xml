@@ -104,4 +104,5 @@
     <string name="add_number">कृपया कम से कम एक फ़ोन नंबर जोड़ें</string>
     <string name="name_family_field_empty">कृपया नाम/परिवार दोनों फ़ील्ड खाली न छोड़ें</string>
     <string name="settings">Settings</string>
+    <string name="language_">Language:</string>
 </resources>

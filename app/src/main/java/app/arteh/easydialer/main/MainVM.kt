@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 class MainVM : ViewModel() {
-    private var _uiState = MutableStateFlow(UIState())
+    private var _uiState = MutableStateFlow(MainUIState())
     val uiState = _uiState.asStateFlow()
 
     fun setPage(idx: BottomTab) {

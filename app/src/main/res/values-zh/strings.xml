@@ -104,4 +104,5 @@
     <string name="add_number">请至少添加一个电话号码</string>
     <string name="name_family_field_empty">请勿将姓名和家庭字段都留空</string>
     <string name="settings">Settings</string>
+    <string name="language_">Language:</string>
 </resources>

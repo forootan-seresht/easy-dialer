@@ -69,6 +69,7 @@ dependencies {
     implementation(libs.accompanist.permissions)
 
     implementation(libs.androidx.room.runtime)
+    debugImplementation(libs.androidx.ui.tooling)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
 }

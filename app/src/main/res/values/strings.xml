@@ -110,4 +110,6 @@
     <string name="rotate_left">Rotate left</string>
     <string name="rotate_right">Rotate right</string>
     <string name="save">Save</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+    <string name="language_">Language:</string>
 </resources>

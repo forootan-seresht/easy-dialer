@@ -6,6 +6,6 @@ enum class BottomTab {
     CallLog
 }
 
-data class UIState(
+data class MainUIState(
     val selectedTab: BottomTab = BottomTab.Dial
 )
