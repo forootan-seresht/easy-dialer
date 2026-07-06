@@ -4,7 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
-import android.provider.MediaStore
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -14,13 +14,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenu
@@ -45,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -55,44 +59,57 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.arteh.easydialer.R
-import app.arteh.easydialer.contacts.edit.models.ContactPhone
-import app.arteh.easydialer.contacts.edit.models.EditContactAction
-import app.arteh.easydialer.contacts.edit.models.EditableContact
-import app.arteh.easydialer.contacts.edit.models.PhoneType
 import app.arteh.easydialer.ui.CustomDigButtons
 import app.arteh.easydialer.ui.CustomPopup
 import app.arteh.easydialer.ui.PaddingSides
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
+import app.arteh.easydialer.ui.theme.appTypography
 import app.arteh.easydialer.utility.Holder
-import kotlinx.coroutines.flow.StateFlow
+import com.image.cropview.CropType
+import com.image.cropview.EdgeType
+import com.image.cropview.ImageCrop
+import com.image.cropview.ImageCropView
 import kotlin.random.Random
 
 @Composable
 fun EditScreen(editContactVM: EditContactVM = viewModel(), padding: PaddingSides) {
-    val uiState = editContactVM.uiState.collectAsStateWithLifecycle().value
+    val uiState by editContactVM.uiState.collectAsStateWithLifecycle()
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColor.BackTrans.resolve())
             .padding(
                 start = padding.start,
                 top = padding.top,
                 end = padding.end,
                 bottom = padding.bottom
             )
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        TopRow(editContactVM::saveContact)
+        if (uiState.cropState.isCropping)
+            CropImageUI(
+                image = uiState.cropState.croppingImage,
+                cropType = uiState.cropState.cropType,
+                onAction = editContactVM::onImageAction
+            )
+        else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(AppColor.BackTrans.resolve())
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                TopRow(editContactVM::saveContact)
 
-        ContactInfo(editContactVM.contact, editContactVM::onAction)
+                ContactInfo(uiState.contact, editContactVM::onAction, editContactVM::onImageAction)
+            }
+        }
+
+        if (uiState.showAdd)
+            DigAddNumber(uiState.phoneNumber, editContactVM::onAction)
     }
-
-    if (uiState.showAdd)
-        DigAddNumber(uiState.phoneNumber, editContactVM::onAction)
 }
 
 @Composable
@@ -126,19 +143,19 @@ private fun TopRow(onSaveContact: (Context) -> Unit) {
 
 @Composable
 private fun ContactInfo(
-    contact: StateFlow<EditableContact>,
-    onAction: (EditContactAction) -> Unit
+    contact: EditableContact,
+    onAction: (EditContactAction) -> Unit,
+    onImageAction: (ImageCropAction) -> Unit
 ) {
-    val editableContact = contact.collectAsStateWithLifecycle().value
-
+    val context = LocalContext.current
     // Photo
     ContactPhoto(
-        photoUri = editableContact.photoUri,
-        onPickImage = { onAction(EditContactAction.SetPhoto(it)) }
+        photoUri = contact.photoUri,
+        onPickImage = { onImageAction(ImageCropAction.ProfileImageSelected(it, context)) }
     )
 
     OutlinedTextField(
-        value = editableContact.firstName,
+        value = contact.firstName,
         onValueChange = { onAction(EditContactAction.UpdateFirstName(it)) },
         label = { Text(stringResource(R.string.first_name)) },
         modifier = Modifier.fillMaxWidth(),
@@ -154,7 +171,7 @@ private fun ContactInfo(
     )
 
     OutlinedTextField(
-        value = editableContact.lastName,
+        value = contact.lastName,
         onValueChange = { onAction(EditContactAction.UpdateLastName(it)) },
         label = { Text(stringResource(R.string.last_name)) },
         modifier = Modifier.fillMaxWidth(),
@@ -171,19 +188,19 @@ private fun ContactInfo(
 
     Spacer(modifier = Modifier.height(10.dp))
 
-    NumberSection(editableContact, onAction)
+    NumberSection(contact, onAction)
 
     Spacer(modifier = Modifier.height(10.dp))
 
-    DetailsSection(editableContact, onAction)
+    DetailsSection(contact, onAction)
 }
 
 @Composable
-private fun ContactPhoto(photoUri: Uri?, onPickImage: (Uri?) -> Unit) {
+private fun ContactPhoto(photoUri: Uri?, onPickImage: (Uri) -> Unit) {
     val picker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
-        onPickImage(uri)
+        uri?.let { onPickImage(it) }
     }
 
     val colorIndex = remember { Random.nextInt(0, 6) }
@@ -193,8 +210,7 @@ private fun ContactPhoto(photoUri: Uri?, onPickImage: (Uri?) -> Unit) {
 
     LaunchedEffect(photoUri) {
         try {
-            bitmap =
-                photoUri?.let { MediaStore.Images.Media.getBitmap(context.contentResolver, it) }
+            bitmap = photoUri?.let { Holder.loadBitmapUri(context, it) }
         } catch (e: Exception) {
         }
     }
@@ -424,5 +440,120 @@ private fun DigAddNumber(phoneNumber: String, onAction: (EditContactAction) -> U
             stringResource(R.string.add), AppColor.GradGreen.resolve(),
             { onAction(EditContactAction.AddNumber(type)) }, dismissPopup
         )
+    }
+}
+
+@Composable
+fun CropImageUI(image: Bitmap?, cropType: CropType, onAction: (ImageCropAction) -> Unit) {
+    var imageCrop by remember { mutableStateOf<ImageCrop?>(null) }
+    val context = LocalContext.current
+
+    if (image == null) return
+
+    LocalFocusManager.current.clearFocus()
+
+    val aspectRatio = image.width.toFloat() / image.height
+
+    imageCrop = remember(image) { ImageCrop(image) }
+
+    BackHandler { onAction(ImageCropAction.CancelCrop) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 5.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                modifier = Modifier
+                    .size(35.dp)
+                    .padding(5.dp)
+                    .noRippleClickable { onAction(ImageCropAction.CancelCrop) },
+                painter = painterResource(R.drawable.back),
+                contentDescription = stringResource(R.string.back),
+                tint = Color.White
+            )
+
+            Text(
+                text = stringResource(R.string.crop_image),
+                style = MaterialTheme.appTypography.h1,
+                color = Color.White
+            )
+
+            Spacer(Modifier.weight(1f))
+
+            Icon(
+                modifier = Modifier
+                    .size(35.dp)
+                    .padding(5.dp)
+                    .noRippleClickable { onAction(ImageCropAction.RotateImage(false)) },
+                painter = painterResource(R.drawable.rotate_left),
+                contentDescription = stringResource(R.string.rotate_left),
+                tint = Color.White
+            )
+
+            Icon(
+                modifier = Modifier
+                    .size(35.dp)
+                    .padding(5.dp)
+                    .noRippleClickable { onAction(ImageCropAction.RotateImage(true)) },
+                painter = painterResource(R.drawable.rotate_right),
+                contentDescription = stringResource(R.string.rotate_right),
+                tint = Color.White
+            )
+        }
+
+        if (imageCrop != null)
+            ImageCropView(
+                modifier = Modifier
+                    .aspectRatio(aspectRatio)
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp),
+                cropType = cropType,
+                edgeType = EdgeType.SQUARE,
+                showGuideLines = true,
+                imageCrop = imageCrop!!
+            )
+
+        Row(
+            modifier = Modifier
+                .width(200.dp)
+                .background(
+                    AppColor.GradGreen.resolve(),
+                    RoundedCornerShape(5.dp)
+                )
+                .padding(vertical = 5.dp)
+                .noRippleClickable({
+                    val cropped = imageCrop?.onCrop()
+                    if (cropped != null)
+                        onAction(ImageCropAction.SaveCroppedImage(cropped, context))
+                }),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                modifier = Modifier
+                    .size(35.dp)
+                    .padding(5.dp),
+                painter = painterResource(R.drawable.check),
+                contentDescription = "Crop Image",
+                tint = Color.White
+            )
+
+            Text(
+                modifier = Modifier.padding(start = 10.dp),
+                text = stringResource(R.string.save),
+                color = Color.White
+            )
+        }
+        Spacer(Modifier.height(10.dp))
     }
 }

@@ -5,6 +5,8 @@ import android.app.Application
 import android.content.ContentProviderOperation
 import android.content.ContentUris
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Matrix
 import android.net.Uri
 import android.provider.ContactsContract
 import android.util.Log
@@ -13,17 +15,15 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import app.arteh.easydialer.R
-import app.arteh.easydialer.contacts.edit.models.ContactPhone
-import app.arteh.easydialer.contacts.edit.models.EditContactAction
-import app.arteh.easydialer.contacts.edit.models.EditableContact
-import app.arteh.easydialer.contacts.edit.models.EdtContUIState
-import app.arteh.easydialer.contacts.edit.models.PhoneType
 import app.arteh.easydialer.utility.Holder
+import com.image.cropview.CropType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
 
 class EditContactVM(application: Application, savedStateHandle: SavedStateHandle) :
     AndroidViewModel(application) {
@@ -34,19 +34,15 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
     private var _uiState = MutableStateFlow(EdtContUIState())
     val uiState = _uiState.asStateFlow()
 
-    private val _contact = MutableStateFlow(EditableContact())
-    val contact = _contact.asStateFlow()
-
-    lateinit var initialContact: EditableContact
+    var initialContact: EditableContact = EditableContact()
 
     init {
+        initialContact = EditableContact()
         viewModelScope.launch(Dispatchers.IO) {
             if (contactID != 0L) {
                 val contact = Holder.contactRP.findContactByID(contactID, application)
-
                 initialContact = contact
-
-                _contact.update { contact }
+                _uiState.update { it.copy(contact = contact) }
             }
         }
 
@@ -57,17 +53,65 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
 
     fun onAction(action: EditContactAction) {
         when (action) {
-            is EditContactAction.SetPhoto -> _contact.update { it.copy(photoUri = action.uri) }
-            is EditContactAction.UpdateFirstName -> _contact.update { it.copy(firstName = action.name) }
-            is EditContactAction.UpdateLastName -> _contact.update { it.copy(lastName = action.lastName) }
+            is EditContactAction.SetPhoto -> _uiState.update {
+                it.copy(
+                    contact = it.contact.copy(
+                        photoUri = action.uri
+                    )
+                )
+            }
+
+            is EditContactAction.UpdateFirstName -> _uiState.update {
+                it.copy(
+                    contact = it.contact.copy(
+                        firstName = action.name
+                    )
+                )
+            }
+
+            is EditContactAction.UpdateLastName -> _uiState.update {
+                it.copy(
+                    contact = it.contact.copy(
+                        lastName = action.lastName
+                    )
+                )
+            }
+
             is EditContactAction.RemovePhone -> removePhone(action.index)
             is EditContactAction.UpdatePhone -> updatePhone(action.index, action.phone)
-            is EditContactAction.UpdateBusiness -> _contact.update { it.copy(business = action.company) }
-            is EditContactAction.UpdateJob -> _contact.update { it.copy(job = action.job) }
+            is EditContactAction.UpdateBusiness -> _uiState.update {
+                it.copy(
+                    contact = it.contact.copy(
+                        business = action.company
+                    )
+                )
+            }
+
+            is EditContactAction.UpdateJob -> _uiState.update {
+                it.copy(
+                    contact = it.contact.copy(
+                        job = action.job
+                    )
+                )
+            }
+
             is EditContactAction.ChangeType -> updatePhoneType(action.index, action.type)
             EditContactAction.ShowAddPhone -> _uiState.update { it.copy(showAdd = true) }
-            is EditContactAction.UpdateEmail -> _contact.update { it.copy(email = action.email) }
-            is EditContactAction.UpdateNote -> _contact.update { it.copy(note = action.note) }
+            is EditContactAction.UpdateEmail -> _uiState.update {
+                it.copy(
+                    contact = it.contact.copy(
+                        email = action.email
+                    )
+                )
+            }
+
+            is EditContactAction.UpdateNote -> _uiState.update {
+                it.copy(
+                    contact = it.contact.copy(
+                        note = action.note
+                    )
+                )
+            }
 
             //Number
             EditContactAction.DismissPopup -> dismissPopup()
@@ -76,41 +120,110 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
         }
     }
 
+    fun onImageAction(action: ImageCropAction) {
+        when (action) {
+            ImageCropAction.CancelCrop -> _uiState.update {
+                it.copy(cropState = it.cropState.copy(isCropping = false))
+            }
+
+            is ImageCropAction.SaveCroppedImage -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    val uri = saveBitmapToCache(action.context, action.cropped)
+                    _uiState.update {
+                        it.copy(
+                            cropState = it.cropState.copy(isCropping = false),
+                            contact = it.contact.copy(photoUri = uri)
+                        )
+                    }
+                }
+            }
+
+            is ImageCropAction.ProfileImageSelected -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    val bitmap = Holder.loadBitmapUri(action.context, action.uri)
+
+                    _uiState.update {
+                        it.copy(
+                            cropState = it.cropState.copy(
+                                isCropping = true,
+                                croppingImage = bitmap,
+                                cropType = CropType.PROFILE_CIRCLE
+                            )
+                        )
+                    }
+                }
+            }
+
+            is ImageCropAction.RotateImage -> {
+                _uiState.update { state ->
+                    val cropState = state.cropState
+                    cropState.croppingImage?.let {
+                        val degrees = if (action.isClockWise) 90f else -90f
+                        state.copy(
+                            cropState = cropState.copy(
+                                croppingImage = rotateBitmap(it, degrees),
+                                rotation = cropState.rotation + degrees
+                            )
+                        )
+                    } ?: state
+                }
+            }
+
+            else -> {}
+        }
+    }
+
+    private fun rotateBitmap(bitmap: Bitmap, degrees: Float): Bitmap {
+        val matrix = Matrix().apply { postRotate(degrees) }
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+    }
+
+    private fun saveBitmapToCache(context: Context, bitmap: Bitmap): Uri? {
+        val file = File(context.cacheDir, "cropped_image_${System.currentTimeMillis()}.jpg")
+        return try {
+            val out = FileOutputStream(file)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+            out.flush()
+            out.close()
+            Uri.fromFile(file)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     fun updatePhoneType(index: Int, type: PhoneType) {
-        val list = contact.value.phones.toMutableList()
+        val list = uiState.value.contact.phones.toMutableList()
         list[index] = list[index].copy(type = type)
-        val updatedContact = contact.value.copy(phones = list)
-        _contact.update { updatedContact }
+        _uiState.update { it.copy(contact = it.contact.copy(phones = list)) }
     }
 
     fun updatePhone(index: Int, newNumber: String) {
-        val phones = _contact.value.phones.toMutableList()
+        val phones = uiState.value.contact.phones.toMutableList()
 
         val contactNumber = phones[index]
         phones[index] = contactNumber.copy(number = newNumber)
 
-        _contact.value = _contact.value.copy(phones = phones)
+        _uiState.update { it.copy(contact = it.contact.copy(phones = phones)) }
     }
 
     fun addPhoneNumber(type: PhoneType) {
         val phoneNumber = uiState.value.phoneNumber
-        val phones = _contact.value.phones.toMutableList()
+        val phones = uiState.value.contact.phones.toMutableList()
         phones.add(ContactPhone(0, phoneNumber, type))
-        _contact.value = _contact.value.copy(phones = phones)
+        _uiState.update { it.copy(contact = it.contact.copy(phones = phones), phoneNumber = "") }
 
         dismissPopup()
-        _uiState.update { it.copy(phoneNumber = "") }
     }
 
     fun removePhone(index: Int) {
-        val phones = _contact.value.phones.toMutableList()
+        val phones = uiState.value.contact.phones.toMutableList()
 
         val contactNumber = phones[index]
         if (contactNumber.phoneID > 0)
             phones[index] = contactNumber.copy(isDeleted = true)
         else phones.removeAt(index)
 
-        _contact.value = _contact.value.copy(phones = phones)
+        _uiState.update { it.copy(contact = it.contact.copy(phones = phones)) }
     }
 
     fun dismissPopup() {
@@ -118,13 +231,13 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
     }
 
     fun saveContact(context: Context) {
-        val state = contact.value
-        if (state.phones.isEmpty()) {
+        val contact = uiState.value.contact
+        if (contact.phones.isEmpty()) {
             Toast.makeText(context, context.getString(R.string.add_number), Toast.LENGTH_LONG)
                 .show()
             return
         }
-        if (state.firstName.trim().isEmpty() && state.lastName.trim().isEmpty()) {
+        if (contact.firstName.trim().isEmpty() && contact.lastName.trim().isEmpty()) {
             Toast.makeText(
                 context,
                 context.getString(R.string.name_family_field_empty), Toast.LENGTH_LONG
@@ -135,7 +248,7 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
 
         val ops = ArrayList<ContentProviderOperation>()
 
-        val rawContactID = contact.value.rawContactID
+        val rawContactID = contact.rawContactID
 
         if (rawContactID != 0L) {
             // Update name
@@ -151,17 +264,17 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
                     )
                     .withValue(
                         ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME,
-                        contact.value.firstName
+                        contact.firstName
                     )
                     .withValue(
                         ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME,
-                        contact.value.lastName
+                        contact.lastName
                     )
                     .build()
             )
 
             //Job
-            if (initialContact.job.isNotEmpty() && initialContact.business.isNotEmpty())
+            if (initialContact.job.isNotEmpty() || initialContact.business.isNotEmpty())
                 ops.add(
                     ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
                         .withSelection(
@@ -172,12 +285,10 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
                             )
                         )
                         .withValue(
-                            ContactsContract.CommonDataKinds.Organization.TITLE,
-                            contact.value.job
+                            ContactsContract.CommonDataKinds.Organization.TITLE, contact.job
                         )
                         .withValue(
-                            ContactsContract.CommonDataKinds.Organization.COMPANY,
-                            contact.value.business
+                            ContactsContract.CommonDataKinds.Organization.COMPANY, contact.business
                         )
                         .build()
                 )
@@ -190,12 +301,10 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
                             ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE
                         )
                         .withValue(
-                            ContactsContract.CommonDataKinds.Organization.TITLE,
-                            contact.value.job
+                            ContactsContract.CommonDataKinds.Organization.TITLE, contact.job
                         )
                         .withValue(
-                            ContactsContract.CommonDataKinds.Organization.COMPANY,
-                            contact.value.business
+                            ContactsContract.CommonDataKinds.Organization.COMPANY, contact.business
                         )
                         .build()
                 )
@@ -211,10 +320,7 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
                                 ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE
                             )
                         )
-                        .withValue(
-                            ContactsContract.CommonDataKinds.Email.ADDRESS,
-                            contact.value.email
-                        )
+                        .withValue(ContactsContract.CommonDataKinds.Email.ADDRESS, contact.email)
                         .build()
                 )
             else
@@ -225,10 +331,7 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
                             ContactsContract.Data.MIMETYPE,
                             ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE
                         )
-                        .withValue(
-                            ContactsContract.CommonDataKinds.Email.ADDRESS,
-                            contact.value.email
-                        )
+                        .withValue(ContactsContract.CommonDataKinds.Email.ADDRESS, contact.email)
                         .build()
                 )
 
@@ -243,10 +346,7 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
                                 ContactsContract.CommonDataKinds.Note.CONTENT_ITEM_TYPE
                             )
                         )
-                        .withValue(
-                            ContactsContract.CommonDataKinds.Note.NOTE,
-                            contact.value.note
-                        )
+                        .withValue(ContactsContract.CommonDataKinds.Note.NOTE, contact.note)
                         .build()
                 )
             else
@@ -257,17 +357,15 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
                             ContactsContract.Data.MIMETYPE,
                             ContactsContract.CommonDataKinds.Note.CONTENT_ITEM_TYPE
                         )
-                        .withValue(
-                            ContactsContract.CommonDataKinds.Note.NOTE,
-                            contact.value.note
-                        )
+                        .withValue(ContactsContract.CommonDataKinds.Note.NOTE, contact.note)
                         .build()
                 )
 
-            if (contact.value.photoUri != null) {
-                val photoBytes = uriToByteArray(context, contact.value.photoUri!!)
+            val photoUri = contact.photoUri
+            if (photoUri != null) {
+                val photoBytes = uriToByteArray(context, photoUri)
 
-                if (initialContact.note.isNotEmpty())
+                if (initialContact.photoUri != null)
                     ops.add(
                         ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
                             .withSelection(
@@ -296,7 +394,7 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
             val mimeType = ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE
 
             // Phones update / insert
-            contact.value.phones.forEach {
+            contact.phones.forEach {
                 val phoneType = when (it.type) {
                     PhoneType.Mobile -> ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE
                     PhoneType.Home -> ContactsContract.CommonDataKinds.Phone.TYPE_HOME
@@ -364,11 +462,11 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
                     )
                     .withValue(
                         ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME,
-                        contact.value.firstName
+                        contact.firstName
                     )
                     .withValue(
                         ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME,
-                        contact.value.lastName
+                        contact.lastName
                     )
                     .build()
             )
@@ -384,13 +482,9 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
                         ContactsContract.Data.MIMETYPE,
                         ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE
                     )
+                    .withValue(ContactsContract.CommonDataKinds.Organization.TITLE, contact.job)
                     .withValue(
-                        ContactsContract.CommonDataKinds.Organization.TITLE,
-                        contact.value.job
-                    )
-                    .withValue(
-                        ContactsContract.CommonDataKinds.Organization.COMPANY,
-                        contact.value.business
+                        ContactsContract.CommonDataKinds.Organization.COMPANY, contact.business
                     )
                     .build()
             )
@@ -406,10 +500,7 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
                         ContactsContract.Data.MIMETYPE,
                         ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE
                     )
-                    .withValue(
-                        ContactsContract.CommonDataKinds.Organization.COMPANY,
-                        contact.value.business
-                    )
+                    .withValue(ContactsContract.CommonDataKinds.Email.ADDRESS, contact.email)
                     .build()
             )
 
@@ -424,15 +515,13 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
                         ContactsContract.Data.MIMETYPE,
                         ContactsContract.CommonDataKinds.Note.CONTENT_ITEM_TYPE
                     )
-                    .withValue(
-                        ContactsContract.CommonDataKinds.Note.NOTE,
-                        contact.value.business
-                    )
+                    .withValue(ContactsContract.CommonDataKinds.Note.NOTE, contact.note)
                     .build()
             )
 
-            if (contact.value.photoUri != null) {
-                val photoBytes = uriToByteArray(context, contact.value.photoUri!!)
+            val photoUri = contact.photoUri
+            if (photoUri != null) {
+                val photoBytes = uriToByteArray(context, photoUri)
 
                 ops.add(
                     ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
@@ -444,10 +533,7 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
                             ContactsContract.Data.MIMETYPE,
                             ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE
                         )
-                        .withValue(
-                            ContactsContract.CommonDataKinds.Photo.PHOTO,
-                            photoBytes
-                        )
+                        .withValue(ContactsContract.CommonDataKinds.Photo.PHOTO, photoBytes)
                         .build()
                 )
             }
@@ -455,7 +541,7 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
             val mimeType = ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE
 
             // Phones update / insert
-            contact.value.phones.forEach {
+            contact.phones.forEach {
                 val phoneType = when (it.type) {
                     PhoneType.Mobile -> ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE
                     PhoneType.Home -> ContactsContract.CommonDataKinds.Phone.TYPE_HOME
@@ -478,16 +564,20 @@ class EditContactVM(application: Application, savedStateHandle: SavedStateHandle
             }
         }
 
-        val results = context.contentResolver.applyBatch(ContactsContract.AUTHORITY, ops)
-
-        Log.d("CONTACT_DEBUG", results.toString())
+        try {
+            val results = context.contentResolver.applyBatch(ContactsContract.AUTHORITY, ops)
+            Log.d("CONTACT_DEBUG", results.toString())
+        } catch (e: Exception) {
+            Log.e("CONTACT_DEBUG", "Error saving contact", e)
+            Toast.makeText(context, "Error saving contact", Toast.LENGTH_SHORT).show()
+        }
 
         (context as Activity).finish()
     }
 
     fun uriToByteArray(context: Context, uri: Uri): ByteArray {
-        return context.contentResolver.openInputStream(uri)!!.use {
+        return context.contentResolver.openInputStream(uri)?.use {
             it.readBytes()
-        }
+        } ?: byteArrayOf()
     }
 }
