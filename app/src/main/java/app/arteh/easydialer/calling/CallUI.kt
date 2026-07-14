@@ -20,13 +20,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -50,31 +48,15 @@ import app.arteh.easydialer.ui.theme.AppColor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-private val LocalVM = staticCompositionLocalOf<CallVM> {
-    error("CallVM not provided")
-}
-
 @Composable
 fun CallScreen(vm: CallVM = viewModel()) {
-    CompositionLocalProvider(LocalVM provides vm) {
-        CallContent()
-    }
-}
-
-@Composable
-fun CallContent() {
-    val callVM = LocalVM.current
-    val uiState by callVM.uiState.collectAsStateWithLifecycle()
+    val uiState by vm.uiState.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
 
     Box {
         when (uiState.state) {
-            CallState.Incoming -> IncomingCallUI(
-                uiState.phoneNumber,
-                uiState.contact,
-                callVM::onAction
-            )
+            CallState.Incoming -> IncomingCallUI(uiState.phoneNumber, uiState.contact, vm::onAction)
 
             CallState.Calling -> {}
             CallState.Rejected -> (context as Activity).finish()
@@ -83,12 +65,12 @@ fun CallContent() {
                 uiState.contact,
                 uiState.isMute,
                 uiState.isSpeaker,
-                callVM::onAction
+                vm::onAction
             )
         }
 
         if (uiState.showDialPad)
-            DialPadUI(callVM::onAction)
+            DialPadUI(vm::onAction)
     }
 }
 
