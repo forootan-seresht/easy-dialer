@@ -3,9 +3,12 @@ package app.arteh.easydialer
 import android.app.Application
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
+import app.arteh.easydialer.db.AppDatabase
+import app.arteh.easydialer.utility.Holder
 import app.arteh.easydialer.utility.LocaleHelper
 import app.arteh.easydialer.utility.PreferencesManager
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.runBlocking
 
 class App : Application() {
@@ -15,6 +18,9 @@ class App : Application() {
         super.onCreate()
 
         val context = this
+
+        val instance = AppDatabase.getInstance(context)
+        Holder.contactRP.initialize(context, instance, GlobalScope)
 
         runBlocking {
             val prefs = PreferencesManager(context)
