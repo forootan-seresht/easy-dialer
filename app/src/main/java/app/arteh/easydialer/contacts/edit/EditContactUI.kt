@@ -79,6 +79,7 @@ fun EditScreen(editContactVM: EditContactVM = viewModel(), padding: PaddingSides
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .background(AppColor.BackTrans.resolve())
             .padding(
                 start = padding.start,
                 top = padding.top,
@@ -96,7 +97,6 @@ fun EditScreen(editContactVM: EditContactVM = viewModel(), padding: PaddingSides
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(AppColor.BackTrans.resolve())
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally

@@ -28,8 +28,11 @@ class CallVM(application: Application) : AndroidViewModel(application) {
 
     init {
         viewModelScope.launch {
-            if (Holder.contactRP.contactList.isEmpty())
-                Holder.contactRP.initialize(application, AppDatabase.getInstance(application))
+            Holder.contactRP.initialize(
+                application,
+                AppDatabase.getInstance(application),
+                viewModelScope
+            )
 
             MyInCallService.callState.collect { info ->
                 if (info != null) {
