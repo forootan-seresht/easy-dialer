@@ -47,11 +47,11 @@ import app.arteh.easydialer.R
 import app.arteh.easydialer.clog.models.CLogAction
 import app.arteh.easydialer.clog.models.Clog
 import app.arteh.easydialer.clog.models.LogStatus
-import app.arteh.easydialer.utility.dialer_hr.DigMySimCards
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
 import app.arteh.easydialer.ui.theme.appTypography
 import app.arteh.easydialer.utility.Holder
+import app.arteh.easydialer.utility.dialer_hr.DigMySimCards
 
 @Composable
 fun CLogScreen(callLogVM: CallLogVM) {
@@ -91,7 +91,9 @@ private fun TopCategory(selectedType: LogStatus, onChangeType: (LogStatus) -> Un
             .horizontalScroll(rememberScrollState())
     ) {
         LogStatus.entries.forEach {
-            ItemCategory(it.icon, it.name, selectedType == it) { onChangeType(it) }
+            ItemCategory(
+                it.icon, stringResource(it.fullName), selectedType == it
+            ) { onChangeType(it) }
         }
     }
 }

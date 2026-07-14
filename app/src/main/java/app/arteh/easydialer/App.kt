@@ -25,7 +25,6 @@ class App : Application() {
     private suspend fun initLanguage(prefs: PreferencesManager) {
         var lang = prefs.getLang()
 
-
         if (lang == "") {
             lang = LocaleHelper.phoneLang()
             prefs.setLang(lang)

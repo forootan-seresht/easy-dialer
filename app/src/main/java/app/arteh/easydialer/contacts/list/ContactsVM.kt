@@ -9,9 +9,10 @@ import app.arteh.easydialer.contacts.edit.EditContactActivity
 import app.arteh.easydialer.contacts.list.models.ContactAction
 import app.arteh.easydialer.contacts.list.models.ContactsUIState
 import app.arteh.easydialer.contacts.show.ContactActivity
-import app.arteh.easydialer.utility.dialer_hr.DialerHR
+import app.arteh.easydialer.settings.SettingsActivity
 import app.arteh.easydialer.utility.Holder
 import app.arteh.easydialer.utility.SimCardHR
+import app.arteh.easydialer.utility.dialer_hr.DialerHR
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -59,8 +60,12 @@ class ContactsVM(application: Application) : AndroidViewModel(application) {
 
             ContactAction.GoAddContact -> goAddContact()
             is ContactAction.UpdateSearchText -> updateSearchText(action.text)
-            is ContactAction.GoSettings -> TODO()
+            is ContactAction.GoSettings -> goSettings(action.context)
         }
+    }
+
+    private fun goSettings(context: Context) {
+        context.startActivity(Intent(context, SettingsActivity::class.java))
     }
 
     private fun searchContact(name: String) {

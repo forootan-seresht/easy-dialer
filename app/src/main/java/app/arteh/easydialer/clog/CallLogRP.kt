@@ -159,7 +159,7 @@ class CallLogRP(val context: Context) {
                 localDateTime.dayOfMonth
             )
 
-            return "${roozh.year}/${PSMonthName[roozh.month]}/${roozh.day}" to time
+            return "${roozh.year} ، ${PSMonthName[roozh.month - 1]} ${roozh.day}" to time
         }
         else
             return "${GSMonthName[localDateTime.monthValue]} ${localDateTime.dayOfMonth}, ${localDateTime.year}" to time
