@@ -45,6 +45,7 @@ sealed interface ContactUIAction {
     data object ReloadData : ContactUIAction
 
     //Dialogs
+    data class ShowSpeedDial(val index: Int) : ContactUIAction
     data object ShowShareContact : ContactUIAction
     data object ShowMakeCall : ContactUIAction
     data object ShowSendSMS : ContactUIAction

@@ -93,7 +93,7 @@ fun ShowScreen(contactVM: ContactVM = viewModel(), padding: PaddingSides) {
 
             ContactInfo(uiState.contact, contactVM::onAction)
 
-            OptionsButtons(contactVM::onAction)
+            OptionsButtons(uiState.contact, contactVM::onAction)
         }
 
     val dismissPopup = contactVM::dismissPopup
@@ -231,7 +231,9 @@ private fun ContactInfo(contact: EditableContact, onAction: (ContactUIAction) ->
             ItemPhoneNumber(
                 phone,
                 { onAction(ContactUIAction.MakeCall(index)) },
-                { onAction(ContactUIAction.SendSMS(index)) })
+                { onAction(ContactUIAction.SendSMS(index)) },
+                { onAction(ContactUIAction.ShowSpeedDial(index)) }
+            )
         }
     }
 
@@ -285,7 +287,7 @@ private fun ContactInfo(contact: EditableContact, onAction: (ContactUIAction) ->
 }
 
 @Composable
-private fun OptionsButtons(onAction: (ContactUIAction) -> Unit) {
+private fun OptionsButtons(contact: EditableContact, onAction: (ContactUIAction) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -298,6 +300,13 @@ private fun OptionsButtons(onAction: (ContactUIAction) -> Unit) {
             AppColor.Icons.resolve(),
             stringResource(R.string.share_contact),
             { onAction(ContactUIAction.ShowShareContact) })
+
+        if (contact.phones.isNotEmpty())
+            ItemOption(
+                R.drawable.speed,
+                AppColor.GradYoda.resolve(),
+                stringResource(R.string.speed_dial),
+                { onAction(ContactUIAction.ShowSpeedDial(0)) })
 
         ItemOption(
             R.drawable.block,
@@ -373,7 +382,12 @@ fun ContactPhoto(photoUri: Uri?) {
 }
 
 @Composable
-private fun ItemPhoneNumber(phone: ContactPhone, onCall: () -> Unit, onSMS: () -> Unit) {
+private fun ItemPhoneNumber(
+    phone: ContactPhone,
+    onCall: () -> Unit,
+    onSMS: () -> Unit,
+    onSpeedDial: () -> Unit
+) {
     val icon = when (phone.type) {
         PhoneType.Mobile -> R.drawable.mobile
         PhoneType.Home -> R.drawable.home
@@ -414,6 +428,18 @@ private fun ItemPhoneNumber(phone: ContactPhone, onCall: () -> Unit, onSMS: () -
             painter = painterResource(R.drawable.sms),
             contentDescription = null,
             tint = AppColor.GradPurple.resolve()
+        )
+
+        Icon(
+            modifier = Modifier
+                .padding(start = 5.dp)
+                .size(40.dp)
+                .background(AppColor.GradYoda.resolve().copy(alpha = 0.1f), CircleShape)
+                .padding(10.dp)
+                .noRippleClickable(onSpeedDial),
+            painter = painterResource(R.drawable.speed),
+            contentDescription = stringResource(R.string.speed_dial),
+            tint = AppColor.GradYoda.resolve()
         )
     }
 }

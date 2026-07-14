@@ -17,9 +17,9 @@ import app.arteh.easydialer.R
 import app.arteh.easydialer.contacts.edit.EditableContact
 import app.arteh.easydialer.contacts.edit.PhoneType
 import app.arteh.easydialer.contacts.speed.SpeedDialEntry
-import app.arteh.easydialer.utility.dialer_hr.DialerHR
 import app.arteh.easydialer.utility.Holder
 import app.arteh.easydialer.utility.SimCardHR
+import app.arteh.easydialer.utility.dialer_hr.DialerHR
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -107,6 +107,8 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
                 action.asFile,
                 action.context
             )
+
+            is ContactUIAction.ShowSpeedDial -> showSpeedDial(action.index)
 
             ContactUIAction.ShowShareContact -> _showState.update { it.copy(showShare = true) }
         }
@@ -226,6 +228,16 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
 
     fun showSpeedDial(phoneIDX: Int) {
         selectedPhoneIDX = phoneIDX
+
+        val phoneNumber = uiState.value.contact!!.phones[phoneIDX].number
+        var slot = -1
+        for (entry in uiState.value.speedDialMap) {
+            if (entry.value.contactId == contactID && entry.value.phoneNumber == phoneNumber) {
+                slot = entry.key
+                break
+            }
+        }
+        _uiState.update { it.copy(speedSlot = slot) }
 
         _showState.update { it.copy(showSpeedList = true) }
     }
