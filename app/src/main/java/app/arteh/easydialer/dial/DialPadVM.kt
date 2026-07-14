@@ -111,13 +111,29 @@ class DialPadVM(application: Application) : AndroidViewModel(application) {
         searchPhone(newNumber)
     }
 
+    private var searchJob: kotlinx.coroutines.Job? = null
+
     fun searchPhone(newNumber: String) {
         val context = getApplication<Application>()
 
-        viewModelScope.launch(Dispatchers.IO) {
-            val (contactList, dialedList) = Holder.contactRP.searchByNumber(newNumber, context)
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch(Dispatchers.IO) {
+            Holder.contactRP.contactsList.collect { allContacts ->
+                val filteredContacts = allContacts.filter { it.phone.contains(newNumber) }.take(10)
+                val allLogs = Holder.contactRP.searchCallLogs(newNumber, context)
 
-            _uiState.update { it.copy(contactList = contactList, dialedList = dialedList) }
+                val contactNumbers = filteredContacts.map { it.phone }.toSet()
+                val filteredLogs = allLogs.filterNot { log ->
+                    contactNumbers.contains(log.number)
+                }
+
+                _uiState.update {
+                    it.copy(
+                        contactList = filteredContacts,
+                        dialedList = filteredLogs
+                    )
+                }
+            }
         }
     }
 

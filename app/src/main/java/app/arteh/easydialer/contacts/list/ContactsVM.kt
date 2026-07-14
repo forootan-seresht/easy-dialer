@@ -13,9 +13,10 @@ import app.arteh.easydialer.settings.SettingsActivity
 import app.arteh.easydialer.utility.Holder
 import app.arteh.easydialer.utility.SimCardHR
 import app.arteh.easydialer.utility.dialer_hr.DialerHR
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -68,12 +69,30 @@ class ContactsVM(application: Application) : AndroidViewModel(application) {
         context.startActivity(Intent(context, SettingsActivity::class.java))
     }
 
-    private fun searchContact(name: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val map = Holder.contactRP.loadContacts(name, getApplication())
-            val favorites = Holder.contactRP.getFavoriteContacts(getApplication())
+    private var searchJob: Job? = null
 
-            _uiState.update { it.copy(contactList = map, favorites = favorites) }
+    private fun searchContact(name: String) {
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            combine(
+                Holder.contactRP.contactsList,
+                Holder.contactRP.favoritesFlow
+            ) { allContacts, favorites ->
+                val filtered = if (name.isEmpty()) allContacts
+                else allContacts.filter { it.name.contains(name, ignoreCase = true) }
+
+                val grouped = filtered.groupBy { contact ->
+                    val firstChar = contact.name.firstOrNull()?.uppercaseChar() ?: '#'
+                    val headerColor = Holder.colors[firstChar.toInt() % 7]
+                    app.arteh.easydialer.contacts.ContactHeader(
+                        char = firstChar,
+                        color = headerColor
+                    )
+                }
+                grouped to favorites
+            }.collect { (map, favorites) ->
+                _uiState.update { it.copy(contactList = map, favorites = favorites) }
+            }
         }
     }
 

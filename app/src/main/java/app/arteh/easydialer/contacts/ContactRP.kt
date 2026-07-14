@@ -5,8 +5,11 @@ import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
+import android.database.ContentObserver
 import android.database.Cursor
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import android.provider.BlockedNumberContract
 import android.provider.CallLog
 import android.provider.ContactsContract
@@ -19,38 +22,58 @@ import app.arteh.easydialer.contacts.edit.PhoneType
 import app.arteh.easydialer.contacts.speed.SpeedDialEntry
 import app.arteh.easydialer.db.AppDatabase
 import app.arteh.easydialer.db.ContactDefaults
-import app.arteh.easydialer.utility.Holder
 import app.arteh.easydialer.utility.PreferencesManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 
 class ContactRP {
     private lateinit var prefs: PreferencesManager
-    var contactList = listOf<Contact>()
-    lateinit var db: AppDatabase
 
+    private val _contactList = MutableStateFlow<List<Contact>>(emptyList())
+    val contactsList = _contactList.asStateFlow()
+
+    private val _favoritesFlow = MutableStateFlow<List<Contact>>(emptyList())
+    val favoritesFlow = _favoritesFlow.asStateFlow()
+
+    lateinit var db: AppDatabase
+    private var isInitialized = false
     lateinit var speedDialMap: Flow<Map<Int, SpeedDialEntry>>
     var lazyKey = 0
 
-    suspend fun initialize(context: Context, instance: AppDatabase) {
+    fun initialize(context: Context, instance: AppDatabase, scope: CoroutineScope) {
+        if (isInitialized) return
+        isInitialized = true
+
         prefs = PreferencesManager(context)
         db = instance
-        contactList = queryContacts("", context)
         speedDialMap = prefs.loadSpeedDIal()
+
+        //observe Contact db changes
+        scope.launch(Dispatchers.IO) {
+            val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+                override fun onChange(selfChange: Boolean) {
+                    scope.launch(Dispatchers.IO) {
+                        refreshData(context)
+                    }
+                }
+            }
+            context.contentResolver.registerContentObserver(
+                ContactsContract.Contacts.CONTENT_URI, true, observer
+            )
+
+            refreshData(context)
+        }
     }
 
-    suspend fun loadContacts(name: String, context: Context): Map<ContactHeader, List<Contact>> {
-        val contactMList = queryContacts(name, context)
-
-        return contactMList.groupBy { contact ->
-            val firstChar = contact.name.firstOrNull()?.uppercaseChar() ?: '#'
-
-            // Logic to pick a color based on the character
-            val headerColor = Holder.colors[firstChar.toInt() % 7]
-
-            ContactHeader(char = firstChar, color = headerColor)
-        }
+    private suspend fun refreshData(context: Context) {
+        _contactList.value = queryContacts("", context)
+        _favoritesFlow.value = getFavoriteContacts(context)
     }
 
     suspend fun queryContacts(name: String, context: Context): List<Contact> {
@@ -242,7 +265,9 @@ class ContactRP {
     }
 
     fun getContactByNumber(normalizedNumber: String): Contact? {
-        for (contact in contactList)
+        val list = contactsList.value
+
+        for (contact in list)
             if (contact.phone.endsWith(normalizedNumber)) return contact
 
         return null
@@ -485,21 +510,5 @@ class ContactRP {
         val splitDate = fDate[0].split("-")
 
         return "${splitDate[1]} ${splitDate[2]}, ${splitDate[0]}" to fDate[1]
-    }
-
-    fun searchByNumber(number: String, context: Context): Pair<List<Contact>, List<Clog>> {
-        if (contactList.isNotEmpty()) {
-            val filteredContacts = contactList.filter { it.phone.contains(number) }.take(10)
-            val allLogs = searchCallLogs(number, context)
-
-            val contactNumbers = filteredContacts.map { it.phone }.toSet()
-
-            val filteredLogs = allLogs.filterNot { log ->
-                contactNumbers.contains(log.number)
-            }
-
-            return filteredContacts to filteredLogs
-        }
-        return emptyList<Contact>() to emptyList<Clog>()
     }
 }
