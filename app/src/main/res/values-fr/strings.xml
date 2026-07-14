@@ -103,6 +103,13 @@
     <string name="favorites">Favoris</string>
     <string name="add_number">Veuillez ajouter au moins un numéro de téléphone</string>
     <string name="name_family_field_empty">Veuillez ne pas laisser les champs Nom/Famille vides</string>
+    <string name="crop_image">Recadrer l\'image</string>
+    <string name="rotate_left">Rotation à gauche</string>
+    <string name="rotate_right">Rotation à droite</string>
+    <string name="save">Enregistrer</string>
+    <string name="title_activity_settings">Paramètres de l\'activité</string>
+    <string name="speed_dial">Accès rapide</string>
+
     <string name="settings">Settings</string>
     <string name="language_">Language:</string>
 </resources>

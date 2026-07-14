@@ -105,4 +105,11 @@
     <string name="name_family_field_empty">يرجى عدم ترك كلا الحقلين فارغين حقل الاسم/العائلة فارغ</string>
     <string name="settings">Settings</string>
     <string name="language_">Language:</string>
+
+    <string name="crop_image">قص الصورة</string>
+    <string name="rotate_left">تدوير الصورة لليسار</string>
+    <string name="rotate_right">تدوير الصورة لليمين</string>
+    <string name="save">حفظ</string>
+    <string name="title_activity_settings">إعدادات النشاط</string>
+    <string name="speed_dial">الاتصال السريع</string>
 </resources>

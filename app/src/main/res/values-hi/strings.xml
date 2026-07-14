@@ -105,4 +105,11 @@
     <string name="name_family_field_empty">कृपया नाम/परिवार दोनों फ़ील्ड खाली न छोड़ें</string>
     <string name="settings">Settings</string>
     <string name="language_">Language:</string>
+
+    <string name="crop_image">इमेज क्रॉप करें</string>
+    <string name="rotate_left">बाईं ओर घुमाएँ</string>
+    <string name="rotate_right">दाईं ओर घुमाएँ</string>
+    <string name="save">सेव करें</string>
+    <string name="title_activity_settings">सेटिंग्सएक्टिविटी</string>
+    <string name="speed_dial">स्पीड डायल</string>
 </resources>

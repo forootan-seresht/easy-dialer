@@ -105,4 +105,11 @@
     <string name="name_family_field_empty">لطفاً هر دو فیلد نام/خانواده را خالی نگذارید خالی</string>
     <string name="settings">Settings</string>
     <string name="language_">Language:</string>
+
+    <string name="crop_image">برش تصویر</string>
+    <string name="rotate_left">چرخش به چپ</string>
+    <string name="rotate_right">چرخش به راست</string>
+    <string name="save">ذخیره</string>
+    <string name="title_activity_settings">تنظیماتفعالیت</string>
+    <string name="speed_dial">شماره گیری سریع</string>
 </resources>

@@ -105,4 +105,11 @@
     <string name="name_family_field_empty">Пожалуйста, не оставляйте поля "Имя" и "Семья" пустыми</string>
     <string name="settings">Settings</string>
     <string name="language_">Language:</string>
+
+    <string name="crop_image">Обрезать изображение</string>
+    <string name="rotate_left">Повернуть влево</string>
+    <string name="rotate_right">Повернуть вправо</string>
+    <string name="save">Сохранить</string>
+    <string name="title_activity_settings">НастройкиАктивность</string>
+    <string name="speed_dial">Быстрый набор</string>
 </resources>

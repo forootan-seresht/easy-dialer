@@ -105,4 +105,11 @@
     <string name="name_family_field_empty">名前と家族の両方のフィールドを空欄にしないでください</string>
     <string name="settings">Settings</string>
     <string name="language_">Language:</string>
+
+    <string name="crop_image">画像の切り抜き</string>
+    <string name="rotate_left">左回転</string>
+    <string name="rotate_right">右回転</string>
+    <string name="save">保存</string>
+    <string name="title_activity_settings">設定アクティビティ</string>
+    <string name="speed_dial">短縮ダイヤル</string>
 </resources>

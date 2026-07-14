@@ -105,4 +105,11 @@
     <string name="name_family_field_empty">No dejes los campos Nombre/Apellido vacíos</string>
     <string name="settings">Settings</string>
     <string name="language_">Language:</string>
+
+    <string name="crop_image">Recortar imagen</string>
+    <string name="rotate_left">Rotar a la izquierda</string>
+    <string name="rotate_right">Rotar a la derecha</string>
+    <string name="save">Guardar</string>
+    <string name="title_activity_settings">Actividad de configuración</string>
+    <string name="speed_dial">Marcación rápida</string>
 </resources>
