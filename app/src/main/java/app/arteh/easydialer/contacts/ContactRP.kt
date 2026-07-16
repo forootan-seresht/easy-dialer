@@ -1,10 +1,12 @@
 package app.arteh.easydialer.contacts
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
+import android.content.pm.PackageManager
 import android.database.ContentObserver
 import android.database.Cursor
 import android.net.Uri
@@ -48,26 +50,29 @@ class ContactRP {
 
     fun initialize(context: Context, instance: AppDatabase, scope: CoroutineScope) {
         if (isInitialized) return
-        isInitialized = true
 
         prefs = PreferencesManager(context)
         db = instance
         speedDialMap = prefs.loadSpeedDIal()
 
         //observe Contact db changes
-        scope.launch(Dispatchers.IO) {
-            val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
-                override fun onChange(selfChange: Boolean) {
-                    scope.launch(Dispatchers.IO) {
-                        refreshData(context)
+
+        if (context.checkSelfPermission(Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
+            isInitialized = true
+            scope.launch(Dispatchers.IO) {
+                val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+                    override fun onChange(selfChange: Boolean) {
+                        scope.launch(Dispatchers.IO) {
+                            refreshData(context)
+                        }
                     }
                 }
-            }
-            context.contentResolver.registerContentObserver(
-                ContactsContract.Contacts.CONTENT_URI, true, observer
-            )
+                context.contentResolver.registerContentObserver(
+                    ContactsContract.Contacts.CONTENT_URI, true, observer
+                )
 
-            refreshData(context)
+                refreshData(context)
+            }
         }
     }
 
@@ -266,6 +271,8 @@ class ContactRP {
 
     fun getContactByNumber(normalizedNumber: String): Contact? {
         val list = contactsList.value
+
+        if (list.isEmpty()) println("COntact list is empty")
 
         for (contact in list)
             if (contact.phone.endsWith(normalizedNumber)) return contact

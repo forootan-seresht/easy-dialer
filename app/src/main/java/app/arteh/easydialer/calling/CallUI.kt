@@ -58,7 +58,14 @@ fun CallScreen(vm: CallVM = viewModel()) {
         when (uiState.state) {
             CallState.Incoming -> IncomingCallUI(uiState.phoneNumber, uiState.contact, vm::onAction)
 
-            CallState.Calling -> {}
+            CallState.Calling -> CallingUI(
+                uiState.phoneNumber,
+                uiState.contact,
+                uiState.isMute,
+                uiState.isSpeaker,
+                vm::onAction
+            )
+
             CallState.Rejected -> (context as Activity).finish()
             CallState.Talking -> TalkingUI(
                 uiState.phoneNumber,
@@ -104,6 +111,83 @@ private fun DialPadUI(onAction: (CallAction) -> Unit) {
                 color = Color.White,
                 fontSize = 18.sp
             )
+        }
+    }
+}
+
+@Composable
+private fun CallingUI(
+    number: String,
+    contact: Contact?,
+    isMute: Boolean,
+    isSpeaker: Boolean,
+    onAction: (CallAction) -> Unit
+) {
+    val context = LocalContext.current
+
+    var contactPic by remember { mutableStateOf<ImageBitmap?>(null) }
+
+    if (contact?.photoUri != null)
+        LaunchedEffect(contact.photoUri) {
+            try {
+                val bitmap = withContext(Dispatchers.IO) {
+                    MediaStore.Images.Media.getBitmap(context.contentResolver, contact.photoUri)
+                }
+                contactPic = bitmap.asImageBitmap()
+            } catch (e: Exception) {
+            }
+        }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(40.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = contact?.name ?: "-",
+            fontSize = 32.sp,
+            fontWeight = FontWeight.ExtraBold,
+        )
+        Text(
+            text = number,
+            fontSize = 32.sp,
+            fontWeight = FontWeight.ExtraBold,
+        )
+
+        Text(
+            text = stringResource(R.string.calling),
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Gray,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+
+        if (contactPic != null)
+            Image(
+                modifier = Modifier.size(150.dp),
+                bitmap = contactPic!!,
+                contentDescription = null
+            )
+
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+            BigCallButton(
+                if (isMute) R.drawable.mic_on
+                else R.drawable.mic_off, AppColor.GradYoda.resolve()
+            ) { onAction(CallAction.ToggleMute) }
+
+            BigCallButton(
+                if (isSpeaker) R.drawable.speaker_off
+                else R.drawable.speaker_on, Color(0xFF30A3FF)
+            ) { onAction(CallAction.ToggleSpeaker) }
+
+            BigCallButton(R.drawable.dial, Color(0xFF9E67FF)) { onAction(CallAction.ShowDialPad) }
+        }
+
+        Row(modifier = Modifier.padding(top = 15.dp)) {
+            BigCallButton(
+                R.drawable.call_end, Color(0xFFFF2E2E)
+            ) { onAction(CallAction.HangUp) }
         }
     }
 }

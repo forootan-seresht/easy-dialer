@@ -1,5 +1,5 @@
 [versions]
-agp = "9.2.1"
+agp = "9.3.0"
 accompanistPermissions = "0.37.3"
 constraintlayoutCompose = "1.1.1"
 coreSplashscreen = "1.2.0"

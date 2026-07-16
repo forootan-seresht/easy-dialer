@@ -70,6 +70,7 @@
     <string name="phone_number">Phone number</string>
     <string name="return_to_call">Return to call</string>
     <string name="reject">Reject</string>
+    <string name="calling">Calling&#8230;</string>
     <string name="remove_phone">Remove phone</string>
     <string name="remember_this_choice">Remember this choice</string>
     <string name="save_changes">Save changes</string>
