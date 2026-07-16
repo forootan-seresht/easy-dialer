@@ -1,8 +1,6 @@
 package app.arteh.easydialer.calling
 
 import android.app.Application
-import android.media.Ringtone
-import android.media.RingtoneManager
 import android.telecom.Call
 import android.telecom.CallAudioState
 import android.telecom.VideoProfile
@@ -21,7 +19,6 @@ class CallVM(application: Application) : AndroidViewModel(application) {
     private var _uiState = MutableStateFlow(CallUiState())
     val uiState = _uiState.asStateFlow()
 
-    private var ringtone: Ringtone? = null
     private lateinit var call: Call
 
     var isFirstTime = true
@@ -47,17 +44,14 @@ class CallVM(application: Application) : AndroidViewModel(application) {
                     when (info.state) {
                         Call.STATE_RINGING -> {
                             _uiState.update { it.copy(state = CallState.Incoming) }
-                            startRingtone()
                         }
 
                         Call.STATE_ACTIVE -> {
                             _uiState.update { it.copy(state = CallState.Talking) }
-                            stopRingtone()
                         }
 
                         Call.STATE_DISCONNECTED -> {
                             _uiState.update { it.copy(state = CallState.Rejected) }
-                            stopRingtone()
                         }
                     }
                 }
@@ -81,20 +75,6 @@ class CallVM(application: Application) : AndroidViewModel(application) {
     private fun getContact(normalizedNumber: String) {
         val contact = Holder.contactRP.getContactByNumber(normalizedNumber)
         _uiState.update { it.copy(contact = contact) }
-    }
-
-    private fun startRingtone() {
-        if (ringtone?.isPlaying == true) return
-
-        val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
-        ringtone = RingtoneManager.getRingtone(getApplication(), uri)
-        ringtone?.isLooping = true
-        ringtone?.play()
-    }
-
-    private fun stopRingtone() {
-        ringtone?.stop()
-        ringtone = null
     }
 
     private fun answer() {
@@ -158,7 +138,6 @@ class CallVM(application: Application) : AndroidViewModel(application) {
     }
 
     override fun onCleared() {
-        stopRingtone()
         stopDtmf()
 
         super.onCleared()

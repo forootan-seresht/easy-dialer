@@ -4,6 +4,8 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
+import android.media.Ringtone
+import android.media.RingtoneManager
 import android.os.Handler
 import android.os.Looper
 import android.telecom.Call
@@ -21,7 +23,9 @@ import kotlinx.coroutines.flow.StateFlow
 class MyInCallService : InCallService() {
 
     private val notificationId = 123
-    private val channelId = "call_channel"
+    private val channelId = "incoming_call_channel"
+
+    private var ringtone: Ringtone? = null
 
     companion object {
         private val _callState = MutableStateFlow<CallInfo?>(null)
@@ -50,6 +54,7 @@ class MyInCallService : InCallService() {
         call.registerCallback(callCallback)
 
         if (call.state == Call.STATE_RINGING) {
+            startRingtone()
             showCallNotification(call)
         }
         else {
@@ -65,6 +70,7 @@ class MyInCallService : InCallService() {
     override fun onCallRemoved(call: Call) {
         call.unregisterCallback(callCallback)
         updateFlow(null)
+        stopRingtone()
 
         val notificationManager =
             getSystemService(NOTIFICATION_SERVICE) as NotificationManager
@@ -73,23 +79,37 @@ class MyInCallService : InCallService() {
         super.onCallRemoved(call)
     }
 
+    private fun startRingtone() {
+        if (ringtone?.isPlaying == true) return
+
+        val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+        ringtone = RingtoneManager.getRingtone(this, uri)
+        ringtone?.isLooping = true
+        ringtone?.play()
+    }
+
+    private fun stopRingtone() {
+        ringtone?.stop()
+        ringtone = null
+    }
+
     private fun showCallNotification(call: Call) {
-        val notificationManager =
-            getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
         val channel = NotificationChannel(
             channelId,
             getString(R.string.channel_name),
             NotificationManager.IMPORTANCE_HIGH
-        )
-        channel.description = getString(R.string.channel_description)
+        ).apply {
+            description = getString(R.string.channel_description)
+            // Set sound to null because we handle it manually via RingtoneManager
+            setSound(null, null)
+        }
         notificationManager.createNotificationChannel(channel)
 
-//        val number = call.details.handle?.schemeSpecificPart ?: getString(R.string.unknown)
-        val number = call.details.handle?.schemeSpecificPart ?: "ناشناس 2"
-        val contact = Holder.contactRP.getContactByNumber(number.takeLast(9))
-//        val contactName = contact?.name ?: getString(R.string.unknown)
-        val contactName = contact?.name ?: "ناشناس 5"
+        val number = call.details.handle?.schemeSpecificPart ?: getString(R.string.unknown)
+        val contact = Holder.contactRP.findContactByNumber(this, number.takeLast(9))
+        val contactName = contact?.name ?: getString(R.string.unknown)
 
         val intent = Intent(this, CallActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -120,7 +140,8 @@ class MyInCallService : InCallService() {
             .setImportant(true)
 
         contact?.photoUri?.let { uri ->
-            Holder.loadBitmapUri(this, uri)?.let { bitmap ->
+            val bitmap = Holder.loadBitmapUri(this, uri)
+            bitmap?.let { bitmap ->
                 val circularBitmap = Holder.getCircularBitmap(bitmap)
                 personBuilder.setIcon(IconCompat.createWithBitmap(circularBitmap))
             }
@@ -136,6 +157,7 @@ class MyInCallService : InCallService() {
             .setCategory(NotificationCompat.CATEGORY_CALL)
             .setAutoCancel(true)
             .setOngoing(true)
+            .setSound(null) // Explicitly silence the builder
             .setFullScreenIntent(pendingIntent, true)
             .setStyle(
                 NotificationCompat.CallStyle.forIncomingCall(
@@ -152,6 +174,13 @@ class MyInCallService : InCallService() {
     private val callCallback = object : Call.Callback() {
         override fun onStateChanged(call: Call, state: Int) {
             updateFlow(call)
+
+            if (state == Call.STATE_ACTIVE || state == Call.STATE_DISCONNECTED) {
+                stopRingtone()
+                val notificationManager =
+                    getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+                notificationManager.cancel(notificationId)
+            }
         }
     }
 
@@ -159,8 +188,7 @@ class MyInCallService : InCallService() {
         _callState.value = if (call != null)
             CallInfo(
                 call,
-//                number = call.details.handle?.schemeSpecificPart ?: getString(R.string.unknown),
-                number = call.details.handle?.schemeSpecificPart ?: "ناشنناس",
+                number = call.details.handle?.schemeSpecificPart ?: getString(R.string.unknown),
                 state = call.state
             )
         else null

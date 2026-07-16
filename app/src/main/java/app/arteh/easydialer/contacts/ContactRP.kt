@@ -272,10 +272,55 @@ class ContactRP {
     fun getContactByNumber(normalizedNumber: String): Contact? {
         val list = contactsList.value
 
-        if (list.isEmpty()) println("COntact list is empty")
-
         for (contact in list)
             if (contact.phone.endsWith(normalizedNumber)) return contact
+
+        return null
+    }
+
+    fun findContactByNumber(context: Context, number: String): Contact? {
+        val cr = context.contentResolver
+        val uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI
+
+        val projection = arrayOf(
+            ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
+            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+            ContactsContract.CommonDataKinds.Phone.NUMBER,
+            ContactsContract.CommonDataKinds.Phone.PHOTO_THUMBNAIL_URI,
+            ContactsContract.CommonDataKinds.Phone.PHOTO_URI
+        )
+
+        // Using LIKE to match the suffix as requested
+        val selection = "${ContactsContract.CommonDataKinds.Phone.NUMBER} LIKE ?"
+        val selectionArgs = arrayOf("%$number")
+
+        val cursor = cr.query(uri, projection, selection, selectionArgs, null)
+
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val id = it.getLong(it.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.CONTACT_ID))
+                val name =
+                    it.getString(it.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME))
+                val phoneNumber =
+                    it.getString(it.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER))
+                val thumbUri =
+                    it.getString(it.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.PHOTO_THUMBNAIL_URI))
+                        ?.toUri()
+                val photoUri =
+                    it.getString(it.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.PHOTO_URI))
+                        ?.toUri()
+
+                return Contact(
+                    id = id,
+                    name = name,
+                    phone = phoneNumber,
+                    thumbUri = thumbUri,
+                    photoUri = photoUri,
+                    defaultSimID = -1,
+                    key = lazyKey++
+                )
+            }
+        }
 
         return null
     }
