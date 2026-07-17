@@ -8,7 +8,7 @@ sealed interface ContactAction {
     data class ShowMakeCall(val contact: Contact) : ContactAction
     data class ShowSendSMS(val contact: Contact) : ContactAction
     data class UpdateSearchText(val text: String) : ContactAction
-    data class GoSettings(val context: Context): ContactAction
+    data class GoSettings(val context: Context) : ContactAction
 
-    data object GoAddContact: ContactAction
+    data object GoAddContact : ContactAction
 }

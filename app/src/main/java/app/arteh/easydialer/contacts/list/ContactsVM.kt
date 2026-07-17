@@ -74,13 +74,14 @@ class ContactsVM(application: Application) : AndroidViewModel(application) {
 
     private fun searchContact(name: String) {
         searchJob?.cancel()
+
         searchJob = viewModelScope.launch {
             combine(
                 Holder.contactRP.contactsList,
                 Holder.contactRP.favoritesFlow
-            ) { allContacts, favorites ->
-                val filtered = if (name.isEmpty()) allContacts
-                else allContacts.filter { it.name.contains(name, ignoreCase = true) }
+            ) { _, _ ->
+                val filtered = Holder.contactRP.queryContacts(name, getApplication())
+                val favorites = Holder.contactRP.getFavoriteContacts(getApplication(), name)
 
                 val grouped = filtered.groupBy { contact ->
                     val firstChar = contact.name.firstOrNull()?.uppercaseChar() ?: '#'

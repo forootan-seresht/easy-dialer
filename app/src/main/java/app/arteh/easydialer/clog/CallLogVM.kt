@@ -9,8 +9,8 @@ import app.arteh.easydialer.clog.models.LogStatus
 import app.arteh.easydialer.clog.models.UIState
 import app.arteh.easydialer.contacts.show.ContactAction
 import app.arteh.easydialer.contacts.show.ContactActivity
-import app.arteh.easydialer.utility.dialer_hr.DialerHR
 import app.arteh.easydialer.utility.SimCardHR
+import app.arteh.easydialer.utility.dialer_hr.DialerHR
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

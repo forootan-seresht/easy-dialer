@@ -98,11 +98,22 @@ class ContactRP {
             ContactsContract.PhoneLookup.PHOTO_URI,
         )
 
+        val selection = if (name.isEmpty()) null
+        else {
+            "${ContactsContract.Data.CONTACT_ID} IN (" +
+                    "SELECT ${ContactsContract.Data.CONTACT_ID} FROM data " +
+                    "WHERE ${ContactsContract.Data.DATA1} LIKE ? OR " +
+                    "${ContactsContract.Data.DATA4} LIKE ? OR " +
+                    "${ContactsContract.Data.DISPLAY_NAME} LIKE ?" +
+                    ")"
+        }
+        val selectionArgs = if (name.isEmpty()) null else arrayOf("%$name%", "%$name%", "%$name%")
+
         val cursor = cr.query(
             ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
             columns,
-            ContactsContract.Contacts.DISPLAY_NAME + " Like '%$name%'",
-            null,
+            selection,
+            selectionArgs,
             ContactsContract.Contacts.DISPLAY_NAME
         )
 
@@ -245,7 +256,13 @@ class ContactRP {
                     val phoneSimID = db.phoneDefaultsDao().getByID(phoneID)?.simID ?: -1
 
                     phoneList.add(
-                        ContactPhone(phoneID, number, numberType, isBlocked, defaultSimID = phoneSimID)
+                        ContactPhone(
+                            phoneID,
+                            number,
+                            numberType,
+                            isBlocked,
+                            defaultSimID = phoneSimID
+                        )
                     )
 
                     contact = EditableContact(
@@ -486,7 +503,7 @@ class ContactRP {
         context.contentResolver.update(uri, values, null, null)
     }
 
-    suspend fun getFavoriteContacts(context: Context): List<Contact> {
+    suspend fun getFavoriteContacts(context: Context, query: String = ""): List<Contact> {
         val projection: Array<String> = arrayOf(
             ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
             ContactsContract.CommonDataKinds.Phone._ID,
@@ -499,11 +516,24 @@ class ContactRP {
             ContactsContract.PhoneLookup.PHOTO_URI,
         )
 
+        var selection = "${ContactsContract.Contacts.STARRED} = 1"
+        var selectionArgs: Array<String>? = null
+
+        if (query.isNotEmpty()) {
+            selection += " AND ${ContactsContract.Data.CONTACT_ID} IN (" +
+                    "SELECT ${ContactsContract.Data.CONTACT_ID} FROM data " +
+                    "WHERE ${ContactsContract.Data.DATA1} LIKE ? OR " +
+                    "${ContactsContract.Data.DATA4} LIKE ? OR " +
+                    "${ContactsContract.Data.DISPLAY_NAME} LIKE ?" +
+                    ")"
+            selectionArgs = arrayOf("%$query%", "%$query%", "%$query%")
+        }
+
         val cursor = context.contentResolver.query(
             ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
             projection,
-            "${ContactsContract.Contacts.STARRED} = 1",
-            null,
+            selection,
+            selectionArgs,
             ContactsContract.Contacts.DISPLAY_NAME + " ASC"
         )
         return processContacts(cursor)

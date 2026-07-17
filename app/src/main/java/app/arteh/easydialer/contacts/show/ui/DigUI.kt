@@ -37,8 +37,8 @@ import androidx.compose.ui.unit.sp
 import app.arteh.easydialer.R
 import app.arteh.easydialer.contacts.edit.ContactPhone
 import app.arteh.easydialer.contacts.edit.EditableContact
-import app.arteh.easydialer.contacts.show.ShareChecks
 import app.arteh.easydialer.contacts.models.SpeedDialEntry
+import app.arteh.easydialer.contacts.show.ShareChecks
 import app.arteh.easydialer.ui.CustomDialogue
 import app.arteh.easydialer.ui.CustomDigButtons
 import app.arteh.easydialer.ui.CustomPopup
