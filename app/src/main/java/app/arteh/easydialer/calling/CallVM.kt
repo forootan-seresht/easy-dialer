@@ -9,6 +9,9 @@ import androidx.lifecycle.viewModelScope
 import app.arteh.easydialer.calling.service.MyInCallService
 import app.arteh.easydialer.db.AppDatabase
 import app.arteh.easydialer.utility.Holder
+import app.arteh.easydialer.utility.PreferencesManager
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -23,7 +26,16 @@ class CallVM(application: Application) : AndroidViewModel(application) {
 
     var isFirstTime = true
 
+    private var durationJob: Job? = null
+
     init {
+        viewModelScope.launch {
+            val prefs = PreferencesManager(application)
+            prefs.getIsBigButtons().collect { isBig ->
+                _uiState.update { it.copy(isBigSize = isBig) }
+            }
+        }
+
         viewModelScope.launch {
             Holder.contactRP.initialize(
                 application,
@@ -48,15 +60,32 @@ class CallVM(application: Application) : AndroidViewModel(application) {
 
                         Call.STATE_ACTIVE -> {
                             _uiState.update { it.copy(state = CallState.Talking) }
+                            startTimer()
                         }
 
                         Call.STATE_DISCONNECTED -> {
                             _uiState.update { it.copy(state = CallState.Rejected) }
+                            stopTimer()
                         }
                     }
                 }
             }
         }
+    }
+
+    private fun startTimer() {
+        if (durationJob != null) return
+        durationJob = viewModelScope.launch {
+            while (true) {
+                delay(1000)
+                _uiState.update { it.copy(duration = it.duration + 1) }
+            }
+        }
+    }
+
+    private fun stopTimer() {
+        durationJob?.cancel()
+        durationJob = null
     }
 
     fun onAction(action: CallAction) {

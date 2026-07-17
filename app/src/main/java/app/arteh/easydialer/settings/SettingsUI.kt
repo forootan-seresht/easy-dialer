@@ -21,6 +21,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -51,6 +53,69 @@ fun SettingsScreen(padding: PaddingSides, settingsVM: SettingsVM = viewModel()) 
     ) {
         LanguageSection(uiState.language.displayName, settingsVM.supportedLanguages)
         { settingsVM.onAction(SettingsAction.UpdateLanguage(it, context)) }
+
+        DialStyleSection(uiState.isBigButtons) { isBig ->
+            settingsVM.onAction(SettingsAction.UpdateDialStyle(isBig, context))
+        }
+    }
+}
+
+@Composable
+private fun DialStyleSection(isBig: Boolean, updateStyle: (Boolean) -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(10.dp)
+    ) {
+        Text(
+            stringResource(R.string.dialer_style),
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(
+                    1.dp,
+                    AppColor.Gray1.resolve().copy(alpha = 0.5f),
+                    RoundedCornerShape(10.dp)
+                )
+                .padding(4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(if (!isBig) MaterialTheme.colorScheme.primary else Color.Transparent)
+                    .noRippleClickable { updateStyle(false) }
+                    .padding(vertical = 10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    stringResource(R.string.normal_buttons),
+                    color = if (!isBig) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                    fontWeight = if (!isBig) FontWeight.Bold else FontWeight.Normal
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(if (isBig) MaterialTheme.colorScheme.primary else Color.Transparent)
+                    .noRippleClickable { updateStyle(true) }
+                    .padding(vertical = 10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    stringResource(R.string.big_buttons),
+                    color = if (isBig) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                    fontWeight = if (isBig) FontWeight.Bold else FontWeight.Normal
+                )
+            }
+        }
     }
 }
 

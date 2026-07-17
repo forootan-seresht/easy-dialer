@@ -18,6 +18,7 @@ class PreferencesManager(private val context: Context) {
 
     val SPEED_DIAL_KEY = stringPreferencesKey("speed_dial_map")
     val LangKEY = stringPreferencesKey("lang")
+    val DIAL_STYLE_KEY = androidx.datastore.preferences.core.booleanPreferencesKey("dial_style")
 
     suspend fun saveSpeedDial(newSlot: Int, oldSlot: Int, entry: SpeedDialEntry) {
         context.dataStore.edit { prefs ->
@@ -85,5 +86,17 @@ class PreferencesManager(private val context: Context) {
     suspend fun getLang(): String {
         val preferences = context.dataStore.data.first()
         return preferences[LangKEY] ?: ""
+    }
+
+    suspend fun setIsBigButtons(isBig: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[DIAL_STYLE_KEY] = isBig
+        }
+    }
+
+    fun getIsBigButtons(): Flow<Boolean> {
+        return context.dataStore.data.map { prefs ->
+            prefs[DIAL_STYLE_KEY] ?: false
+        }
     }
 }

@@ -7,6 +7,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import app.arteh.easydialer.ui.EdgePadding
 import app.arteh.easydialer.ui.theme.EasyDialerTheme
 
 class CallActivity : AppCompatActivity() {
@@ -21,7 +23,7 @@ class CallActivity : AppCompatActivity() {
         setContent {
             EasyDialerTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    CallScreen()
+                    CallScreen(padding = EdgePadding(innerPadding, extra = 0.dp))
                 }
             }
         }

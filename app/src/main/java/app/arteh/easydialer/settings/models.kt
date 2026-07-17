@@ -4,6 +4,7 @@ import android.content.Context
 
 data class SettingsUIState(
     val language: AppLanguage = AppLanguage("en", "English"),
+    val isBigButtons: Boolean = false,
 )
 
 data class AppLanguage(
@@ -13,4 +14,5 @@ data class AppLanguage(
 
 sealed interface SettingsAction {
     data class UpdateLanguage(val index: Int, val context: Context) : SettingsAction
+    data class UpdateDialStyle(val isBig: Boolean, val context: Context) : SettingsAction
 }

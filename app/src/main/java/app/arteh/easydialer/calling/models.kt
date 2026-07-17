@@ -12,6 +12,9 @@ data class CallUiState(
 
     val isMute: Boolean = false,
     val isSpeaker: Boolean = false,
+
+    val duration: Long = 0,
+    val isBigSize: Boolean = false,
 )
 
 data class CallInfo(

@@ -8,4 +8,8 @@ class SettingsRP {
     suspend fun saveLanguage(lang: String, context: Context) {
         PreferencesManager(context).setLang(lang)
     }
+
+    suspend fun saveDialStyle(isBig: Boolean, context: Context) {
+        PreferencesManager(context).setIsBigButtons(isBig)
+    }
 }

@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,6 +38,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -43,18 +46,30 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import app.arteh.easydialer.R
 import app.arteh.easydialer.contacts.Contact
 import app.arteh.easydialer.dial.BigDialPadGrid
+import app.arteh.easydialer.ui.PaddingSides
 import app.arteh.easydialer.ui.noRippleClickable
 import app.arteh.easydialer.ui.theme.AppColor
+import app.arteh.easydialer.ui.theme.EasyDialerTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @Composable
-fun CallScreen(vm: CallVM = viewModel()) {
+fun CallScreen(padding: PaddingSides, vm: CallVM = viewModel()) {
     val uiState by vm.uiState.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
 
-    Box {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .background(AppColor.BackTrans.resolve())
+            .padding(
+                start = padding.start,
+                top = padding.top,
+                end = padding.end,
+                bottom = padding.bottom
+            )
+    ) {
         when (uiState.state) {
             CallState.Incoming -> IncomingCallUI(uiState.phoneNumber, uiState.contact, vm::onAction)
 
@@ -63,6 +78,7 @@ fun CallScreen(vm: CallVM = viewModel()) {
                 uiState.contact,
                 uiState.isMute,
                 uiState.isSpeaker,
+                uiState.isBigSize,
                 vm::onAction
             )
 
@@ -72,6 +88,8 @@ fun CallScreen(vm: CallVM = viewModel()) {
                 uiState.contact,
                 uiState.isMute,
                 uiState.isSpeaker,
+                uiState.duration,
+                uiState.isBigSize,
                 vm::onAction
             )
         }
@@ -121,6 +139,7 @@ private fun CallingUI(
     contact: Contact?,
     isMute: Boolean,
     isSpeaker: Boolean,
+    bigSize: Boolean,
     onAction: (CallAction) -> Unit
 ) {
     val context = LocalContext.current
@@ -140,7 +159,7 @@ private fun CallingUI(
 
     Column(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxSize()
             .padding(40.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -170,24 +189,26 @@ private fun CallingUI(
                 contentDescription = null
             )
 
+        Spacer(Modifier.weight(1f))
+
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
             BigCallButton(
                 if (isMute) R.drawable.mic_on
-                else R.drawable.mic_off, AppColor.GradYoda.resolve()
+                else R.drawable.mic_off, AppColor.GradYoda.resolve(), bigSize, bigSize
             ) { onAction(CallAction.ToggleMute) }
 
             BigCallButton(
                 if (isSpeaker) R.drawable.speaker_off
-                else R.drawable.speaker_on, Color(0xFF30A3FF)
+                else R.drawable.speaker_on, Color(0xFF30A3FF), bigSize, bigSize
             ) { onAction(CallAction.ToggleSpeaker) }
 
-            BigCallButton(R.drawable.dial, Color(0xFF9E67FF)) { onAction(CallAction.ShowDialPad) }
+            BigCallButton(R.drawable.dial, Color(0xFF9E67FF), bigSize, bigSize)
+            { onAction(CallAction.ShowDialPad) }
         }
 
         Row(modifier = Modifier.padding(top = 15.dp)) {
-            BigCallButton(
-                R.drawable.call_end, Color(0xFFFF2E2E)
-            ) { onAction(CallAction.HangUp) }
+            BigCallButton(R.drawable.call_end, Color(0xFFFF2E2E), true, bigSize)
+            { onAction(CallAction.HangUp) }
         }
     }
 }
@@ -198,11 +219,15 @@ private fun TalkingUI(
     contact: Contact?,
     isMute: Boolean,
     isSpeaker: Boolean,
+    duration: Long,
+    bigSize: Boolean,
     onAction: (CallAction) -> Unit
 ) {
     val context = LocalContext.current
 
     var contactPic by remember { mutableStateOf<ImageBitmap?>(null) }
+
+    val fontSize = if (bigSize) 32.sp else 25.sp
 
     if (contact?.photoUri != null)
         LaunchedEffect(contact.photoUri) {
@@ -217,21 +242,10 @@ private fun TalkingUI(
 
     Column(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxSize()
             .padding(40.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = contact?.name ?: "-",
-            fontSize = 32.sp,
-            fontWeight = FontWeight.ExtraBold,
-        )
-        Text(
-            text = number,
-            fontSize = 32.sp,
-            fontWeight = FontWeight.ExtraBold,
-        )
-
         if (contactPic != null)
             Image(
                 modifier = Modifier.size(150.dp),
@@ -239,23 +253,45 @@ private fun TalkingUI(
                 contentDescription = null
             )
 
+        if (contact != null && contact.name != "")
+            Text(
+                text = contact.name,
+                fontSize = fontSize,
+                fontWeight = FontWeight.ExtraBold,
+            )
+        Text(
+            text = number,
+            fontSize = fontSize,
+            fontWeight = FontWeight.ExtraBold,
+        )
+
+        Text(
+            text = formatDuration(duration),
+            fontSize = 18.sp,
+            color = Color.Gray,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+
+        Spacer(Modifier.weight(1f))
+
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
             BigCallButton(
                 if (isMute) R.drawable.mic_on
-                else R.drawable.mic_off, AppColor.GradYoda.resolve()
+                else R.drawable.mic_off, AppColor.GradYoda.resolve(), bigSize, bigSize
             ) { onAction(CallAction.ToggleMute) }
 
             BigCallButton(
                 if (isSpeaker) R.drawable.speaker_off
-                else R.drawable.speaker_on, Color(0xFF30A3FF)
+                else R.drawable.speaker_on, Color(0xFF30A3FF), bigSize, bigSize
             ) { onAction(CallAction.ToggleSpeaker) }
 
-            BigCallButton(R.drawable.dial, Color(0xFF9E67FF)) { onAction(CallAction.ShowDialPad) }
+            BigCallButton(R.drawable.dial, Color(0xFF9E67FF), bigSize, bigSize)
+            { onAction(CallAction.ShowDialPad) }
         }
 
         Row(modifier = Modifier.padding(top = 15.dp)) {
             BigCallButton(
-                R.drawable.call_end, Color(0xFFFF2E2E)
+                R.drawable.call_end, Color(0xFFFF2E2E), true, bigSize
             ) { onAction(CallAction.HangUp) }
         }
     }
@@ -327,34 +363,104 @@ private fun IncomingCallUI(number: String, contact: Contact?, onAction: (CallAct
                     .padding(horizontal = 32.dp, vertical = 100.dp),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-                BigCallButton(
-                    R.drawable.call, Color(0xFF33C385),
-                ) { onAction(CallAction.Answer) }
+                BigCallButton(R.drawable.call, Color(0xFF33C385), true, true)
+                { onAction(CallAction.Answer) }
 
-                BigCallButton(
-                    R.drawable.call_end, Color(0xFFF53F5A)
-                ) { onAction(CallAction.Reject) }
+                BigCallButton(R.drawable.call_end, Color(0xFFF53F5A), true, true)
+                { onAction(CallAction.Reject) }
             }
         }
     }
 }
 
 @Composable
-fun BigCallButton(icon: Int, color: Color, onClick: () -> Unit) {
+fun BigCallButton(
+    icon: Int,
+    color: Color,
+    colored: Boolean,
+    bigSize: Boolean,
+    onClick: () -> Unit
+) {
+    val background = if (colored) color else MaterialTheme.colorScheme.surface
+    val iconColor = if (colored) Color.White else AppColor.Font.resolve()
+
+    val size = if (bigSize) 80.dp else 60.dp
+    val iconSize = if (bigSize) 60.dp else 40.dp
+
     Column(
         modifier = Modifier
-            .size(80.dp)
-            .background(color, CircleShape)
-            .padding(20.dp)
+            .size(size)
+            .background(background, CircleShape)
             .noRippleClickable(onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            modifier = Modifier.size(60.dp),
+            modifier = Modifier.size(iconSize),
             painter = painterResource(icon),
             contentDescription = null,
-            tint = Color.White
+            tint = iconColor
         )
+    }
+}
+
+fun formatDuration(seconds: Long): String {
+    val h = seconds / 3600
+    val m = (seconds % 3600) / 60
+    val s = seconds % 60
+    return if (h > 0) {
+        String.format(java.util.Locale.getDefault(), "%02d:%02d:%02d", h, m, s)
+    }
+    else {
+        String.format(java.util.Locale.getDefault(), "%02d:%02d", m, s)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CallingUIPreview() {
+    EasyDialerTheme {
+        Surface {
+            CallingUI(
+                number = "123456789",
+                contact = Contact(1, "John Doe", "123456789", null, null, 0, 1),
+                isMute = false,
+                isSpeaker = false,
+                false,
+                onAction = {}
+            )
+        }
+    }
+}
+
+//@Preview(showBackground = true)
+@Composable
+fun TalkingUIPreview() {
+    EasyDialerTheme {
+        Surface {
+            TalkingUI(
+                number = "123456789",
+                contact = Contact(1, "John Doe", "123456789", null, null, 0, 1),
+                isMute = false,
+                isSpeaker = true,
+                duration = 125,
+                bigSize = false,
+                onAction = {}
+            )
+        }
+    }
+}
+
+//@Preview(showBackground = true)
+@Composable
+fun IncomingCallUIPreview() {
+    EasyDialerTheme {
+        Surface {
+            IncomingCallUI(
+                number = "123456789",
+                contact = Contact(1, "John Doe", "123456789", null, null, 0, 1),
+                onAction = {}
+            )
+        }
     }
 }

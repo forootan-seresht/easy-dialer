@@ -11,6 +11,7 @@ import app.arteh.easydialer.contacts.edit.EditContactActivity
 import app.arteh.easydialer.contacts.show.ContactAction
 import app.arteh.easydialer.contacts.show.ContactActivity
 import app.arteh.easydialer.utility.Holder
+import app.arteh.easydialer.utility.PreferencesManager
 import app.arteh.easydialer.utility.SimCardHR
 import app.arteh.easydialer.utility.dialer_hr.DialerHR
 import kotlinx.coroutines.Dispatchers
@@ -27,6 +28,14 @@ class DialPadVM(application: Application) : AndroidViewModel(application) {
 
     val simCardHR = SimCardHR(application)
     val dialerHR = DialerHR(simCardHR, application, {}, {})
+
+    init {
+        viewModelScope.launch {
+            PreferencesManager(application).getIsBigButtons().collect { isBig ->
+                _uiState.update { it.copy(isBigDial = isBig) }
+            }
+        }
+    }
 
     fun onAction(action: DialAction) {
         when (action) {
