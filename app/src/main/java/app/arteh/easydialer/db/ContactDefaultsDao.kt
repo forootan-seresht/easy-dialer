@@ -10,9 +10,6 @@ interface ContactDefaultsDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(cd: ContactDefaults): Long
 
-    @Query("Update contact_defaults set simID = :simID where contactID = :contactID")
-    suspend fun updateSim(contactID: Long, simID: Int): Int
-
     @Query("Update contact_defaults set numberID = :numberID where contactID = :contactID")
     suspend fun updateNumber(contactID: Long, numberID: Long): Int
 

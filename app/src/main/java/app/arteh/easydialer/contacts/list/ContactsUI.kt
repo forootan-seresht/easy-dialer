@@ -52,8 +52,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.arteh.easydialer.R
-import app.arteh.easydialer.contacts.Contact
-import app.arteh.easydialer.contacts.ContactHeader
+import app.arteh.easydialer.contacts.models.Contact
+import app.arteh.easydialer.contacts.models.ContactHeader
 import app.arteh.easydialer.contacts.list.models.ContactAction
 import app.arteh.easydialer.utility.dialer_hr.DigMySimCards
 import app.arteh.easydialer.ui.noRippleClickable

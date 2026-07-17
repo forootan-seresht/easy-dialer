@@ -6,13 +6,14 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [ContactDefaults::class],
+    entities = [ContactDefaults::class, PhoneNumberDefaults::class],
     version = 1,
     exportSchema = false
 )
 
 abstract class AppDatabase : RoomDatabase() {
     abstract fun contactDefaultsDao(): ContactDefaultsDao
+    abstract fun phoneDefaultsDao(): SimDefaultsDao
 
     companion object {
         @Volatile

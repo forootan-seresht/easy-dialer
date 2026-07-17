@@ -41,8 +41,10 @@
     <string name="always">همیشه</string>
     <string name="just_once">فقط یک‌بار</string>
     <string name="unlock">باز کردن قفل</string>
+    <string name="unblock">رفع مسدودیت</string>
     <string name="block">مسدود کردن</string>
     <string name="block_numbers">مسدود کردن شماره‌ها</string>
+    <string name="unblock_numbers">رفع مسدودیت شماره‌ها</string>
     <string name="business">شرکت</string>
     <string name="contact_image">تصویر مخاطب</string>
     <string name="clear">پاک کردن</string>

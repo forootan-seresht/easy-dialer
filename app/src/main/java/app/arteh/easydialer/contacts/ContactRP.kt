@@ -21,9 +21,11 @@ import app.arteh.easydialer.clog.models.LogStatus
 import app.arteh.easydialer.contacts.edit.ContactPhone
 import app.arteh.easydialer.contacts.edit.EditableContact
 import app.arteh.easydialer.contacts.edit.PhoneType
-import app.arteh.easydialer.contacts.speed.SpeedDialEntry
+import app.arteh.easydialer.contacts.models.Contact
+import app.arteh.easydialer.contacts.models.SpeedDialEntry
 import app.arteh.easydialer.db.AppDatabase
 import app.arteh.easydialer.db.ContactDefaults
+import app.arteh.easydialer.db.PhoneNumberDefaults
 import app.arteh.easydialer.utility.PreferencesManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -86,6 +88,7 @@ class ContactRP {
 
         val columns: Array<String> = arrayOf(
             ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
+            ContactsContract.CommonDataKinds.Phone._ID,
             ContactsContract.Contacts.DISPLAY_NAME,
 
             ContactsContract.RawContacts.ACCOUNT_NAME,
@@ -127,6 +130,8 @@ class ContactRP {
         cursor?.use { cursor ->
             val IDIndex =
                 cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)
+            val phoneIDIndex =
+                cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone._ID)
             val nameIndex = cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
             val accountIndex =
                 cursor.getColumnIndex(ContactsContract.RawContacts.ACCOUNT_NAME)
@@ -143,16 +148,17 @@ class ContactRP {
                     continue
 
                 val id = cursor.getLong(IDIndex)
+                val phoneID = cursor.getLong(phoneIDIndex)
                 val name = cursor.getString(nameIndex)
                 val number = cursor.getString(numberIndex).replace(" ", "")
                 val thumbURI = cursor.getString(thumbIndex)?.toUri()
                 val photoURI = cursor.getString(photoIndex)?.toUri()
 
-                val contactDefaults = db.contactDefaultsDao().getByID(id)
+                val simID = db.phoneDefaultsDao().getByID(phoneID)?.simID ?: -1
 
                 val contact = Contact(
-                    id, name, number, thumbURI, photoURI,
-                    contactDefaults?.simID ?: -1, lazyKey++
+                    id, phoneID, name, number, thumbURI, photoURI,
+                    simID, lazyKey++
                 )
                 contactMList.add(contact)
             }
@@ -236,20 +242,29 @@ class ContactRP {
                     val email = getEmail(cr, id)
                     val note = getNote(cr, id)
 
+                    val phoneSimID = db.phoneDefaultsDao().getByID(phoneID)?.simID ?: -1
+
+                    phoneList.add(
+                        ContactPhone(phoneID, number, numberType, isBlocked, defaultSimID = phoneSimID)
+                    )
+
                     contact = EditableContact(
                         contactID, rawContactID, firstName, lastName, job, company, email, note,
                         fullName, isStarred, phones = phoneList.toList(), photoUri = photoURI
                     )
                 }
-                else if (phoneList.indexOfFirst { it.number == number } == -1)
+                else if (phoneList.indexOfFirst { it.number == number } == -1) {
+                    val phoneSimID = db.phoneDefaultsDao().getByID(phoneID)?.simID ?: -1
                     phoneList.add(
                         ContactPhone(
                             phoneID,
                             number,
                             numberType,
-                            isNumberBlocked(context, number)
+                            isNumberBlocked(context, number),
+                            defaultSimID = phoneSimID
                         )
                     )
+                }
             }
 
             val contactDefaults = db.contactDefaultsDao().getByID(contact.contactID)
@@ -261,8 +276,7 @@ class ContactRP {
                 }
 
             contact = contact.copy(
-                phones = phoneList,
-                defaultSimID = contactDefaults?.simID ?: -1,
+                phones = phoneList
             )
         }
 
@@ -284,6 +298,7 @@ class ContactRP {
 
         val projection = arrayOf(
             ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
+            ContactsContract.CommonDataKinds.Phone._ID,
             ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
             ContactsContract.CommonDataKinds.Phone.NUMBER,
             ContactsContract.CommonDataKinds.Phone.PHOTO_THUMBNAIL_URI,
@@ -298,7 +313,10 @@ class ContactRP {
 
         cursor?.use {
             if (it.moveToFirst()) {
-                val id = it.getLong(it.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.CONTACT_ID))
+                val id =
+                    it.getLong(it.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.CONTACT_ID))
+                val phoneID =
+                    it.getLong(it.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone._ID))
                 val name =
                     it.getString(it.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME))
                 val phoneNumber =
@@ -312,6 +330,7 @@ class ContactRP {
 
                 return Contact(
                     id = id,
+                    phoneID = phoneID,
                     name = name,
                     phone = phoneNumber,
                     thumbUri = thumbUri,
@@ -470,6 +489,7 @@ class ContactRP {
     suspend fun getFavoriteContacts(context: Context): List<Contact> {
         val projection: Array<String> = arrayOf(
             ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
+            ContactsContract.CommonDataKinds.Phone._ID,
             ContactsContract.Contacts.DISPLAY_NAME,
 
             ContactsContract.RawContacts.ACCOUNT_NAME,
@@ -489,14 +509,18 @@ class ContactRP {
         return processContacts(cursor)
     }
 
-    suspend fun saveDefaultSim(contactID: Long, simID: Int) {
-        if (db.contactDefaultsDao().updateSim(contactID, simID) == 0)
-            db.contactDefaultsDao().insert(ContactDefaults(contactID, simID, 0L))
+    suspend fun savePhoneDefaultSim(phoneID: Long, simID: Int) {
+        if (db.phoneDefaultsDao().updateSim(phoneID, simID) == 0)
+            db.phoneDefaultsDao().insert(PhoneNumberDefaults(phoneID, simID))
+    }
+
+    suspend fun getPhoneDefaultSim(phoneID: Long): Int {
+        return db.phoneDefaultsDao().getByID(phoneID)?.simID ?: -1
     }
 
     suspend fun saveDefaultNumber(contactID: Long, numberID: Long) {
         if (db.contactDefaultsDao().updateNumber(contactID, numberID) == 0)
-            db.contactDefaultsDao().insert(ContactDefaults(contactID, 0, numberID))
+            db.contactDefaultsDao().insert(ContactDefaults(contactID, numberID))
     }
 
     @SuppressLint("Range")

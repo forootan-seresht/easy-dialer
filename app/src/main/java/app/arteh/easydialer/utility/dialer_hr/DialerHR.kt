@@ -39,17 +39,21 @@ class DialerHR(
         currentAction = action
         currentNumbers = numbers
 
-        if (defaultSimID == -1) {
-            if (has2Sims(defaultSimID)) return
-        }
-        else activeSim = defaultSimID
-
         var phoneIndex = phoneNumberIndex
 
         if (phoneIndex == -1)
             phoneIndex = getDefaultNumber(numbers)
 
         if (phoneIndex == -1) return
+
+        var simID = defaultSimID
+        val phone = numbers[phoneIndex]
+        if (phone.defaultSimID != -1) simID = phone.defaultSimID
+
+        if (simID == -1) {
+            if (has2Sims(simID)) return
+        }
+        else activeSim = simID
 
         val defaultNumber = numbers[phoneIndex].number
 

@@ -2,12 +2,13 @@ package app.arteh.easydialer.contacts.show
 
 import android.content.Context
 import app.arteh.easydialer.contacts.edit.EditableContact
-import app.arteh.easydialer.contacts.speed.SpeedDialEntry
+import app.arteh.easydialer.contacts.models.SpeedDialEntry
 
 data class ShowState(
     val showDelete: Boolean = false,
     val showSpeedList: Boolean = false,
     val showBlock: Boolean = false,
+    val showUnblock: Boolean = false,
     val showShare: Boolean = false,
 )
 
@@ -51,9 +52,11 @@ sealed interface ContactUIAction {
     data object ShowSendSMS : ContactUIAction
     data object ShowDelete : ContactUIAction
     data object ShowBlocK : ContactUIAction
+    data object ShowUnblock : ContactUIAction
 
     data object ReloadContact : ContactUIAction
     data object BlockNumbers : ContactUIAction
+    data object UnblockNumbers : ContactUIAction
 }
 
 enum class ContactAction {

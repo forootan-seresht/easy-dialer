@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import app.arteh.easydialer.contacts.edit.EditContactActivity
 import app.arteh.easydialer.contacts.list.models.ContactAction
 import app.arteh.easydialer.contacts.list.models.ContactsUIState
+import app.arteh.easydialer.contacts.models.ContactHeader
 import app.arteh.easydialer.contacts.show.ContactActivity
 import app.arteh.easydialer.settings.SettingsActivity
 import app.arteh.easydialer.utility.Holder
@@ -84,7 +85,7 @@ class ContactsVM(application: Application) : AndroidViewModel(application) {
                 val grouped = filtered.groupBy { contact ->
                     val firstChar = contact.name.firstOrNull()?.uppercaseChar() ?: '#'
                     val headerColor = Holder.colors[firstChar.toInt() % 7]
-                    app.arteh.easydialer.contacts.ContactHeader(
+                    ContactHeader(
                         char = firstChar,
                         color = headerColor
                     )

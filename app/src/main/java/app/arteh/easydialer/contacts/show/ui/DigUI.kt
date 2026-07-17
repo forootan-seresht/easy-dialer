@@ -38,7 +38,7 @@ import app.arteh.easydialer.R
 import app.arteh.easydialer.contacts.edit.ContactPhone
 import app.arteh.easydialer.contacts.edit.EditableContact
 import app.arteh.easydialer.contacts.show.ShareChecks
-import app.arteh.easydialer.contacts.speed.SpeedDialEntry
+import app.arteh.easydialer.contacts.models.SpeedDialEntry
 import app.arteh.easydialer.ui.CustomDialogue
 import app.arteh.easydialer.ui.CustomDigButtons
 import app.arteh.easydialer.ui.CustomPopup
@@ -84,6 +84,33 @@ internal fun DigBlockNumbers(
             stringResource(R.string.block),
             AppColor.GradRed.resolve(),
             onBlock,
+            dismissPopup
+        )
+    }
+}
+
+@Composable
+internal fun DigUnblockNumbers(
+    phones: List<ContactPhone>, dismissPopup: () -> Unit, onUnblock: () -> Unit
+) {
+    CustomPopup(dismissPopup) {
+
+        Text(stringResource(R.string.unblock), fontWeight = FontWeight.Bold)
+
+        Spacer(Modifier.height(10.dp))
+
+        phones.forEach { phone ->
+            Text(
+                modifier = Modifier.padding(horizontal = 10.dp),
+                text = phone.number,
+                style = LocalTextStyle.current.copy(textDirection = TextDirection.Ltr)
+            )
+        }
+
+        CustomDigButtons(
+            stringResource(R.string.unblock),
+            AppColor.GradGreen.resolve(),
+            onUnblock,
             dismissPopup
         )
     }

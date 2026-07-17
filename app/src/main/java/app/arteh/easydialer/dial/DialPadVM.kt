@@ -156,10 +156,11 @@ class DialPadVM(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val map = Holder.contactRP.speedDialMap.firstOrNull()
             if (map != null) {
-                val phoneNumber = map[digit.toInt()]?.phoneNumber
-                if (phoneNumber != null) {
-                    _uiState.update { it.copy(dialedNumber = phoneNumber) }
-                    makeCall(phoneNumber)
+                val entry = map[digit.toInt()]
+                if (entry != null) {
+                    _uiState.update { it.copy(dialedNumber = entry.phoneNumber) }
+                    val simID = Holder.contactRP.getPhoneDefaultSim(entry.phoneId)
+                    dialerHR.makeAction(ContactAction.Call, simID, entry.phoneNumber)
                 }
                 else Toast.makeText(
                     context, context.getString(R.string.no_speed_dial1) + "\n" +

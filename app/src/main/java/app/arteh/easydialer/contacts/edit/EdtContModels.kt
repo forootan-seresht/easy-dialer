@@ -4,7 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import app.arteh.easydialer.R
-import app.arteh.easydialer.contacts.speed.SpeedDialEntry
+import app.arteh.easydialer.contacts.models.SpeedDialEntry
 import com.image.cropview.CropType
 
 data class EdtContUIState(
@@ -48,6 +48,7 @@ data class ContactPhone(
     val isBLocked: Boolean = false,
     val isDeleted: Boolean = false,
     val isDefault: Boolean = false,
+    val defaultSimID: Int = -1,
 )
 
 enum class PhoneType(val fullName: Int, val icon: Int) {

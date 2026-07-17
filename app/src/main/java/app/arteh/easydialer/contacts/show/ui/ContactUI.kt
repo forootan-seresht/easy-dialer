@@ -51,7 +51,7 @@ import app.arteh.easydialer.contacts.edit.ContactPhone
 import app.arteh.easydialer.contacts.edit.EditContactActivity
 import app.arteh.easydialer.contacts.edit.EditableContact
 import app.arteh.easydialer.contacts.edit.PhoneType
-import app.arteh.easydialer.contacts.speed.SpeedDialEntry
+import app.arteh.easydialer.contacts.models.SpeedDialEntry
 import app.arteh.easydialer.contacts.show.ContactUIAction
 import app.arteh.easydialer.contacts.show.ContactVM
 import app.arteh.easydialer.contacts.show.ShareChecks
@@ -94,7 +94,7 @@ fun ShowScreen(contactVM: ContactVM = viewModel(), padding: PaddingSides) {
 
             ContactInfo(uiState.contact, uiState.speedDialMap, contactVM::onAction)
 
-            OptionsButtons(contactVM::onAction)
+            OptionsButtons(uiState.isBLocked, contactVM::onAction)
         }
 
     val dismissPopup = contactVM::dismissPopup
@@ -114,6 +114,9 @@ fun ShowScreen(contactVM: ContactVM = viewModel(), padding: PaddingSides) {
     else if (showState.showBlock)
         DigBlockNumbers(uiState.contact!!.phones, dismissPopup)
         { contactVM.onAction(ContactUIAction.BlockNumbers) }
+    else if (showState.showUnblock)
+        DigUnblockNumbers(uiState.contact!!.phones, dismissPopup)
+        { contactVM.onAction(ContactUIAction.UnblockNumbers) }
     else if (showState.showDelete)
         DigDelete(dismissPopup) { contactVM.onAction(ContactUIAction.DeleteContact(context)) }
     else if (showState.showSpeedList)
@@ -293,7 +296,7 @@ private fun ContactInfo(
 }
 
 @Composable
-private fun OptionsButtons(onAction: (ContactUIAction) -> Unit) {
+private fun OptionsButtons(isBlocked: Boolean, onAction: (ContactUIAction) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -307,11 +310,18 @@ private fun OptionsButtons(onAction: (ContactUIAction) -> Unit) {
             stringResource(R.string.share_contact),
             { onAction(ContactUIAction.ShowShareContact) })
 
-        ItemOption(
-            R.drawable.block,
-            AppColor.GradRed.resolve(),
-            stringResource(R.string.block_numbers),
-            { onAction(ContactUIAction.ShowBlocK) })
+        if (isBlocked)
+            ItemOption(
+                R.drawable.block,
+                AppColor.GradGreen.resolve(),
+                stringResource(R.string.unblock_numbers),
+                { onAction(ContactUIAction.ShowUnblock) })
+        else
+            ItemOption(
+                R.drawable.block,
+                AppColor.GradRed.resolve(),
+                stringResource(R.string.block_numbers),
+                { onAction(ContactUIAction.ShowBlocK) })
 
         ItemOption(
             R.drawable.delete,

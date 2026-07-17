@@ -7,6 +7,12 @@ import androidx.room.PrimaryKey
 data class ContactDefaults(
     @PrimaryKey(autoGenerate = false)
     val contactID: Long,
-    val simID: Int,
     val numberID: Long,
+)
+
+@Entity(tableName = "phone_defaults")
+data class PhoneNumberDefaults(
+    @PrimaryKey(autoGenerate = false)
+    val phoneID: Long,
+    val simID: Int,
 )

@@ -2,7 +2,7 @@ package app.arteh.easydialer.dial
 
 import android.content.Context
 import app.arteh.easydialer.clog.models.Clog
-import app.arteh.easydialer.contacts.Contact
+import app.arteh.easydialer.contacts.models.Contact
 
 data class DialUIState(
     val dialedNumber: String = "",

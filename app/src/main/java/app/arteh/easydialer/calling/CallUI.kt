@@ -44,7 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.arteh.easydialer.R
-import app.arteh.easydialer.contacts.Contact
+import app.arteh.easydialer.contacts.models.Contact
 import app.arteh.easydialer.dial.BigDialPadGrid
 import app.arteh.easydialer.ui.PaddingSides
 import app.arteh.easydialer.ui.noRippleClickable
@@ -423,7 +423,7 @@ fun CallingUIPreview() {
         Surface {
             CallingUI(
                 number = "123456789",
-                contact = Contact(1, "John Doe", "123456789", null, null, 0, 1),
+                contact = Contact(1, 1, "John Doe", "123456789", null, null, 0, 1),
                 isMute = false,
                 isSpeaker = false,
                 false,
@@ -440,7 +440,7 @@ fun TalkingUIPreview() {
         Surface {
             TalkingUI(
                 number = "123456789",
-                contact = Contact(1, "John Doe", "123456789", null, null, 0, 1),
+                contact = Contact(1, 1, "John Doe", "123456789", null, null, 0, 1),
                 isMute = false,
                 isSpeaker = true,
                 duration = 125,
@@ -458,7 +458,7 @@ fun IncomingCallUIPreview() {
         Surface {
             IncomingCallUI(
                 number = "123456789",
-                contact = Contact(1, "John Doe", "123456789", null, null, 0, 1),
+                contact = Contact(1, 1, "John Doe", "123456789", null, null, 0, 1),
                 onAction = {}
             )
         }

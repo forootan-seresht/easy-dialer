@@ -1,7 +1,7 @@
 package app.arteh.easydialer.contacts.list.models
 
 import android.content.Context
-import app.arteh.easydialer.contacts.Contact
+import app.arteh.easydialer.contacts.models.Contact
 
 sealed interface ContactAction {
     data class ShowContact(val contactID: Long) : ContactAction

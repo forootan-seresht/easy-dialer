@@ -1,7 +1,7 @@
 package app.arteh.easydialer.calling
 
 import android.telecom.Call
-import app.arteh.easydialer.contacts.Contact
+import app.arteh.easydialer.contacts.models.Contact
 
 data class CallUiState(
     val state: CallState = CallState.Calling,
