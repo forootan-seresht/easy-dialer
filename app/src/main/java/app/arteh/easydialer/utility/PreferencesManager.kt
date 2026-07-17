@@ -46,7 +46,7 @@ class PreferencesManager(private val context: Context) {
 
         for ((slot, entry) in map) {
             val obj = JSONObject().apply {
-                put("contactId", entry.contactId)
+                put("phoneId", entry.phoneId)
                 put("phoneNumber", entry.phoneNumber)
                 put("displayName", entry.displayName)
             }
@@ -66,7 +66,7 @@ class PreferencesManager(private val context: Context) {
             val obj = root.getJSONObject(key)
 
             val entry = SpeedDialEntry(
-                contactId = obj.getLong("contactId"),
+                phoneId = obj.getLong("phoneId"),
                 phoneNumber = obj.getString("phoneNumber"),
                 displayName = obj.getString("displayName")
             )

@@ -49,14 +49,7 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
         reloadContact()
         viewModelScope.launch {
             Holder.contactRP.speedDialMap.collect { map ->
-                var slot: Int = -1
-                for (entry in map)
-                    if (entry.value.contactId == contactID) {
-                        slot = entry.key
-                        break
-                    }
-
-                _uiState.update { it.copy(speedSlot = slot, speedDialMap = map) }
+                _uiState.update { it.copy(speedDialMap = map) }
             }
         }
     }
@@ -229,10 +222,10 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
     fun showSpeedDial(phoneIDX: Int) {
         selectedPhoneIDX = phoneIDX
 
-        val phoneNumber = uiState.value.contact!!.phones[phoneIDX].number
+        val phoneID = uiState.value.contact!!.phones[phoneIDX].phoneID
         var slot = -1
         for (entry in uiState.value.speedDialMap) {
-            if (entry.value.contactId == contactID && entry.value.phoneNumber == phoneNumber) {
+            if (entry.value.phoneId == phoneID) {
                 slot = entry.key
                 break
             }
@@ -260,14 +253,14 @@ class ContactVM(application: Application, savedStateHandle: SavedStateHandle) :
             var oldSlot = -1
 
             for (entry in uiState.value.speedDialMap) {
-                if (entry.value.contactId == contactID) {
+                if (entry.value.phoneId == contactPhone.phoneID) {
                     oldSlot = entry.key
                     break
                 }
             }
 
             val entry = SpeedDialEntry(
-                contactID,
+                contactPhone.phoneID,
                 contactPhone.number,
                 uiState.value.contact!!.fullName
             )

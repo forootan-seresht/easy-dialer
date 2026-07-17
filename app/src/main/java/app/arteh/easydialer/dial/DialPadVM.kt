@@ -153,22 +153,19 @@ class DialPadVM(application: Application) : AndroidViewModel(application) {
     fun onNumberLongPress(digit: String) {
         val context = getApplication() as Context
 
-        if (digit == "0")
-            _uiState.update { it.copy(dialedNumber = it.dialedNumber + "0") }
-        else
-            viewModelScope.launch {
-                val map = Holder.contactRP.speedDialMap.firstOrNull()
-                if (map != null) {
-                    val phoneNumber = map[digit.toInt()]?.phoneNumber
-                    if (phoneNumber != null) {
-                        _uiState.update { it.copy(dialedNumber = phoneNumber) }
-                        makeCall(phoneNumber)
-                    }
-                    else Toast.makeText(
-                        context, context.getString(R.string.no_speed_dial1) + "\n" +
-                                context.getString(R.string.no_speed_dial2), Toast.LENGTH_LONG
-                    ).show()
+        viewModelScope.launch {
+            val map = Holder.contactRP.speedDialMap.firstOrNull()
+            if (map != null) {
+                val phoneNumber = map[digit.toInt()]?.phoneNumber
+                if (phoneNumber != null) {
+                    _uiState.update { it.copy(dialedNumber = phoneNumber) }
+                    makeCall(phoneNumber)
                 }
+                else Toast.makeText(
+                    context, context.getString(R.string.no_speed_dial1) + "\n" +
+                            context.getString(R.string.no_speed_dial2), Toast.LENGTH_LONG
+                ).show()
             }
+        }
     }
 }

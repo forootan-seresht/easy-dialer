@@ -51,6 +51,7 @@ import app.arteh.easydialer.contacts.edit.ContactPhone
 import app.arteh.easydialer.contacts.edit.EditContactActivity
 import app.arteh.easydialer.contacts.edit.EditableContact
 import app.arteh.easydialer.contacts.edit.PhoneType
+import app.arteh.easydialer.contacts.speed.SpeedDialEntry
 import app.arteh.easydialer.contacts.show.ContactUIAction
 import app.arteh.easydialer.contacts.show.ContactVM
 import app.arteh.easydialer.contacts.show.ShareChecks
@@ -91,9 +92,9 @@ fun ShowScreen(contactVM: ContactVM = viewModel(), padding: PaddingSides) {
         ) {
             TopRow(uiState.contact.contactID, uiState.contact.isStarred, contactVM::onAction)
 
-            ContactInfo(uiState.contact, contactVM::onAction)
+            ContactInfo(uiState.contact, uiState.speedDialMap, contactVM::onAction)
 
-            OptionsButtons(uiState.contact, contactVM::onAction)
+            OptionsButtons(contactVM::onAction)
         }
 
     val dismissPopup = contactVM::dismissPopup
@@ -116,9 +117,8 @@ fun ShowScreen(contactVM: ContactVM = viewModel(), padding: PaddingSides) {
     else if (showState.showDelete)
         DigDelete(dismissPopup) { contactVM.onAction(ContactUIAction.DeleteContact(context)) }
     else if (showState.showSpeedList)
-        DigSpeedDial(
-            uiState.speedSlot, uiState.speedDialMap, dismissPopup
-        ) { contactVM.onAction(ContactUIAction.UpdateSpeedSlot(it)) }
+        DigSpeedDial(uiState.speedSlot, uiState.speedDialMap, dismissPopup)
+        { contactVM.onAction(ContactUIAction.UpdateSpeedSlot(it)) }
     else if (showState.showShare)
         DigShareContact(
             uiState.contact!!, dismissPopup
@@ -202,7 +202,11 @@ private fun TopRow(contactID: Long, isStarred: Boolean, onAction: (ContactUIActi
 }
 
 @Composable
-private fun ContactInfo(contact: EditableContact, onAction: (ContactUIAction) -> Unit) {
+private fun ContactInfo(
+    contact: EditableContact,
+    speedDialMap: Map<Int, SpeedDialEntry>,
+    onAction: (ContactUIAction) -> Unit
+) {
     ContactPhoto(contact.photoUri)
 
     Text(contact.fullName, style = MaterialTheme.appTypography.h3)
@@ -228,8 +232,10 @@ private fun ContactInfo(contact: EditableContact, onAction: (ContactUIAction) ->
             .padding(10.dp)
     ) {
         contact.phones.forEachIndexed { index, phone ->
+            val isSpeedDial = speedDialMap.values.any { it.phoneId == phone.phoneID }
             ItemPhoneNumber(
                 phone,
+                isSpeedDial,
                 { onAction(ContactUIAction.MakeCall(index)) },
                 { onAction(ContactUIAction.SendSMS(index)) },
                 { onAction(ContactUIAction.ShowSpeedDial(index)) }
@@ -287,7 +293,7 @@ private fun ContactInfo(contact: EditableContact, onAction: (ContactUIAction) ->
 }
 
 @Composable
-private fun OptionsButtons(contact: EditableContact, onAction: (ContactUIAction) -> Unit) {
+private fun OptionsButtons(onAction: (ContactUIAction) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -300,13 +306,6 @@ private fun OptionsButtons(contact: EditableContact, onAction: (ContactUIAction)
             AppColor.Icons.resolve(),
             stringResource(R.string.share_contact),
             { onAction(ContactUIAction.ShowShareContact) })
-
-        if (contact.phones.isNotEmpty())
-            ItemOption(
-                R.drawable.speed,
-                AppColor.GradYoda.resolve(),
-                stringResource(R.string.speed_dial),
-                { onAction(ContactUIAction.ShowSpeedDial(0)) })
 
         ItemOption(
             R.drawable.block,
@@ -384,6 +383,7 @@ fun ContactPhoto(photoUri: Uri?) {
 @Composable
 private fun ItemPhoneNumber(
     phone: ContactPhone,
+    isSpeedDial: Boolean,
     onCall: () -> Unit,
     onSMS: () -> Unit,
     onSpeedDial: () -> Unit
@@ -402,6 +402,16 @@ private fun ItemPhoneNumber(
             .clickable(onClick = onCall),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        if (phone.isDefault)
+            Icon(
+                modifier = Modifier
+                    .padding(horizontal = 5.dp)
+                    .size(25.dp),
+                painter = painterResource(R.drawable.call),
+                contentDescription = null,
+                tint = AppColor.Icons.resolve()
+            )
+
         Icon(
             modifier = Modifier
                 .padding(horizontal = 5.dp)
@@ -434,12 +444,16 @@ private fun ItemPhoneNumber(
             modifier = Modifier
                 .padding(start = 5.dp)
                 .size(40.dp)
-                .background(AppColor.GradYoda.resolve().copy(alpha = 0.1f), CircleShape)
+                .background(
+                    if (isSpeedDial) AppColor.GradYoda.resolve()
+                    else AppColor.GradYoda.resolve().copy(alpha = 0.1f),
+                    CircleShape
+                )
                 .padding(10.dp)
                 .noRippleClickable(onSpeedDial),
             painter = painterResource(R.drawable.speed),
             contentDescription = stringResource(R.string.speed_dial),
-            tint = AppColor.GradYoda.resolve()
+            tint = if (isSpeedDial) Color.White else AppColor.GradYoda.resolve()
         )
     }
 }
