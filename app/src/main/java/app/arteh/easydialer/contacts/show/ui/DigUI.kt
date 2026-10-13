@@ -1,13 +1,20 @@
 package app.arteh.easydialer.contacts.show.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -17,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -32,6 +40,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.arteh.easydialer.R
@@ -124,59 +133,141 @@ internal fun DigSpeedDial(
     dismissPopup: () -> Unit,
     updateSlot: (Int) -> Unit,
 ) {
+    val numbers = remember { listOf<Int?>(1, 2, 3, 4, 5, 6, 7, 8, 9, null, 0, null) }
+
     ModalBottomSheet(
         onDismissRequest = dismissPopup,
         containerColor = MaterialTheme.colorScheme.surface,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ) {
         Column(Modifier.padding(15.dp)) {
-            Row(
-                modifier = Modifier
-                    .padding(5.dp)
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .noRippleClickable { updateSlot(-1) },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (selectedSlot == -1)
-                    Icon(
-                        painterResource(R.drawable.check),
-                        contentDescription = stringResource(R.string.save_changes),
-                        tint = AppColor.GradGreen.resolve()
-                    )
-                Text(
-                    modifier = Modifier.padding(horizontal = 10.dp),
-                    text = stringResource(R.string.none)
-                )
-            }
+            Text(
+                text = stringResource(R.string.speed_dial),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
 
-            for (i in 0 until 10)
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .noRippleClickable { updateSlot(-1) },
+                shape = RoundedCornerShape(12.dp),
+                color = if (selectedSlot == -1)
+                    AppColor.GradGreen.resolve().copy(alpha = 0.15f)
+                else
+                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                border = if (selectedSlot == -1) BorderStroke(1.5.dp, AppColor.GradGreen.resolve()) else null
+            ) {
                 Row(
                     modifier = Modifier
-                        .padding(5.dp)
                         .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surface)
-                        .noRippleClickable { updateSlot(i) },
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(vertical = 12.dp, horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    if (selectedSlot == i)
+                    if (selectedSlot == -1) {
                         Icon(
-                            painterResource(R.drawable.check),
+                            painter = painterResource(R.drawable.check),
                             contentDescription = stringResource(R.string.save_changes),
-                            tint = AppColor.GradGreen.resolve()
+                            tint = AppColor.GradGreen.resolve(),
+                            modifier = Modifier.size(20.dp)
                         )
-                    Text(modifier = Modifier.padding(horizontal = 15.dp), text = i.toString())
-                    Column {
-                        if (speedMap[i] != null) {
-                            Text(
-                                text = speedMap[i]!!.displayName,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(text = speedMap[i]!!.phoneNumber)
+                        Spacer(Modifier.width(8.dp))
+                    }
+                    Text(
+                        text = stringResource(R.string.none),
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 15.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp)
+            ) {
+                items(numbers) { i ->
+                    if (i == null) {
+                        Spacer(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(80.dp)
+                        )
+                    } else {
+                        val isSelected = selectedSlot == i
+                        val entry = speedMap[i]
+
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(80.dp)
+                                .noRippleClickable { updateSlot(i) },
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (isSelected)
+                                AppColor.GradGreen.resolve().copy(alpha = 0.15f)
+                            else
+                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                            border = if (isSelected) BorderStroke(
+                                1.5.dp,
+                                AppColor.GradGreen.resolve()
+                            ) else null
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(6.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        text = i.toString(),
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    if (isSelected) {
+                                        Spacer(Modifier.width(4.dp))
+                                        Icon(
+                                            painter = painterResource(R.drawable.check),
+                                            contentDescription = stringResource(R.string.save_changes),
+                                            tint = AppColor.GradGreen.resolve(),
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                }
+                                if (entry != null) {
+                                    Spacer(Modifier.height(2.dp))
+                                    Text(
+                                        text = entry.displayName,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = entry.phoneNumber,
+                                        fontSize = 10.sp,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
                         }
                     }
                 }
+            }
         }
     }
 }
