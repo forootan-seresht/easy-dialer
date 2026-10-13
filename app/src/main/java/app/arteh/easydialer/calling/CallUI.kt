@@ -256,6 +256,7 @@ private fun TalkingUI(
                 contentDescription = null
             )
 
+        Spacer(Modifier.weight(1f))
         if (contact != null && contact.name != "")
             Text(
                 text = contact.name,
