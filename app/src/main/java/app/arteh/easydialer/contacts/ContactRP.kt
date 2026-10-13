@@ -244,10 +244,6 @@ class ContactRP {
                     val isBlocked = isNumberBlocked(context, number)
                     val photoURI = cursor.getString(photoIndex)?.toUri()
 
-                    phoneList.add(
-                        ContactPhone(phoneID, number, numberType, isBlocked)
-                    )
-
                     val (firstName, lastName) = getContactName(cr, id)
                     val (job, company) = getContactOrg(cr, id)
                     val email = getEmail(cr, id)
@@ -257,11 +253,7 @@ class ContactRP {
 
                     phoneList.add(
                         ContactPhone(
-                            phoneID,
-                            number,
-                            numberType,
-                            isBlocked,
-                            defaultSimID = phoneSimID
+                            phoneID, number, numberType, isBlocked, defaultSimID = phoneSimID
                         )
                     )
 
