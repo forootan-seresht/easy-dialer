@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -179,12 +180,14 @@ private fun CallingUI(
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Gray,
-            modifier = Modifier.padding(top = 8.dp)
+            modifier = Modifier.padding(vertical = 20.dp)
         )
 
         if (contactPic != null)
             Image(
-                modifier = Modifier.size(150.dp),
+                modifier = Modifier
+                    .size(250.dp)
+                    .clip(CircleShape),
                 bitmap = contactPic!!,
                 contentDescription = null
             )
@@ -248,7 +251,7 @@ private fun TalkingUI(
     ) {
         if (contactPic != null)
             Image(
-                modifier = Modifier.size(150.dp),
+                modifier = Modifier.size(200.dp).clip(CircleShape),
                 bitmap = contactPic!!,
                 contentDescription = null
             )
@@ -314,61 +317,65 @@ private fun IncomingCallUI(number: String, contact: Contact?, onAction: (CallAct
             }
         }
 
-    Box {
-        if (contactPic != null)
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            Color(0xFF000000),
+                            Color(0x00000000),
+                        )
+                    )
+                )
+                .padding(top = 40.dp, bottom = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = contact?.name ?: "-",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White
+            )
+            Text(
+                text = number,
+                fontSize = 32.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White
+            )
+        }
+
+        if (contactPic != null) {
+            Spacer(Modifier.weight(1f))
+
             Image(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .size(250.dp)
+                    .clip(CircleShape),
                 bitmap = contactPic!!,
                 contentDescription = null,
                 contentScale = ContentScale.Crop
             )
+        }
 
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceEvenly,
+        Spacer(Modifier.weight(1f))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 32.dp, vertical = 100.dp),
+            horizontalArrangement = Arrangement.SpaceAround
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(
-                                Color(0xFF000000),
-                                Color(0x00000000),
-                            )
-                        )
-                    )
-                    .padding(top = 40.dp, bottom = 10.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = contact?.name ?: "-",
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color.White
-                )
-                Text(
-                    text = number,
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color.White
-                )
-            }
+            BigCallButton(R.drawable.call, Color(0xFF33C385), true, true)
+            { onAction(CallAction.Answer) }
 
-            Spacer(Modifier.weight(1f))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 32.dp, vertical = 100.dp),
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
-                BigCallButton(R.drawable.call, Color(0xFF33C385), true, true)
-                { onAction(CallAction.Answer) }
-
-                BigCallButton(R.drawable.call_end, Color(0xFFF53F5A), true, true)
-                { onAction(CallAction.Reject) }
-            }
+            BigCallButton(R.drawable.call_end, Color(0xFFF53F5A), true, true)
+            { onAction(CallAction.Reject) }
         }
     }
 }
@@ -416,7 +423,7 @@ fun formatDuration(seconds: Long): String {
     }
 }
 
-@Preview(showBackground = true)
+//@Preview(showBackground = true)
 @Composable
 fun CallingUIPreview() {
     EasyDialerTheme {
@@ -451,7 +458,7 @@ fun TalkingUIPreview() {
     }
 }
 
-//@Preview(showBackground = true)
+@Preview(showBackground = true)
 @Composable
 fun IncomingCallUIPreview() {
     EasyDialerTheme {
