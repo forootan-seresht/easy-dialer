@@ -54,9 +54,8 @@ class CallVM(application: Application) : AndroidViewModel(application) {
                     }
 
                     when (info.state) {
-                        Call.STATE_RINGING -> {
+                        Call.STATE_RINGING ->
                             _uiState.update { it.copy(state = CallState.Incoming) }
-                        }
 
                         Call.STATE_ACTIVE -> {
                             _uiState.update { it.copy(state = CallState.Talking) }
